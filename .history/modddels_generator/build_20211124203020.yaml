@@ -1,0 +1,15 @@
+targets:
+  $default:
+    builders:
+      modddels_generator|modddels_annotations:
+        enabled: true
+
+builders:
+  modddels_generator:
+    target: ":modddels_generator"
+    import: "package:modddels_generator/builder.dart"
+    builder_factories: ["generateModddel"]
+    build_extensions: { ".dart": [".modddel.g.dart"] }
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]
