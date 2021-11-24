@@ -1,12 +1,19 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
+import 'package:modddels_generator/src/value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
 
 import 'model_visitor.dart';
 
+enum Model {
+  valueObject,
+  entity,
+}
+
 class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
 // 1
+
   @override
   String generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) {
@@ -17,44 +24,78 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       );
     }
 
-    final visitor = ModelVisitor();
-    element.visitChildren(
-        visitor); // Visits all the children of element in no particular order.
+    final ClassElement classElement = element;
 
-    final className = '${visitor.className}Gen'; // EX: 'ModelGen' for 'Model'.
+    final className = classElement.name;
 
-    final classBuffer = StringBuffer();
+    print(className);
 
-    // 5
-    classBuffer.writeln('class $className extends ${visitor.className} {');
+    // final visitor = ModelVisitor();
+    // element.visitChildren(
+    //     visitor); // Visits all the children of element in no particular order.
 
-    // 6
-    classBuffer.writeln('Map<String, dynamic> variables = {};');
+    final constructors = classElement.constructors;
 
-    // 7
-    classBuffer.writeln('$className() {');
+    print(constructors.map((e) =>
+        '${e.displayName} - ${e.isDefaultConstructor} - ${e.isPrivate}'));
 
-    // 8
-    for (final field in visitor.fields.keys) {
-      // remove '_' from private variables
-      final variable =
-          field.startsWith('_') ? field.replaceFirst('_', '') : field;
-
-      classBuffer.writeln("variables['${variable}'] = super.$field;");
-      // EX: variables['name'] = super._name;
+    if (constructors.length < 2) {
+      throw InvalidGenerationSourceError(
+        'Missing constructors',
+        element: element,
+      );
     }
 
-    // 9
-    classBuffer.writeln('}');
+    final factoryConstructor = constructors.firstWhere(
+      (element) => element.isFactory,
+      orElse: () => throw InvalidGenerationSourceError(
+        'Missing factory constructor',
+        element: element,
+      ),
+    );
 
-    // 10
-    generateGettersAndSetters(visitor, classBuffer);
+    print(factoryConstructor.displayName);
 
-    // 11
-    classBuffer.writeln('}');
+    final privateConstructor = constructors.firstWhere(
+      (element) => !element.isFactory && element.isPrivate,
+      orElse: () => throw InvalidGenerationSourceError(
+        'Missing private constructor',
+        element: element,
+      ),
+    );
 
-    // 12
-    return classBuffer.toString();
+    print(privateConstructor.displayName);
+
+    Model modelType;
+
+    final superClass = classElement.allSupertypes;
+
+    if (superClass.any((element) => element
+        .getDisplayString(withNullability: false)
+        .startsWith('ValueObject'))) {
+      modelType = Model.valueObject;
+    } else if (superClass.any((element) => element
+        .getDisplayString(withNullability: false)
+        .startsWith('Entity'))) {
+      modelType = Model.entity;
+    } else {
+      throw InvalidGenerationSourceError(
+        'Should either extend Entity or ValueObject',
+        element: element,
+      );
+    }
+
+    switch (modelType) {
+      case Model.valueObject:
+        return ValueObjectGenerator(
+                className: className, factoryConstructor: factoryConstructor)
+            .generate();
+      case Model.entity:
+        //TODO replace with entityGenerator
+        return ValueObjectGenerator(
+                className: className, factoryConstructor: factoryConstructor)
+            .generate();
+    }
   }
 
   void generateGettersAndSetters(

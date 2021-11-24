@@ -6,6 +6,11 @@ class ModelVisitor extends SimpleElementVisitor<dynamic> {
   final fields = <String, dynamic>{};
 
   @override
+  visitClassElement(ClassElement element) {
+    className = element.name.replaceFirst('*', '');
+  }
+
+  @override
   void visitConstructorElement(ConstructorElement element) {
     final elementReturnType = element.type.returnType.toString();
 
