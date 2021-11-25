@@ -1,3 +1,6 @@
+import 'entity.dart';
+import 'value_object.dart';
+
 ///The base class for [Entity] and [ValueObject]
 abstract class Modddel {}
 

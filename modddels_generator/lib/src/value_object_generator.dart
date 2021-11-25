@@ -7,12 +7,10 @@ class ValueObjectGenerator {
       {required this.className, required this.factoryConstructor});
 
   final String className;
-  ConstructorElement factoryConstructor;
+  final ConstructorElement factoryConstructor;
 
   String generate() {
     final parameters = factoryConstructor.parameters;
-
-    print(parameters.map((e) => e.name));
 
     final inputParameter = parameters.firstWhere(
       (element) => element.isPositional && element.name == 'input',
@@ -30,52 +28,100 @@ class ValueObjectGenerator {
 
     makeMixin(classBuffer, classInfo);
 
-    // 8
-    // for (final field in visitor.fields.keys) {
-    //   // remove '_' from private variables
-    //   final variable =
-    //       field.startsWith('_') ? field.replaceFirst('_', '') : field;
+    makeValidValueObject(classBuffer, classInfo);
 
-    //   classBuffer.writeln("variables['${variable}'] = super.$field;");
-    //   // EX: variables['name'] = super._name;
-    // }
+    makeInvalidValueObject(classBuffer, classInfo);
 
-    // 9
-
-    // 10
-    // generateGettersAndSetters(visitor, classBuffer);
-
-    // 11
-
-    // 12
     return classBuffer.toString();
   }
 
   void makeMixin(StringBuffer classBuffer, ValueObjectClassInfo classInfo) {
-    classBuffer.writeln('mixin _\$$className {');
+    classBuffer.writeln('mixin \$$className {');
 
-    ///Create method
-    classBuffer.writeln(
-        'static $className create(${classInfo.valueTypeName} input) {');
+    ///create method
+    classBuffer
+        .writeln('static $className _create(${classInfo.valueType} input) {');
 
     classBuffer.writeln('return const $className._()');
     classBuffer.writeln('.validateWithResult(input).match(');
     classBuffer
-        .writeln('(l) => ${classInfo.invalidValueObjectName}._(failure: l),');
-    classBuffer
-        .writeln('(r) => ${classInfo.validValueObjectName}._(value: r),');
+        .writeln('(l) => ${classInfo.invalidValueObject}._(failure: l),');
+    classBuffer.writeln('(r) => ${classInfo.validValueObject}._(value: r),');
     classBuffer.writeln(');');
 
     classBuffer.writeln('}');
 
-    ///Match method
+    ///toBroadEitherNullable method
+    classBuffer.writeln(
+        'static Either<Failure, ${classInfo.validValueObject}?> toBroadEitherNullable(');
+    classBuffer.writeln(' $className? nullableValueObject) =>');
+    classBuffer.writeln('optionOf(nullableValueObject)');
+    classBuffer.writeln('.match((t) => t.toBroadEither, () => right(null));');
+
+    ///match method
     classBuffer.writeln('TResult match<TResult extends Object?>(');
     classBuffer.writeln(
-        '{required TResult Function(${classInfo.validValueObjectName} value) valid,');
+        '{required TResult Function(${classInfo.validValueObject} valid) valid,');
     classBuffer.writeln(
-        'required TResult Function(${classInfo.invalidValueObjectName} value) invalid}) {');
+        'required TResult Function(${classInfo.invalidValueObject} invalid) invalid}) {');
     classBuffer.writeln('throw UnimplementedError();');
     classBuffer.writeln('}');
+
+    //End
+    classBuffer.writeln('}');
+  }
+
+  void makeValidValueObject(
+      StringBuffer classBuffer, ValueObjectClassInfo classInfo) {
+    classBuffer.writeln(
+        'class ${classInfo.validValueObject} extends $className implements ValidValueObject<${classInfo.valueType}> {');
+    classBuffer.writeln(
+        'const ${classInfo.validValueObject}._({required this.value}) : super._();');
+
+    classBuffer.writeln('@override');
+    classBuffer.writeln('final ${classInfo.valueType} value;');
+
+    classBuffer.writeln('@override');
+    classBuffer.writeln('TResult match<TResult extends Object?>(');
+    classBuffer.writeln(
+        '{required TResult Function(${classInfo.validValueObject} valid) valid,');
+    classBuffer.writeln(
+        'required TResult Function(${classInfo.invalidValueObject} invalid) invalid}) {');
+    classBuffer.writeln('return valid(this);');
+    classBuffer.writeln('}');
+
+    classBuffer.writeln('@override');
+    classBuffer.writeln('List<Object?> get allProps => [value];');
+
+    classBuffer.writeln('}');
+  }
+
+  void makeInvalidValueObject(
+      StringBuffer classBuffer, ValueObjectClassInfo classInfo) {
+    classBuffer
+        .writeln('class ${classInfo.invalidValueObject} extends $className');
+    classBuffer.writeln(
+        'implements InvalidValueObject<${classInfo.valueType}, ${classInfo.valueFailure}> {');
+    classBuffer.writeln('const ${classInfo.invalidValueObject}._({');
+    classBuffer.writeln('required this.failure,');
+    classBuffer.writeln('}) : super._();');
+
+    classBuffer.writeln('@override');
+    classBuffer.writeln('final ${classInfo.valueFailure} failure;');
+
+    ///match method
+    classBuffer.writeln('@override');
+    classBuffer.writeln('TResult match<TResult extends Object?>(');
+    classBuffer.writeln(
+        '{required TResult Function(${classInfo.validValueObject} valid) valid,');
+    classBuffer.writeln(
+        'required TResult Function(${classInfo.invalidValueObject} invalid) invalid}) {');
+    classBuffer.writeln('return invalid(this);');
+    classBuffer.writeln('}');
+
+    ///allProps method
+    classBuffer.writeln('@override');
+    classBuffer.writeln('List<Object?> get allProps => [failure];');
 
     classBuffer.writeln('}');
   }
