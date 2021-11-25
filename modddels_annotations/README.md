@@ -158,6 +158,98 @@ NB : You can create a ValidValueObject or a ValidEntity by directly extending re
 
 The Entity supports containing optional and nullable parameters, as well as default values.
 
+# VsCode snippets
+
+```json
+{
+	"Value Object": {
+		"prefix": "valueobject",
+		"body": [
+			"@modddel",
+			"class ${1} extends ValueObject<${2}, ${1}ValueFailure, Invalid${1}, Valid${1}>",
+			"    with $${1} {",
+			"  factory ${1}(${2} input) {",
+			"    return $${1}._create(input);",
+			"  }",
+			"",
+			"  const ${1}._();",
+			"",
+			"  @override",
+			"  Option<${1}ValueFailure> validate(${2} input) {",
+			"    //TODO Implement validate",
+			"    return none();",
+			"  }",
+			"}"
+		],
+		"description": "Value Object"
+	},
+	"Value Failure": {
+		"prefix": "valuefailure",
+		"body": [
+			"@freezed",
+			"class ${1}ValueFailure extends ValueFailure<${2}> with _$${1}ValueFailure {",
+			"  const factory ${1}ValueFailure.${3}({",
+			"    required ${2} failedValue,${5}",
+			"  }) = _${4};",
+			"}"
+		],
+		"description": "Value Failure"
+	},
+	"Value Failure Union Case": {
+		"prefix": "valuefailurecase",
+		"body": [
+			"const factory ${1}ValueFailure.${3}({",
+			"  required ${2} failedValue,${5}",
+			"}) = _${4};",
+		],
+		"description": "Value Failure Union Case"
+	},
+	"Entity": {
+		"prefix": "entity",
+		"body": [
+			"@modddel",
+			"class ${1} extends Entity<${1}EntityFailure, Invalid${1}General,",
+			"    Invalid${1}Content, Invalid${1}, Valid${1}> with $${1} {",
+			"  factory ${1}({",
+			"    ${2}",
+			"  }) {",
+			"    return $${1}._create(",
+			"      ${3}",
+			"    );",
+			"  }",
+			"",
+			"  const ${1}._();",
+			"",
+			"  @override",
+			"  Option<${1}EntityFailure> validateGeneral(Valid${1} valid) {",
+			"    //TODO Implement validate",
+			"    return none();",
+			"  }",
+			"}",
+		],
+		"description": "Entity"
+	},
+	"Entity Failure": {
+		"prefix": "entityfailure",
+		"body": [
+			"@freezed",
+			"class ${1}EntityFailure extends GeneralEntityFailure with _$${1}EntityFailure {",
+			"  const factory ${1}EntityFailure.${2}(${4}) = _${3};",
+			"}"
+		],
+		"description": "General Entity Failure"
+	},
+	"Entity Failure Union Case": {
+		"prefix": "entityfailurecase",
+		"body": [
+			"const factory ${1}EntityFailure.${2}(${4}) = _${3};",
+		],
+		"description": "Value Failure Union Case"
+	},
+}
+```
+
+
 # Additional information
 
 TODO: Tell users more about the package: where to find more information, how to 
