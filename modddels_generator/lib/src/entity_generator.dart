@@ -355,7 +355,7 @@ class EntityGenerator {
     @override
     List<Object?> get allProps => [
       generalEntityFailure,
-      ${classInfo.namedParameters.map((param) => '${param.name},').join()},
+      ${classInfo.namedParameters.map((param) => '${param.name},').join()}
     ];
     ''');
 
