@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -49,82 +48,70 @@ class EntityGenerator {
   }
 
   void makeMixin(StringBuffer classBuffer, EntityClassInfo classInfo) {
-    classBuffer.writeln('mixin \$$className {');
+    classBuffer.writeln('''
+    mixin \$$className {
+    
+    ''');
 
     //create method
-    classBuffer.writeln('static $className _create({');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('required ${param.type} ${param.name},');
+    classBuffer.writeln('''
+    static $className _create({
+      ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
+    }) {
+      ${generateContentVerification(classInfo.namedParameters, classInfo)}
+
+      return contentVerification.match(
+        ///The content is invalid
+        (contentFailure) => ${classInfo.invalidEntityContent}._(
+          contentFailure: contentFailure,
+          ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
+        ),
+
+        ///The content is valid => We check if there's a general failure
+        (validContent) => const $className._().validateGeneral(validContent).match(
+          (generalFailure) => ${classInfo.invalidEntityGeneral}._(
+            generalEntityFailure: generalFailure,
+            ${classInfo.namedParameters.map((param) => '${param.name} : validContent.${param.name},').join()}
+          ),
+          () => validContent,
+        ),
+      );
     }
-    classBuffer.writeln('}) {');
-    classBuffer.writeln(
-        generateContentVerification(classInfo.namedParameters, classInfo));
-    classBuffer.writeln('return contentVerification.match(');
-    classBuffer.writeln('///The content is invalid');
-    classBuffer
-        .writeln('(contentFailure) => ${classInfo.invalidEntityContent}._(');
-    classBuffer.writeln('contentFailure: contentFailure,');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('${param.name} : ${param.name},');
-    }
-    classBuffer.writeln('),');
-    classBuffer.writeln(
-        '///The content is valid => We check if there\'s a general failure');
-    classBuffer.writeln(
-        '(validContent) => const $className._().validateGeneral(validContent).match(');
-    classBuffer
-        .writeln('(generalFailure) => ${classInfo.invalidEntityGeneral}._(');
-    classBuffer.writeln('generalEntityFailure: generalFailure,');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('${param.name} : validContent.${param.name},');
-    }
-    classBuffer.writeln('),');
-    classBuffer.writeln('() => validContent,');
-    classBuffer.writeln('),');
-    classBuffer.writeln(');');
-    classBuffer.writeln('}');
-    classBuffer.writeln('');
+    ''');
 
     ///toBroadEitherNullable method
-    classBuffer.writeln(
-        'static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(');
-    classBuffer.writeln('$className? nullableEntity) =>');
-    classBuffer.writeln(
-        'optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
+      $className? nullableEntity) =>
+      optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
+
+    ''');
 
     ///match method
-    classBuffer.writeln('TResult match<TResult extends Object?>(');
-    classBuffer.writeln(
-        '{required TResult Function(${classInfo.validEntity} valid) valid,');
-    classBuffer.writeln(
-        'required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {');
-    classBuffer.writeln('throw UnimplementedError();');
-    classBuffer.writeln('}');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    TResult match<TResult extends Object?>(
+      {required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
+        throw UnimplementedError();
+    }
+    ''');
 
     ///copyWith method
-    classBuffer.writeln('$className copyWith({');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('${param.optionalType} ${param.name},');
+    classBuffer.writeln('''
+    $className copyWith({
+      ${classInfo.namedParameters.map((param) => '${param.optionalType} ${param.name},').join()}
+    }) {
+      return match(
+        valid: (valid) => _create(
+          ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? valid.${param.name},').join()}
+        ),
+        invalid: (invalid) => _create(
+          ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? invalid.${param.name},').join()}
+        ),
+      );
     }
 
-    classBuffer.writeln('}) {');
-    classBuffer.writeln('return match(');
-    classBuffer.writeln('valid: (valid) => _create(');
-    for (final param in classInfo.namedParameters) {
-      final name = param.name;
-      classBuffer.writeln('$name: $name ?? valid.$name,');
-    }
-    classBuffer.writeln('),');
-    classBuffer.writeln('invalid: (invalid) => _create(');
-    for (final param in classInfo.namedParameters) {
-      final name = param.name;
-      classBuffer.writeln('$name: $name ?? invalid.$name,');
-    }
-    classBuffer.writeln('),');
-    classBuffer.writeln(');');
-    classBuffer.writeln('}');
+    ''');
 
     //End
     classBuffer.writeln('}');
@@ -167,16 +154,18 @@ class EntityGenerator {
   }
 
   void makeValidEntity(StringBuffer classBuffer, EntityClassInfo classInfo) {
-    classBuffer.writeln(
-        'class ${classInfo.validEntity} extends $className implements ValidEntity {');
+    classBuffer.writeln('''
+    class ${classInfo.validEntity} extends $className implements ValidEntity {
+      
+    ''');
 
     ///private constructor
-    classBuffer.writeln('const ${classInfo.validEntity}._({');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('required this.${param.name},');
-    }
-    classBuffer.writeln('}) : super._();');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    const ${classInfo.validEntity}._({
+      ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
+      }) : super._();
+
+    ''');
 
     ///class members
     for (final param in classInfo.namedParameters) {
@@ -187,38 +176,41 @@ class EntityGenerator {
     classBuffer.writeln('');
 
     ///match method
-    classBuffer.writeln('@override');
-    classBuffer.writeln('TResult match<TResult extends Object?>(');
-    classBuffer.writeln(
-        '{required TResult Function(${classInfo.validEntity} valid) valid,');
-    classBuffer.writeln(
-        'required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {');
-    classBuffer.writeln('return valid(this);');
-    classBuffer.writeln('}');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    @override
+    TResult match<TResult extends Object?>(
+      {required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
+        return valid(this);
+    }
+
+    ''');
 
     ///allProps method
-    classBuffer.writeln('@override');
-    classBuffer.writeln('List<Object?> get allProps => [');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('${param.name},');
-    }
-    classBuffer.writeln('];');
+    classBuffer.writeln('''
+    @override
+    List<Object?> get allProps => [
+        ${classInfo.namedParameters.map((param) => '${param.name},').join()}
+      ];
+    ''');
 
+    ///end
     classBuffer.writeln('}');
   }
 
   void makeInvalidEntity(StringBuffer classBuffer, EntityClassInfo classInfo) {
-    classBuffer.writeln(
-        'abstract class ${classInfo.invalidEntity} extends $className');
-    classBuffer.writeln('implements');
-    classBuffer.writeln(
-        'InvalidEntity<${classInfo.generalEntityFailure}, ${classInfo.invalidEntityGeneral},');
-    classBuffer.writeln('${classInfo.invalidEntityContent}> {');
+    classBuffer.writeln('''
+    abstract class ${classInfo.invalidEntity} extends $className
+      implements
+        InvalidEntity<${classInfo.generalEntityFailure}, ${classInfo.invalidEntityGeneral},
+          ${classInfo.invalidEntityContent}> {
+    ''');
 
     ///private constructor
-    classBuffer.writeln('const ${classInfo.invalidEntity}._() : super._();');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    const ${classInfo.invalidEntity}._() : super._();
+
+    ''');
 
     ///Fields getters
     for (final param in classInfo.namedParameters) {
@@ -227,14 +219,14 @@ class EntityGenerator {
     classBuffer.writeln('');
 
     ///match method
-    classBuffer.writeln('@override');
-    classBuffer.writeln('TResult match<TResult extends Object?>(');
-    classBuffer.writeln(
-        '{required TResult Function(${classInfo.validEntity} valid) valid,');
-    classBuffer.writeln(
-        'required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {');
-    classBuffer.writeln('return invalid(this);');
-    classBuffer.writeln('}');
+    classBuffer.writeln('''
+    @override
+    TResult match<TResult extends Object?>(
+      {required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
+        return invalid(this);
+    }
+    ''');
 
     ///end
     classBuffer.writeln('}');
@@ -242,64 +234,64 @@ class EntityGenerator {
 
   void makeInvalidEntityContent(
       StringBuffer classBuffer, EntityClassInfo classInfo) {
-    classBuffer.writeln(
-        'class ${classInfo.invalidEntityContent} extends ${classInfo.invalidEntity}');
-    classBuffer.writeln('implements InvalidEntityContent {');
+    classBuffer.writeln('''
+    class ${classInfo.invalidEntityContent} extends ${classInfo.invalidEntity}
+      implements InvalidEntityContent {        
+    ''');
 
     ///private constructor
-    classBuffer.writeln('const ${classInfo.invalidEntityContent}._({');
-    classBuffer.writeln('required this.contentFailure,');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('required this.${param.name},');
-    }
-    classBuffer.writeln('}) : super._();');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    const ${classInfo.invalidEntityContent}._({
+      required this.contentFailure,
+      ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
+    }) : super._();
+    ''');
 
     ///Getters
-    classBuffer.writeln('@override');
-    classBuffer.writeln('final Failure contentFailure;');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    @override
+    final Failure contentFailure;
 
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('@override');
-      classBuffer.writeln('final ${param.type} ${param.name};');
-    }
-    classBuffer.writeln('');
+    ${classInfo.namedParameters.map((param) => '''
+    @override
+    final ${param.type} ${param.name};
+    ''').join()}
+
+    ''');
 
     ///invalidMatch method
-    classBuffer.writeln('@override');
-    classBuffer.writeln('TResult invalidMatch<TResult extends Object?>(');
-    classBuffer.writeln(
-        '{required TResult Function(${classInfo.invalidEntityGeneral} invalidEntityGeneral)');
-    classBuffer.writeln('invalidEntityGeneral,');
-    classBuffer.writeln(
-        'required TResult Function(${classInfo.invalidEntityContent} invalidEntityContent)');
-    classBuffer.writeln('invalidEntityContent}) {');
-    classBuffer.writeln('return invalidEntityContent(this);');
-    classBuffer.writeln('}');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    @override
+    TResult invalidMatch<TResult extends Object?>(
+      {required TResult Function(${classInfo.invalidEntityGeneral} invalidEntityGeneral)
+        invalidEntityGeneral,
+      required TResult Function(${classInfo.invalidEntityContent} invalidEntityContent)
+        invalidEntityContent}) {
+          return invalidEntityContent(this);
+    }
+    ''');
 
     ///invalidWhen method
-    classBuffer.writeln('@override');
-    classBuffer.writeln('TResult invalidWhen<TResult extends Object?>({');
-    classBuffer.writeln(
-        'required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)');
-    classBuffer.writeln('generalEntityFailure,');
-    classBuffer.writeln(
-        'required TResult Function(Failure contentFailure) contentFailure,');
-    classBuffer.writeln('}) {');
-    classBuffer.writeln('return contentFailure(this.contentFailure);');
-    classBuffer.writeln('}');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    @override
+    TResult invalidWhen<TResult extends Object?>({
+      required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)
+        generalEntityFailure,
+      required TResult Function(Failure contentFailure) contentFailure,
+    }) {
+      return contentFailure(this.contentFailure);
+    }
+    ''');
 
     ///allProps method
-    classBuffer.writeln('@override');
-    classBuffer.writeln('List<Object?> get allProps => [');
-    classBuffer.writeln('contentFailure,');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('${param.name},');
-    }
-    classBuffer.writeln('];');
+    classBuffer.writeln('''
+    @override
+    List<Object?> get allProps => [
+      contentFailure,
+      ${classInfo.namedParameters.map((param) => '${param.name},').join()}
+    ];
+
+    ''');
 
     ///End
     classBuffer.writeln('}');
@@ -307,68 +299,65 @@ class EntityGenerator {
 
   void makeInvalidEntityGeneral(
       StringBuffer classBuffer, EntityClassInfo classInfo) {
-    classBuffer.writeln(
-        'class ${classInfo.invalidEntityGeneral} extends ${classInfo.invalidEntity}');
-    classBuffer.writeln(
-        'implements InvalidEntityGeneral<${classInfo.generalEntityFailure}> {');
+    classBuffer.writeln('''
+    class ${classInfo.invalidEntityGeneral} extends ${classInfo.invalidEntity}
+      implements InvalidEntityGeneral<${classInfo.generalEntityFailure}> {
+    ''');
 
     ///private constructor
-    classBuffer.writeln('const ${classInfo.invalidEntityGeneral}._({');
-    classBuffer.writeln('required this.generalEntityFailure,');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('required this.${param.name},');
-    }
-    classBuffer.writeln('}) : super._();');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    const ${classInfo.invalidEntityGeneral}._({
+      required this.generalEntityFailure,
+      ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
+    }) : super._();
+
+    ''');
 
     ///Getters
-    classBuffer.writeln('@override');
-    classBuffer.writeln(
-        'final ${classInfo.generalEntityFailure} generalEntityFailure;');
-    classBuffer.writeln('');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('@override');
-      final paramType =
-          param.hasValidAnnotation ? param.type : 'Valid${param.type}';
-      classBuffer.writeln('final $paramType ${param.name};');
-    }
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    @override
+    final ${classInfo.generalEntityFailure} generalEntityFailure;
+
+    ${classInfo.namedParameters.map((param) => '''
+    @override
+    final ${param.hasValidAnnotation ? param.type : 'Valid${param.type}'} ${param.name};
+    ''').join()}
+
+    ''');
 
     ///invalidMatch method
-    classBuffer.writeln('@override');
-    classBuffer.writeln('TResult invalidMatch<TResult extends Object?>(');
-    classBuffer.writeln(
-        '{required TResult Function(${classInfo.invalidEntityGeneral} invalidEntityGeneral)');
-    classBuffer.writeln('invalidEntityGeneral,');
-    classBuffer.writeln(
-        'required TResult Function(${classInfo.invalidEntityContent} invalidEntityContent)');
-    classBuffer.writeln('invalidEntityContent}) {');
-    classBuffer.writeln('return invalidEntityGeneral(this);');
-    classBuffer.writeln('}');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    @override
+    TResult invalidMatch<TResult extends Object?>(
+      {required TResult Function(${classInfo.invalidEntityGeneral} invalidEntityGeneral)
+        invalidEntityGeneral,
+      required TResult Function(${classInfo.invalidEntityContent} invalidEntityContent)
+        invalidEntityContent}) {
+          return invalidEntityGeneral(this);
+    }
+    ''');
 
     ///invalidWhen method
-    classBuffer.writeln('@override');
-    classBuffer.writeln('TResult invalidWhen<TResult extends Object?>({');
-    classBuffer.writeln(
-        'required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)');
-    classBuffer.writeln('generalEntityFailure,');
-    classBuffer.writeln(
-        'required TResult Function(Failure contentFailure) contentFailure,');
-    classBuffer.writeln('}) {');
-    classBuffer
-        .writeln('return generalEntityFailure(this.generalEntityFailure);');
-    classBuffer.writeln('}');
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    @override
+    TResult invalidWhen<TResult extends Object?>({
+      required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)
+        generalEntityFailure,
+      required TResult Function(Failure contentFailure) contentFailure,
+    }) {
+      return generalEntityFailure(this.generalEntityFailure);
+    }
+
+    ''');
 
     ///allProps method
-    classBuffer.writeln('@override');
-    classBuffer.writeln('List<Object?> get allProps => [');
-    classBuffer.writeln('generalEntityFailure,');
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('${param.name},');
-    }
-    classBuffer.writeln('];');
+    classBuffer.writeln('''
+    @override
+    List<Object?> get allProps => [
+      generalEntityFailure,
+      ${classInfo.namedParameters.map((param) => '${param.name},').join()},
+    ];
+    ''');
 
     ///End
     classBuffer.writeln('}');

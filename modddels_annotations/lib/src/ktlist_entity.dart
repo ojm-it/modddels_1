@@ -7,6 +7,4 @@ abstract class KtListEntity<
     I extends InvalidEntity<F, G, C>,
     V extends ValidEntity> extends Entity<F, G, C, I, V> {
   const KtListEntity();
-
-  ///TODO see if there are any methods I should override.
 }
