@@ -16,10 +16,8 @@ class ValueObjectClassInfo {
   late final String validValueObject;
 }
 
-class EntityClassInfo {
-  EntityClassInfo(this.className, List<ParameterElement> namedParameters) {
-    this.namedParameters =
-        namedParameters.map((p) => EntityParameter(p)).toList();
+abstract class BaseEntityClassInfo {
+  BaseEntityClassInfo(this.className) {
     generalEntityFailure = '${className}EntityFailure';
     invalidEntityGeneral = 'Invalid${className}General';
     invalidEntityContent = 'Invalid${className}Content';
@@ -28,12 +26,20 @@ class EntityClassInfo {
   }
 
   final String className;
-  late final List<EntityParameter> namedParameters;
   late final String generalEntityFailure;
   late final String invalidEntityGeneral;
   late final String invalidEntityContent;
   late final String invalidEntity;
   late final String validEntity;
+}
+
+class EntityClassInfo extends BaseEntityClassInfo {
+  EntityClassInfo(String className, List<ParameterElement> namedParameters)
+      : super(className) {
+    this.namedParameters =
+        namedParameters.map((p) => EntityParameter(p)).toList();
+  }
+  late final List<EntityParameter> namedParameters;
 }
 
 class EntityParameter {
@@ -68,6 +74,16 @@ class EntityParameter {
 
   bool get hasValidAnnotation =>
       parameter.metadata.any((m) => m.toSource().contains('@valid'));
+}
+
+class KtListEntityClassInfo extends BaseEntityClassInfo {
+  KtListEntityClassInfo(String className, this.ktListType) : super(className) {
+    ktListTypeValid = 'Valid$ktListType';
+  }
+
+  final String ktListType;
+
+  late final String ktListTypeValid;
 }
 
 extension StringExtension on String {

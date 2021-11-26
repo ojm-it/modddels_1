@@ -33,19 +33,6 @@ class EntityGenerator {
 
     final classInfo = EntityClassInfo(className, namedParameters);
 
-    //TODO it should be possible to have nullable parameters, que ce soit an entity or a value object.
-    //Only thing that should be generated correctly is the contentVerification.
-
-    // for (final param in classInfo.namedParameters) {
-    //   if (!param.hasValidAnnotation &&
-    //       param.parameter.type.nullabilitySuffix != NullabilitySuffix.none) {
-    //     throw InvalidGenerationSourceError(
-    //       'Unless marked with @valid, the parameter should not be nullable',
-    //       element: param.parameter,
-    //     );
-    //   }
-    // }
-
     final classBuffer = StringBuffer();
 
     makeMixin(classBuffer, classInfo);
@@ -95,8 +82,8 @@ class EntityGenerator {
     classBuffer.writeln('() => validContent,');
     classBuffer.writeln('),');
     classBuffer.writeln(');');
-
     classBuffer.writeln('}');
+    classBuffer.writeln('');
 
     ///toBroadEitherNullable method
     classBuffer.writeln(
@@ -104,6 +91,7 @@ class EntityGenerator {
     classBuffer.writeln('$className? nullableEntity) =>');
     classBuffer.writeln(
         'optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));');
+    classBuffer.writeln('');
 
     ///match method
     classBuffer.writeln('TResult match<TResult extends Object?>(');
@@ -113,6 +101,7 @@ class EntityGenerator {
         'required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {');
     classBuffer.writeln('throw UnimplementedError();');
     classBuffer.writeln('}');
+    classBuffer.writeln('');
 
     ///copyWith method
     classBuffer.writeln('$className copyWith({');
