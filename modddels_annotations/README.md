@@ -229,6 +229,36 @@ The Entity supports containing optional and nullable parameters, as well as defa
 		],
 		"description": "Entity"
 	},
+	"KtList Entity": {
+		"prefix": "ktlistentity",
+		"body": [
+			"@modddel",
+			"class ${1} extends KtListEntity<${1}EntityFailure, Invalid${1}General,",
+			"    Invalid${1}Content, Invalid${1}, Valid${1}> with $${1} {",
+			"  factory ${1}(KtList<${2}> list) {",
+			"    return $${1}._create(list);",
+			"  }",
+			"",
+			"  const ${1}._();",
+			"",
+			"  @override",
+			"  Option<${1}EntityFailure> validateGeneral(Valid${1} valid) {",
+			"    //TODO Implement validate",
+			"    return none();",
+			"  }",
+			"}",
+		],
+		"description": "KtListEntity"
+	},
+	"No entity Failure": {
+		"prefix": "noentityfailure",
+		"body": [
+			"class ${1}EntityFailure extends GeneralEntityFailure {",
+			"  //No entity failure.",
+			"}"
+		],
+		"description": "No Entity Failure"
+	},
 	"Entity Failure": {
 		"prefix": "entityfailure",
 		"body": [
