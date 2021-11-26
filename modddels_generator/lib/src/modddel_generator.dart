@@ -33,7 +33,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
     if (constructors.length < 2) {
       throw InvalidGenerationSourceError(
         'Missing constructors',
-        element: element,
+        element: classElement,
       );
     }
 
@@ -41,7 +41,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       (element) => element.isFactory,
       orElse: () => throw InvalidGenerationSourceError(
         'Missing factory constructor',
-        element: element,
+        element: classElement,
       ),
     );
 
@@ -50,7 +50,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       (element) => !element.isFactory && element.isPrivate,
       orElse: () => throw InvalidGenerationSourceError(
         'Missing private constructor',
-        element: element,
+        element: classElement,
       ),
     );
 
@@ -72,8 +72,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       modelType = Model.entity;
     } else {
       throw InvalidGenerationSourceError(
-        'Should either extend Entity or ValueObject',
-        element: element,
+        'Should either extend Entity, KtListEntity, or ValueObject',
+        element: classElement,
       );
     }
 

@@ -22,7 +22,9 @@ class NameList extends KtListEntity<
 
   @override
   Option<NameListEntityFailure> validateGeneral(ValidNameList valid) {
-    //TODO Implement validate
+    if (valid.list.isEmpty()) {
+      return some(const NameListEntityFailure.empty());
+    }
     return none();
   }
 }
