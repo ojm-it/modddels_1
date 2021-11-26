@@ -32,8 +32,12 @@ dependencies:
     sdk: flutter
   fpdart: ^0.0.12
   freezed_annotation: ^1.0.0
+  kt_dart: ^0.10.0
   modddels_annotations:
-    path: ../modddels_annotations/
+      git:
+          url: git://github.com/ojm-it/modddels.git
+          ref: master
+          path: modddels_annotations
 
 dev_dependencies:
   build_runner: ^2.1.5
@@ -42,7 +46,10 @@ dev_dependencies:
     sdk: flutter
   freezed: ^1.0.0
   modddels_generator:
-    path: ../modddels_generator/
+      git:
+          url: git://github.com/ojm-it/modddels.git
+          ref: master
+          path: modddels_generator
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

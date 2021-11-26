@@ -291,6 +291,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.3.0"
+  kt_dart:
+    dependency: "direct main"
+    description:
+      name: kt_dart
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.10.0"
   lints:
     dependency: transitive
     description:
@@ -329,16 +336,20 @@ packages:
   modddels_annotations:
     dependency: "direct main"
     description:
-      path: "../modddels_annotations"
-      relative: true
-    source: path
+      path: modddels_annotations
+      ref: master
+      resolved-ref: "92c0b914f88a07f38d2b39038afeea990f9a71c7"
+      url: "git://github.com/ojm-it/modddels.git"
+    source: git
     version: "0.0.1"
   modddels_generator:
     dependency: "direct dev"
     description:
-      path: "../modddels_generator"
-      relative: true
-    source: path
+      path: modddels_generator
+      ref: master
+      resolved-ref: "92c0b914f88a07f38d2b39038afeea990f9a71c7"
+      url: "git://github.com/ojm-it/modddels.git"
+    source: git
     version: "0.0.1"
   package_config:
     dependency: transitive

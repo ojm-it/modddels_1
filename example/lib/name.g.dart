@@ -18,6 +18,7 @@ mixin $Name {
           Name? nullableValueObject) =>
       optionOf(nullableValueObject)
           .match((t) => t.toBroadEither, () => right(null));
+
   TResult match<TResult extends Object?>(
       {required TResult Function(ValidName valid) valid,
       required TResult Function(InvalidName invalid) invalid}) {
@@ -27,8 +28,10 @@ mixin $Name {
 
 class ValidName extends Name implements ValidValueObject<String> {
   const ValidName._({required this.value}) : super._();
+
   @override
   final String value;
+
   @override
   TResult match<TResult extends Object?>(
       {required TResult Function(ValidName valid) valid,
@@ -45,8 +48,10 @@ class InvalidName extends Name
   const InvalidName._({
     required this.failure,
   }) : super._();
+
   @override
   final NameValueFailure failure;
+
   @override
   TResult match<TResult extends Object?>(
       {required TResult Function(ValidName valid) valid,

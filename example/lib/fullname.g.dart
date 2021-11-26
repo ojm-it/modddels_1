@@ -43,6 +43,7 @@ mixin $FullName {
   static Either<Failure, ValidFullName?> toBroadEitherNullable(
           FullName? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
+
   TResult match<TResult extends Object?>(
       {required TResult Function(ValidFullName valid) valid,
       required TResult Function(InvalidFullName invalid) invalid}) {
