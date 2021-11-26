@@ -149,7 +149,7 @@ class EntityGenerator {
 
     return '''right(${classInfo.validEntity}._(
         ${constructorParams.join('')}
-      )),
+      ))$comma
       ''';
   }
 
