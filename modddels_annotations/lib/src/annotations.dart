@@ -17,3 +17,8 @@ class ValidAnnotation {
 ///Use this annotation when you want an element of the entity is not a modddel.
 ///(for example a simple bool).
 const valid = ValidAnnotation();
+
+/// Same as the [valid] annotation, but this generates a getter to directly
+/// access the field from an unvalidated element
+
+const validWithGetter = ValidAnnotation(generateGetter: true);
