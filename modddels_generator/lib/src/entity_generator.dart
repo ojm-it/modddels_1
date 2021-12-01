@@ -184,6 +184,9 @@ class EntityGenerator {
 
     ///class members
     for (final param in classInfo.namedParameters) {
+      if (param.generateGetter == true) {
+        classBuffer.writeln('@override');
+      }
       final paramType =
           param.hasValidAnnotation ? param.type : 'Valid${param.type}';
       classBuffer.writeln('final $paramType ${param.name};');
@@ -229,6 +232,9 @@ class EntityGenerator {
 
     ///Fields getters
     for (final param in classInfo.namedParameters) {
+      if (param.generateGetter == true) {
+        classBuffer.writeln('@override');
+      }
       classBuffer.writeln('${param.type} get ${param.name};');
     }
     classBuffer.writeln('');
