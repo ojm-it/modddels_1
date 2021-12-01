@@ -19,6 +19,6 @@ class ValidAnnotation {
 const valid = ValidAnnotation();
 
 /// Same as the [valid] annotation, but this generates a getter to directly
-/// access the field from an unvalidated element
+/// access the field from the unvalidated entity
 
 const validWithGetter = ValidAnnotation(generateGetter: true);

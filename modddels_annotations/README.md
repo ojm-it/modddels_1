@@ -152,6 +152,8 @@ factory FullName({
   }) { ...
 ```
 
+If you want to generate a getter to directly access the field from the unvalidated entity, use `@validWithGetter` instead.
+
 NB : You can create a ValidValueObject or a ValidEntity by directly extending respectively the class ValidValueObject or ValidEntity.
 
 ### Optional and Nullable types
