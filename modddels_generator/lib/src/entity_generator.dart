@@ -79,8 +79,20 @@ class EntityGenerator {
     }
     ''');
 
-    ///TODO generate getters
-    print(classInfo.namedParameters.map((e) => e.generateGetter));
+    ///Getters for fields marked with '@validWithGetter'
+
+    final getterParameters =
+        classInfo.namedParameters.where((e) => e.generateGetter == true);
+
+    for (final param in getterParameters) {
+      classBuffer.writeln('''
+      ${param.type} get ${param.name} => match(
+        valid: (valid) => valid.${param.name},
+        invalid: (invalid) => invalid.${param.name},
+      );
+    
+      ''');
+    }
 
     ///toBroadEitherNullable method
     classBuffer.writeln('''
