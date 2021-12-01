@@ -76,8 +76,11 @@ class EntityParameter {
 
   bool get hasValidAnnotation => _validChecker.hasAnnotationOfExact(parameter);
 
-  ValidAnnotation? get annotation => hasValidAnnotation
-      ? _validChecker.firstAnnotationOfExact(parameter) as ValidAnnotation
+  bool? get generateGetter => hasValidAnnotation
+      ? _validChecker
+          .firstAnnotationOfExact(parameter)
+          ?.getField('generateGetter')
+          ?.toBoolValue()
       : null;
 }
 

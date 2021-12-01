@@ -80,7 +80,7 @@ class EntityGenerator {
     ''');
 
     ///TODO generate getters
-    print(classInfo.namedParameters.map((e) => e.annotation));
+    print(classInfo.namedParameters.map((e) => e.generateGetter));
 
     ///toBroadEitherNullable method
     classBuffer.writeln('''
