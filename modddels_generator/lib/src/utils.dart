@@ -77,7 +77,8 @@ class EntityParameter {
       parameter.metadata.any((m) => m is ValidAnnotation);
 
   ValidAnnotation? get annotation => hasValidAnnotation
-      ? parameter.metadata.firstWhere((m) => m is ValidAnnotation)
+      ? parameter.metadata
+              .firstWhere((m) => m.computeConstantValue() is ValidAnnotation)
           as ValidAnnotation
       : null;
 }

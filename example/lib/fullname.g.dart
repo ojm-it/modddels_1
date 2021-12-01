@@ -10,13 +10,17 @@ mixin $FullName {
   static FullName _create({
     required Name firstName,
     required Name lastName,
+    required bool hasMiddleName,
   }) {
     final contentVerification = firstName.toBroadEither.flatMap(
       (validFirstName) => lastName.toBroadEither.flatMap(
-        (validLastName) => right(ValidFullName._(
-          firstName: validFirstName,
-          lastName: validLastName,
-        )),
+        (validLastName) => hasMiddleName.toBroadEither.flatMap(
+          (validHasMiddleName) => right(ValidFullName._(
+            firstName: validFirstName,
+            lastName: validLastName,
+            hasMiddleName: validHasMiddleName,
+          )),
+        ),
       ),
     );
 
@@ -26,6 +30,7 @@ mixin $FullName {
         contentFailure: contentFailure,
         firstName: firstName,
         lastName: lastName,
+        hasMiddleName: hasMiddleName,
       ),
 
       ///The content is valid => We check if there's a general failure
@@ -34,6 +39,7 @@ mixin $FullName {
               generalEntityFailure: generalFailure,
               firstName: validContent.firstName,
               lastName: validContent.lastName,
+              hasMiddleName: validContent.hasMiddleName,
             ),
             () => validContent,
           ),
@@ -53,15 +59,18 @@ mixin $FullName {
   FullName copyWith({
     Name? firstName,
     Name? lastName,
+    bool? hasMiddleName,
   }) {
     return match(
       valid: (valid) => _create(
         firstName: firstName ?? valid.firstName,
         lastName: lastName ?? valid.lastName,
+        hasMiddleName: hasMiddleName ?? valid.hasMiddleName,
       ),
       invalid: (invalid) => _create(
         firstName: firstName ?? invalid.firstName,
         lastName: lastName ?? invalid.lastName,
+        hasMiddleName: hasMiddleName ?? invalid.hasMiddleName,
       ),
     );
   }
@@ -71,10 +80,12 @@ class ValidFullName extends FullName implements ValidEntity {
   const ValidFullName._({
     required this.firstName,
     required this.lastName,
+    required this.hasMiddleName,
   }) : super._();
 
   final ValidName firstName;
   final ValidName lastName;
+  final Validbool hasMiddleName;
 
   @override
   TResult match<TResult extends Object?>(
@@ -87,6 +98,7 @@ class ValidFullName extends FullName implements ValidEntity {
   List<Object?> get allProps => [
         firstName,
         lastName,
+        hasMiddleName,
       ];
 }
 
@@ -98,6 +110,7 @@ abstract class InvalidFullName extends FullName
 
   Name get firstName;
   Name get lastName;
+  bool get hasMiddleName;
 
   @override
   TResult match<TResult extends Object?>(
@@ -113,6 +126,7 @@ class InvalidFullNameContent extends InvalidFullName
     required this.contentFailure,
     required this.firstName,
     required this.lastName,
+    required this.hasMiddleName,
   }) : super._();
 
   @override
@@ -122,6 +136,8 @@ class InvalidFullNameContent extends InvalidFullName
   final Name firstName;
   @override
   final Name lastName;
+  @override
+  final bool hasMiddleName;
 
   @override
   TResult invalidMatch<TResult extends Object?>(
@@ -146,6 +162,7 @@ class InvalidFullNameContent extends InvalidFullName
         contentFailure,
         firstName,
         lastName,
+        hasMiddleName,
       ];
 }
 
@@ -155,6 +172,7 @@ class InvalidFullNameGeneral extends InvalidFullName
     required this.generalEntityFailure,
     required this.firstName,
     required this.lastName,
+    required this.hasMiddleName,
   }) : super._();
 
   @override
@@ -164,6 +182,8 @@ class InvalidFullNameGeneral extends InvalidFullName
   final ValidName firstName;
   @override
   final ValidName lastName;
+  @override
+  final Validbool hasMiddleName;
 
   @override
   TResult invalidMatch<TResult extends Object?>(
@@ -188,5 +208,6 @@ class InvalidFullNameGeneral extends InvalidFullName
         generalEntityFailure,
         firstName,
         lastName,
+        hasMiddleName,
       ];
 }

@@ -12,6 +12,7 @@ class FullName extends Entity<FullNameEntityFailure, InvalidFullNameGeneral,
   factory FullName({
     required Name firstName,
     required Name lastName,
+    @ValidAnnotation(generateGetter: true) bool hasMiddleName = false,
   }) {
     return $FullName._create(
       firstName: firstName,
