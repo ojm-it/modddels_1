@@ -79,6 +79,9 @@ class EntityGenerator {
     }
     ''');
 
+    ///TODO generate getters
+    print(classInfo.namedParameters.map((e) => e.annotation));
+
     ///toBroadEitherNullable method
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
