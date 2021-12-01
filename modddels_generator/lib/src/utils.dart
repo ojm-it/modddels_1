@@ -2,6 +2,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
+import 'package:source_gen/source_gen.dart';
 
 class ValueObjectClassInfo {
   ValueObjectClassInfo(this.valueType, this.className) {
@@ -73,15 +74,14 @@ class EntityParameter {
   bool get isNullable =>
       parameter.type.nullabilitySuffix == NullabilitySuffix.question;
 
-  bool get hasValidAnnotation =>
-      parameter.metadata.any((m) => m is ValidAnnotation);
+  bool get hasValidAnnotation => _validChecker.hasAnnotationOfExact(parameter);
 
   ValidAnnotation? get annotation => hasValidAnnotation
-      ? parameter.metadata
-              .firstWhere((m) => m.computeConstantValue() is ValidAnnotation)
-          as ValidAnnotation
+      ? _validChecker.firstAnnotationOfExact(parameter) as ValidAnnotation
       : null;
 }
+
+const _validChecker = TypeChecker.fromRuntime(ValidAnnotation);
 
 class KtListEntityClassInfo extends BaseEntityClassInfo {
   KtListEntityClassInfo(String className, this.ktListType) : super(className) {
