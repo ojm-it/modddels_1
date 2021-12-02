@@ -88,6 +88,7 @@ class ValidFullName extends FullName implements ValidEntity {
 
   final ValidName firstName;
   final ValidName lastName;
+  @override
   final bool hasMiddleName;
 
   @override
@@ -113,6 +114,7 @@ abstract class InvalidFullName extends FullName
 
   Name get firstName;
   Name get lastName;
+  @override
   bool get hasMiddleName;
 
   @override
