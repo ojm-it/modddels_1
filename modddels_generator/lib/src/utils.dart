@@ -18,26 +18,23 @@ class ValueObjectClassInfo {
   late final String validValueObject;
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              Entity Class Info                             */
+/* -------------------------------------------------------------------------- */
+
 abstract class BaseEntityClassInfo {
   BaseEntityClassInfo(this.className) {
-    generalEntityFailure = '${className}EntityFailure';
-    invalidEntityGeneral = 'Invalid${className}General';
     invalidEntityContent = 'Invalid${className}Content';
-    invalidEntity = 'Invalid$className';
     validEntity = 'Valid$className';
   }
 
   final String className;
-  late final String generalEntityFailure;
-  late final String invalidEntityGeneral;
   late final String invalidEntityContent;
-  late final String invalidEntity;
   late final String validEntity;
 }
 
-class GeneralEntityClassInfo extends BaseEntityClassInfo {
-  GeneralEntityClassInfo(
-      String className, List<ParameterElement> namedParameters)
+class EntityClassInfo extends BaseEntityClassInfo {
+  EntityClassInfo(String className, List<ParameterElement> namedParameters)
       : super(className) {
     this.namedParameters =
         namedParameters.map((p) => EntityParameter(p)).toList();
@@ -76,6 +73,43 @@ class EntityParameter {
       parameter.type.nullabilitySuffix == NullabilitySuffix.question;
 
   bool get hasValidAnnotation => _validChecker.hasAnnotationOfExact(parameter);
+}
+
+const _validChecker = TypeChecker.fromRuntime(ValidAnnotation);
+
+/* -------------------------------------------------------------------------- */
+/*                          General Entity class info                         */
+/* -------------------------------------------------------------------------- */
+
+abstract class BaseGeneralEntityClassInfo {
+  BaseGeneralEntityClassInfo(this.className) {
+    generalEntityFailure = '${className}EntityFailure';
+    invalidEntityGeneral = 'Invalid${className}General';
+    invalidEntityContent = 'Invalid${className}Content';
+    invalidEntity = 'Invalid$className';
+    validEntity = 'Valid$className';
+  }
+
+  final String className;
+  late final String generalEntityFailure;
+  late final String invalidEntityGeneral;
+  late final String invalidEntityContent;
+  late final String invalidEntity;
+  late final String validEntity;
+}
+
+class GeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
+  GeneralEntityClassInfo(
+      String className, List<ParameterElement> namedParameters)
+      : super(className) {
+    this.namedParameters =
+        namedParameters.map((p) => GeneralEntityParameter(p)).toList();
+  }
+  late final List<GeneralEntityParameter> namedParameters;
+}
+
+class GeneralEntityParameter extends EntityParameter {
+  GeneralEntityParameter(ParameterElement parameter) : super(parameter);
 
   bool? get generateGetter => hasValidAnnotation
       ? _validChecker
@@ -85,9 +119,7 @@ class EntityParameter {
       : null;
 }
 
-const _validChecker = TypeChecker.fromRuntime(ValidAnnotation);
-
-class KtListGeneralEntityClassInfo extends BaseEntityClassInfo {
+class KtListGeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
   KtListGeneralEntityClassInfo(String className, this.ktListType)
       : super(className) {
     ktListTypeValid = 'Valid$ktListType';
