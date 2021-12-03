@@ -2,8 +2,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
-class EntityGenerator {
-  EntityGenerator({required this.className, required this.factoryConstructor});
+class GeneralEntityGenerator {
+  GeneralEntityGenerator(
+      {required this.className, required this.factoryConstructor});
 
   final String className;
   final ConstructorElement factoryConstructor;
@@ -30,7 +31,7 @@ class EntityGenerator {
       }
     }
 
-    final classInfo = EntityClassInfo(className, namedParameters);
+    final classInfo = GeneralEntityClassInfo(className, namedParameters);
 
     final classBuffer = StringBuffer();
 
@@ -47,7 +48,7 @@ class EntityGenerator {
     return classBuffer.toString();
   }
 
-  void makeMixin(StringBuffer classBuffer, EntityClassInfo classInfo) {
+  void makeMixin(StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     mixin \$$className {
     
@@ -133,7 +134,7 @@ class EntityGenerator {
   }
 
   String generateContentVerification(
-      List<EntityParameter> params, EntityClassInfo classInfo) {
+      List<EntityParameter> params, GeneralEntityClassInfo classInfo) {
     final paramsToVerify = params.where((p) => !p.hasValidAnnotation).toList();
     return '''final contentVerification = 
       ${_makeContentVerificationRecursive(paramsToVerify.length, paramsToVerify, classInfo)}
@@ -141,7 +142,7 @@ class EntityGenerator {
   }
 
   String _makeContentVerificationRecursive(int totalParamsToVerify,
-      List<EntityParameter> paramsToVerify, EntityClassInfo classInfo) {
+      List<EntityParameter> paramsToVerify, GeneralEntityClassInfo classInfo) {
     final comma = paramsToVerify.length == totalParamsToVerify ? ';' : ',';
 
     if (paramsToVerify.isNotEmpty) {
@@ -168,7 +169,8 @@ class EntityGenerator {
       ''';
   }
 
-  void makeValidEntity(StringBuffer classBuffer, EntityClassInfo classInfo) {
+  void makeValidEntity(
+      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.validEntity} extends $className implements ValidEntity {
       
@@ -216,7 +218,8 @@ class EntityGenerator {
     classBuffer.writeln('}');
   }
 
-  void makeInvalidEntity(StringBuffer classBuffer, EntityClassInfo classInfo) {
+  void makeInvalidEntity(
+      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     abstract class ${classInfo.invalidEntity} extends $className
       implements
@@ -254,7 +257,7 @@ class EntityGenerator {
   }
 
   void makeInvalidEntityContent(
-      StringBuffer classBuffer, EntityClassInfo classInfo) {
+      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityContent} extends ${classInfo.invalidEntity}
       implements InvalidEntityContent {        
@@ -319,7 +322,7 @@ class EntityGenerator {
   }
 
   void makeInvalidEntityGeneral(
-      StringBuffer classBuffer, EntityClassInfo classInfo) {
+      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityGeneral} extends ${classInfo.invalidEntity}
       implements InvalidEntityGeneral<${classInfo.generalEntityFailure}> {

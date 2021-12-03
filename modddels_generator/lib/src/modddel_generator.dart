@@ -4,13 +4,13 @@ import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:modddels_generator/src/value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
 
-import 'entity_generator.dart';
-import 'ktlist_entity_generator.dart';
+import 'general_entity_generator.dart';
+import 'ktlist_general_entity_generator.dart';
 
 enum Model {
   valueObject,
-  entity,
-  ktListEntity,
+  generalEntity,
+  ktListGeneralEntity,
 }
 
 class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
@@ -64,15 +64,15 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       modelType = Model.valueObject;
     } else if (superClass.any((element) => element
         .getDisplayString(withNullability: false)
-        .startsWith('KtListEntity'))) {
-      modelType = Model.ktListEntity;
+        .startsWith('KtListGeneralEntity'))) {
+      modelType = Model.ktListGeneralEntity;
     } else if (superClass.any((element) => element
         .getDisplayString(withNullability: false)
-        .startsWith('Entity'))) {
-      modelType = Model.entity;
+        .startsWith('GeneralEntity'))) {
+      modelType = Model.generalEntity;
     } else {
       throw InvalidGenerationSourceError(
-        'Should either extend Entity, KtListEntity, or ValueObject',
+        'Should either extend GeneralEntity, KtListGeneralEntity, or ValueObject',
         element: classElement,
       );
     }
@@ -82,12 +82,12 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
         return ValueObjectGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
-      case Model.ktListEntity:
-        return KtListEntityGenerator(
+      case Model.ktListGeneralEntity:
+        return KtListGeneralEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
-      case Model.entity:
-        return EntityGenerator(
+      case Model.generalEntity:
+        return GeneralEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
     }

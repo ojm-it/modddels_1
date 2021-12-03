@@ -2,8 +2,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
-class KtListEntityGenerator {
-  KtListEntityGenerator(
+class KtListGeneralEntityGenerator {
+  KtListGeneralEntityGenerator(
       {required this.className, required this.factoryConstructor});
 
   final String className;
@@ -38,7 +38,7 @@ class KtListEntityGenerator {
       );
     }
 
-    final classInfo = KtListEntityClassInfo(className, ktListType);
+    final classInfo = KtListGeneralEntityClassInfo(className, ktListType);
 
     final classBuffer = StringBuffer();
 
@@ -55,7 +55,8 @@ class KtListEntityGenerator {
     return classBuffer.toString();
   }
 
-  void makeMixin(StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+  void makeMixin(
+      StringBuffer classBuffer, KtListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('mixin \$$className {');
 
     //create method
@@ -130,7 +131,7 @@ class KtListEntityGenerator {
   }
 
   void makeValidEntity(
-      StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, KtListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln(
         'class ${classInfo.validEntity} extends $className implements ValidEntity {');
 
@@ -173,7 +174,7 @@ class KtListEntityGenerator {
   }
 
   void makeInvalidEntity(
-      StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, KtListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     abstract class ${classInfo.invalidEntity} extends $className
     implements
@@ -209,7 +210,7 @@ class KtListEntityGenerator {
   }
 
   void makeInvalidEntityContent(
-      StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, KtListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityContent} extends ${classInfo.invalidEntity}
       implements InvalidEntityContent {
@@ -271,7 +272,7 @@ class KtListEntityGenerator {
   }
 
   void makeInvalidEntityGeneral(
-      StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, KtListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityGeneral} extends ${classInfo.invalidEntity}
       implements InvalidEntityGeneral<${classInfo.generalEntityFailure}> {

@@ -35,8 +35,9 @@ abstract class BaseEntityClassInfo {
   late final String validEntity;
 }
 
-class EntityClassInfo extends BaseEntityClassInfo {
-  EntityClassInfo(String className, List<ParameterElement> namedParameters)
+class GeneralEntityClassInfo extends BaseEntityClassInfo {
+  GeneralEntityClassInfo(
+      String className, List<ParameterElement> namedParameters)
       : super(className) {
     this.namedParameters =
         namedParameters.map((p) => EntityParameter(p)).toList();
@@ -86,8 +87,9 @@ class EntityParameter {
 
 const _validChecker = TypeChecker.fromRuntime(ValidAnnotation);
 
-class KtListEntityClassInfo extends BaseEntityClassInfo {
-  KtListEntityClassInfo(String className, this.ktListType) : super(className) {
+class KtListGeneralEntityClassInfo extends BaseEntityClassInfo {
+  KtListGeneralEntityClassInfo(String className, this.ktListType)
+      : super(className) {
     ktListTypeValid = 'Valid$ktListType';
   }
 
