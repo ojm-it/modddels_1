@@ -1,6 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:equatable/equatable.dart';
-import 'common.dart';
+import '../common.dart';
 
 ///A [ValueObject] is a [Modddel] that holds a value of type [T].
 ///

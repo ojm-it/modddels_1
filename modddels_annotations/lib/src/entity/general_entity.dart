@@ -1,11 +1,17 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:modddels_annotations/src/entity/common.dart';
+import 'package:modddels_annotations/src/entity/entity.dart';
 
-import 'common.dart';
+import '../common.dart';
 import 'package:equatable/equatable.dart';
-import 'value_object.dart';
+import '../value_object/value_object.dart';
 
-///An [GeneralEntity] is a [Modddel] that holds multiple modddels : [ValueObject]s or
+///An [GeneralEntity] is a [Modddel] similar to an [Entity], in a sense that it holds multiple modddels : [ValueObject]s or
 ///Entities.
+///
+///The difference is that also validates all the modddels as a whole, via the [validateGeneral] method.
+///
+///### Detailed explanation :
 ///
 ///When instantiated, it first verifies that all its modddels are valid.
 /// - If one of its modddels is invalid, then this [GeneralEntity] will be an
@@ -44,8 +50,8 @@ abstract class GeneralEntity<
 
   ///Execute [valid] when this [GeneralEntity] is valid, otherwise execute [invalid].
   TResult match<TResult extends Object?>({
-    required TResult Function(V value) valid,
-    required TResult Function(I value) invalid,
+    required TResult Function(V valid) valid,
+    required TResult Function(I invalid) invalid,
   });
 
   ///Converts this [GeneralEntity] to an [Either] where left is [InvalidEntity], and
@@ -67,14 +73,6 @@ abstract class GeneralEntity<
               invalidEntityGeneral.generalEntityFailure,
           invalidEntityContent: (invalidEntityContent) =>
               invalidEntityContent.contentFailure)));
-}
-
-///A [ValidEntity] is an [GeneralEntity] that is valid. It holds all the valid
-///modddels as [ValidValueObject]s / [ValidEntity]s.
-abstract class ValidEntity {
-  ///This is the list of all the class members, used by Equatable for the
-  ///hashCode and equality functions.
-  List<Object?> get allProps;
 }
 
 ///An [InvalidEntity] is an [GeneralEntity] that is invalid. It can either be :
@@ -102,19 +100,16 @@ abstract class InvalidEntity<F extends GeneralEntityFailure,
   List<Object?> get allProps;
 }
 
-///entities) An [InvalidEntityContent] is an [InvalidEntity] because one of its
-///modddels is invalid. It holds the [Failure] of the invalid modddel.
-abstract class InvalidEntityContent {
-  ///The failure of the invalid modddel inside this [GeneralEntity]
-  Failure get contentFailure;
-}
-
 ///An [InvalidEntityGeneral] is an [InvalidEntity] caused by a
 ///[GeneralEntityFailure]. All the modddels inside this [GeneralEntity] are valid, but
 ///the [GeneralEntity] as a whole is invalid.
 ///
 abstract class InvalidEntityGeneral<F extends GeneralEntityFailure> {
   F get generalEntityFailure;
+
+  ///This is the list of all the class members, used by Equatable for the
+  ///hashCode and equality functions.
+  List<Object?> get allProps;
 }
 
 ///A [GeneralEntityFailure] is a [Failure] of an [GeneralEntity] as a whole.

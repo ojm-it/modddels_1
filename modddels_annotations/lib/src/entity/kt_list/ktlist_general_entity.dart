@@ -1,4 +1,5 @@
 import 'package:modddels_annotations/modddels_annotations.dart';
+import 'package:modddels_annotations/src/entity/common.dart';
 
 abstract class KtListGeneralEntity<
     F extends GeneralEntityFailure,
