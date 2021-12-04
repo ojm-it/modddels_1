@@ -1,3 +1,5 @@
+import 'package:modddels_annotations/modddels_annotations.dart';
+
 class ModddelAnnotation {
   const ModddelAnnotation();
 }
@@ -5,20 +7,31 @@ class ModddelAnnotation {
 const modddel = ModddelAnnotation();
 
 class ValidAnnotation {
-  ///When [true], it will generate a getter for the valid field to directly access
-  ///it from the not validated entity.
-  ///
-  ///Defaults to [false]
-  final bool generateGetter;
-
-  const ValidAnnotation({this.generateGetter = false});
+  const ValidAnnotation();
 }
 
-///Use this annotation when you want an element of the entity is not a modddel.
-///(for example a simple bool).
+class WithGetterAnnotation {
+  const WithGetterAnnotation();
+}
+
+class ValidWithGetterAnnotation {
+  const ValidWithGetterAnnotation();
+}
+
+/// Use this annotation when you want an element of the entity is not a modddel.
+/// (for example a simple bool), so it won't be validated.
 const valid = ValidAnnotation();
 
-/// Same as the [valid] annotation, but this generates a getter to directly
-/// access the field from the unvalidated entity
+/// Use this annotation when you if you want to have a direct getter from the
+/// unvalidated [GeneralEntity].
+///
+/// NB: Generally, it's better for the modddels to stay hidden inside the
+/// [ValidEntity] and [InvalidEntity], and not be accessed directly from withing
+/// the [GeneralEntity]. That's because the [GeneralEntity] may have a
+/// [GeneralEntityFailure], which may be inadvertantly unnoticed by you the
+/// developer.
 
-const validWithGetter = ValidAnnotation(generateGetter: true);
+const withGetter = WithGetterAnnotation();
+
+/// Same as specifying both the [valid] and [withGetter] annotations
+const validWithGetter = ValidWithGetterAnnotation();
