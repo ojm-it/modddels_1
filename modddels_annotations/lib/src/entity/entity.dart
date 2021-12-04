@@ -21,29 +21,28 @@ abstract class Entity<C extends InvalidEntityContent, V extends ValidEntity>
   ///This is the list of all the class members, used by Equatable for the
   ///hashCode and equality functions.
   @override
-  List<Object?> get props => match(
+  List<Object?> get props => map(
       valid: (valid) => valid.allProps, invalid: (invalid) => invalid.allProps);
 
   ///Whether this [Entity] is a [ValidEntity]
-  bool get isValid =>
-      match(valid: (valid) => true, invalid: (invalid) => false);
+  bool get isValid => map(valid: (valid) => true, invalid: (invalid) => false);
 
   ///Execute [valid] when this [Entity] is valid, otherwise execute [invalid].
-  TResult match<TResult extends Object?>({
+  TResult map<TResult extends Object?>({
     required TResult Function(V valid) valid,
     required TResult Function(C invalid) invalid,
   });
 
   ///Converts this [Entity] to an [Either] where left is [InvalidEntityContent], and
   ///right is [ValidEntity].
-  Either<C, V> get toEither => match(
+  Either<C, V> get toEither => map(
         valid: (valid) => right(valid),
         invalid: (invalid) => left(invalid),
       );
 
   ///Same as [toEither], but the left is broadened to be the [Failure] of one of
   ///the modddels, that caused this [Entity] to be invalid.
-  Either<Failure, V> get toBroadEither => match(
+  Either<Failure, V> get toBroadEither => map(
       valid: (valid) => right(valid),
       invalid: (invalid) => left(invalid.contentFailure));
 }

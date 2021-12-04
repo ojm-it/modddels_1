@@ -31,7 +31,7 @@ abstract class GeneralEntity<
   ///This is the list of all the class members, used by Equatable for the
   ///hashCode and equality functions.
   @override
-  List<Object?> get props => match(
+  List<Object?> get props => map(
       valid: (valid) => valid.allProps, invalid: (invalid) => invalid.allProps);
 
   ///After this [GeneralEntity]'s modddels have been validated and are valid, this
@@ -43,18 +43,17 @@ abstract class GeneralEntity<
   Option<F> validateGeneral(V valid);
 
   ///Whether this [GeneralEntity] is a [ValidEntity]
-  bool get isValid =>
-      match(valid: (valid) => true, invalid: (invalid) => false);
+  bool get isValid => map(valid: (valid) => true, invalid: (invalid) => false);
 
   ///Execute [valid] when this [GeneralEntity] is valid, otherwise execute [invalid].
-  TResult match<TResult extends Object?>({
+  TResult map<TResult extends Object?>({
     required TResult Function(V valid) valid,
     required TResult Function(I invalid) invalid,
   });
 
   ///Converts this [GeneralEntity] to an [Either] where left is [InvalidEntity], and
   ///right is [ValidEntity].
-  Either<I, V> get toEither => match(
+  Either<I, V> get toEither => map(
         valid: (valid) => right(valid),
         invalid: (invalid) => left(invalid),
       );
@@ -64,7 +63,7 @@ abstract class GeneralEntity<
   ///
   ///NB: The [Failure] is either a [GeneralEntityFailure] of this entity, or a
   ///[Failure] of one of its modddels
-  Either<Failure, V> get toBroadEither => match(
+  Either<Failure, V> get toBroadEither => map(
       valid: (valid) => right(valid),
       invalid: (invalid) => left(invalid.invalidMatch(
           invalidEntityGeneral: (invalidEntityGeneral) =>

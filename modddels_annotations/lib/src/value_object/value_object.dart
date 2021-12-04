@@ -32,18 +32,17 @@ abstract class ValueObject<
   }
 
   ///Whether this [ValueObject] is a [ValidValueObject]
-  bool get isValid =>
-      match(valid: (valid) => true, invalid: (invalid) => false);
+  bool get isValid => map(valid: (valid) => true, invalid: (invalid) => false);
 
   ///Executes [valid] when this [ValueObject] is valid, otherwise executes [invalid].
-  TResult match<TResult extends Object?>({
+  TResult map<TResult extends Object?>({
     required TResult Function(V valid) valid,
     required TResult Function(I invalid) invalid,
   });
 
   ///Converts this [ValueObject] to an [Either] where left is
   ///[InvalidValueObject], and right is [ValidValueObject].
-  Either<I, V> get toEither => match(
+  Either<I, V> get toEither => map(
         valid: (valid) => right(valid),
         invalid: (invalid) => left(invalid),
       );
@@ -53,7 +52,7 @@ abstract class ValueObject<
   ///
   ///NB: The [Failure] is always a [ValueFailure], but the type is broaded to
   ///[Failure] on purpose.
-  Either<Failure, V> get toBroadEither => match(
+  Either<Failure, V> get toBroadEither => map(
         valid: (valid) => right(valid),
         invalid: (invalid) => left(invalid.failure),
       );
@@ -61,7 +60,7 @@ abstract class ValueObject<
   ///This is the list of all the class members, used by Equatable for the
   ///hashCode and equality functions.
   @override
-  List<Object?> get props => match(
+  List<Object?> get props => map(
       valid: (valid) => valid.allProps, invalid: (invalid) => invalid.allProps);
 }
 
