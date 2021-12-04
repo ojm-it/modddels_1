@@ -22,27 +22,29 @@ abstract class Entity<C extends InvalidEntityContent, V extends ValidEntity>
   ///hashCode and equality functions.
   @override
   List<Object?> get props => map(
-      valid: (valid) => valid.allProps, invalid: (invalid) => invalid.allProps);
+      valid: (valid) => valid.allProps,
+      invalidContent: (invalidContent) => invalidContent.allProps);
 
   ///Whether this [Entity] is a [ValidEntity]
-  bool get isValid => map(valid: (valid) => true, invalid: (invalid) => false);
+  bool get isValid =>
+      map(valid: (valid) => true, invalidContent: (invalidContent) => false);
 
-  ///Execute [valid] when this [Entity] is valid, otherwise execute [invalid].
+  ///Execute [valid] when this [Entity] is valid, otherwise execute [invalidContent].
   TResult map<TResult extends Object?>({
     required TResult Function(V valid) valid,
-    required TResult Function(C invalid) invalid,
+    required TResult Function(C invalidContent) invalidContent,
   });
 
   ///Converts this [Entity] to an [Either] where left is [InvalidEntityContent], and
   ///right is [ValidEntity].
   Either<C, V> get toEither => map(
         valid: (valid) => right(valid),
-        invalid: (invalid) => left(invalid),
+        invalidContent: (invalidContent) => left(invalidContent),
       );
 
   ///Same as [toEither], but the left is broadened to be the [Failure] of one of
   ///the modddels, that caused this [Entity] to be invalid.
   Either<Failure, V> get toBroadEither => map(
       valid: (valid) => right(valid),
-      invalid: (invalid) => left(invalid.contentFailure));
+      invalidContent: (invalidContent) => left(invalidContent.contentFailure));
 }

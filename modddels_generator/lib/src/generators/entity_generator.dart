@@ -84,7 +84,7 @@ class EntityGenerator {
       classBuffer.writeln('''
       ${param.type} get ${param.name} => map(
         valid: (valid) => valid.${param.name},
-        invalid: (invalid) => invalid.${param.name},
+        invalidContent: (invalidContent) => invalidContent.${param.name},
       );
     
       ''');
@@ -116,8 +116,8 @@ class EntityGenerator {
         valid: (valid) => _create(
           ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? valid.${param.name},').join()}
         ),
-        invalid: (invalid) => _create(
-          ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? invalid.${param.name},').join()}
+        invalidContent: (invalidContent) => _create(
+          ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? invalidContent.${param.name},').join()}
         ),
       );
     }
@@ -243,7 +243,7 @@ class EntityGenerator {
     TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.validEntity} valid) valid,
       required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
-        return invalid(this);
+        return invalidContent(this);
     }
     ''');
 

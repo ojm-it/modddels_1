@@ -99,7 +99,7 @@ class KtListEntityGenerator {
     classBuffer.writeln('''
     KtList<${classInfo.ktListType}> get list => map(
         valid: (valid) => valid.list,
-        invalid: (invalid) => invalid.list,
+        invalidContent: (invalidContent) => invalidContent.list,
       );
     
     ''');
@@ -123,7 +123,7 @@ class KtListEntityGenerator {
     classBuffer.writeln('''
     TResult map<TResult extends Object?>(
         {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntityContent} invalid) invalid}) {
+        required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
       throw UnimplementedError();
     } 
     
@@ -134,7 +134,7 @@ class KtListEntityGenerator {
     $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
       return map(
         valid: (valid) => _create(callback(valid.list)),
-        invalid: (invalid) => _create(callback(invalid.list)),
+        invalidContent: (invalidContent) => _create(callback(invalidContent.list)),
       );
     }
     
@@ -169,7 +169,7 @@ class KtListEntityGenerator {
     @override
     TResult map<TResult extends Object?>(
         {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntityContent} invalid) invalid}) {
+        required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
       return valid(this);
     }
 
@@ -218,8 +218,8 @@ class KtListEntityGenerator {
     @override
     TResult map<TResult extends Object?>(
         {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntityContent} invalid) invalid}) {
-      return invalid(this);
+        required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
+      return invalidContent(this);
     }
 
     ''');
