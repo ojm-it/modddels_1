@@ -104,6 +104,13 @@ class KtListEntityGenerator {
     
     ''');
 
+    ///getter for the size of the list
+
+    classBuffer.writeln('''
+    int get size => list.size;
+    
+    ''');
+
     ///toBroadEitherNullable method
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
