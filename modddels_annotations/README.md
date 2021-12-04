@@ -15,8 +15,13 @@ TODO: Put a short description of the package here that helps potential users
 know whether this package might be useful for them.
 
 # Features
+Available modddels :
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- ValueObject
+- Entity 
+- KtListEntity
+- GeneralEntity
+- KtListGeneralEntity
 
 # Getting started
 
@@ -26,7 +31,7 @@ You should have these packages installed :
 
 # Usage
 
-## Value objects :
+## Value object :
 
 1. Create a ValueObject, and annotate it with `@modddel`
 
@@ -80,13 +85,87 @@ part 'name.freezed.dart';
 
 5. Run the generator
 
-## Entities :
+## Entity :
+An `Entity` is a modddel that holds multiple modddels (ValueObjects, Entities...).
+
+ - If any of its moddels is invalid, then the whole entity is Invalid. (It becomes an `InvalidEntityContent`).
+
+ - If all the modddels are valid, then the entity is valid (It becomes a `ValidEntity`).
+
+### Usage :
 
 1. Create an Entity, and annotate it with `@modddel`
 
 ```dart
 @modddel
-class FullName extends Entity<FullNameEntityFailure, InvalidFullNameGeneral,
+class FullName extends Entity<InvalidFullNameContent, ValidFullName> with $FullName {
+  factory FullName({
+    required Name firstName,
+    required Name lastName,
+  }) {
+    return $FullName._create(
+      firstName: firstName,
+      lastName: lastName,
+    );
+  }
+
+  const FullName._();
+}
+```
+
+2. Add the part statement
+
+```dart
+part 'fullname.g.dart';
+```
+
+3. Run the generator
+
+### The valid annotation
+
+Sometimes, you want an entity to contain a modddel that is always valid, or a parameter that isn't a modddel and that should considered as being valid. For example : a ValidValueObject, a ValidEntity, a boolean...
+
+In that case, you can annotate it with `@valid`. Example :
+
+```dart
+factory FullName({
+    required Name firstName,
+    required Name lastName,
+    @valid required bool hasMiddleName,
+  }) { ...
+```
+
+### KtListEntity
+A KtListEntity is similar to an Entity in a sense that it holds a List of other modddels (of the same type). Again :
+ 
+ - If any of the modddels is invalid, then the whole entity is Invalid. (It becomes an `InvalidEntityContent`).
+
+ - If all the modddels are valid, then the entity is valid (It becomes a `ValidEntity`).
+
+NB: When empty, the KtListEntity is considered valid. If you want a different behaviour, consider using a `KtListGeneralEntity` and providing your own general validation.
+
+## General Entity :
+
+A GeneralEntity is an Entity that provides an extra validation step, that validates the whole entity as a whole.
+
+When instantiated, it first verifies that all its modddels are valid.
+
+ - If one of its modddels is invalid, then this `GeneralEntity` is invalid. It becomes an `InvalidEntityContent`.
+
+ - If all the modddels are valid, then this `GeneralEntity` is validated with the
+   `validateGeneral` method.
+
+   - If it's invalid, then this `GeneralEntity` is invalid. It becomes an `InvalidEntityGeneral`.
+
+   - If it's valid, then this `GeneralEntity` is valid (It becomes a `ValidEntity`)
+
+### Usage
+
+1. Create a General Entity, and annotate it with `@modddel`
+
+```dart
+@modddel
+class FullName extends GeneralEntity<FullNameEntityFailure, InvalidFullNameGeneral,
     InvalidFullNameContent, InvalidFullName, ValidFullName> with $FullName {
   factory FullName({
     required Name firstName,
@@ -138,27 +217,44 @@ part 'fullname.freezed.dart';
 
 5. Run the generator
 
-### The valid annotation
+### Fields getters
 
-Sometimes, you want an entity to contain a model that is always valid, or a parameter that isn't a model and that should considered as being valid. For example : a ValidValueObject, a ValidEntity, a boolean...
-
-In that case, you can annotate it with `@valid`. Example :
+Unlike a normal Entity, the GeneralEntity hides its modddels inside `ValidEntity` and `InvalidEntity`, so you can ony access them after calling the "match" method. 
+For example :
 
 ```dart
-factory FullName({
-    required Name firstName,
-    required Name lastName,
-    @valid required bool hasMiddleName,
-  }) { ...
+  final firstName = fullName.firstName;
+  //ERROR : The getter 'firstName' isn't defined for the type 'FullName'.
+
+  final firstName = fullName.match(
+      valid: (valid) => valid.firstName,
+      invalid: (invalid) => invalid.firstName);
+  //No error.
 ```
 
-If you want to generate a getter to directly access the field from the unvalidated entity, use `@validWithGetter` instead.
+That's because the GeneralEntity may have a `GeneralEntityFailure`, which may be unnoticed by you the developer.
 
-NB : You can create a ValidValueObject or a ValidEntity by directly extending respectively the class ValidValueObject or ValidEntity.
+Nonetheless, if you want to have a direct getter for a field from the unvalidated GeneralEntity, you can use the @withGetter annotation.
+A good usecase for this would be for an "id" field.
+
+### The valid annotation
+
+You can use the `@valid` annotation as you would with a normal Entity. If you want to use both `@valid` and `@withGetter` annotation, you can use the shorthand `@validWithGetter` annotation.
+
+### KtListGeneralEntity
+A KtListGeneralEntity is a `KtListEntity` which provides an extra validation step, just like a `GeneralEntity`.
+
+## Remarks
 
 ### Optional and Nullable types
 
-The Entity supports containing optional and nullable parameters, as well as default values.
+`Entity` and `GeneralEntity` both support containing optional and nullable parameters, as well as default values.
+
+### Modddels that are always valid
+
+You can create a ValidValueObject or a ValidEntity by directly extending respectively the class `ValidValueObject` or `ValidEntity`.
+
+When using them as parameters inside another Entity (or GeneralEntity), don't forget to annotate them with `@valid`.
 
 # VsCode snippets
 
@@ -210,7 +306,41 @@ The Entity supports containing optional and nullable parameters, as well as defa
 		"prefix": "entity",
 		"body": [
 			"@modddel",
-			"class ${1} extends Entity<${1}EntityFailure, Invalid${1}General,",
+			"class ${1} extends Entity<Invalid${1}Content, Valid${1}> with $${1} {",
+			"  factory ${1}({",
+			"    ${2}",
+			"  }) {",
+			"    return $${1}._create(",
+			"      ${3}",
+			"    );",
+			"  }",
+			"",
+			"  const ${1}._();",
+			"",
+			"}",
+		],
+		"description": "Entity"
+	},
+	"KtList Entity": {
+		"prefix": "ktlistentity",
+		"body": [
+			"@modddel",
+			"class ${1} extends KtListEntity<Invalid${1}Content, Valid${1}> with $${1} {",
+			"  factory ${1}(KtList<${2}> list) {",
+			"    return $${1}._create(list);",
+			"  }",
+			"",
+			"  const ${1}._();",
+			"",
+			"}",
+		],
+		"description": "KtList Entity"
+	},
+	"General Entity": {
+		"prefix": "generalentity",
+		"body": [
+			"@modddel",
+			"class ${1} extends GeneralEntity<${1}EntityFailure, Invalid${1}General,",
 			"    Invalid${1}Content, Invalid${1}, Valid${1}> with $${1} {",
 			"  factory ${1}({",
 			"    ${2}",
@@ -229,13 +359,13 @@ The Entity supports containing optional and nullable parameters, as well as defa
 			"  }",
 			"}",
 		],
-		"description": "Entity"
+		"description": "General Entity"
 	},
-	"KtList Entity": {
-		"prefix": "ktlistentity",
+	"KtList General Entity": {
+		"prefix": "ktlistgeneralentity",
 		"body": [
 			"@modddel",
-			"class ${1} extends KtListEntity<${1}EntityFailure, Invalid${1}General,",
+			"class ${1} extends KtListGeneralEntity<${1}EntityFailure, Invalid${1}General,",
 			"    Invalid${1}Content, Invalid${1}, Valid${1}> with $${1} {",
 			"  factory ${1}(KtList<${2}> list) {",
 			"    return $${1}._create(list);",
@@ -250,18 +380,9 @@ The Entity supports containing optional and nullable parameters, as well as defa
 			"  }",
 			"}",
 		],
-		"description": "KtListEntity"
+		"description": "KtList GeneralEntity"
 	},
-	"No entity Failure": {
-		"prefix": "noentityfailure",
-		"body": [
-			"class ${1}EntityFailure extends GeneralEntityFailure {",
-			"  //No entity failure.",
-			"}"
-		],
-		"description": "No Entity Failure"
-	},
-	"Entity Failure": {
+	"General Entity Failure": {
 		"prefix": "entityfailure",
 		"body": [
 			"@freezed",
@@ -271,7 +392,7 @@ The Entity supports containing optional and nullable parameters, as well as defa
 		],
 		"description": "General Entity Failure"
 	},
-	"Entity Failure Union Case": {
+	"General Entity Failure Union Case": {
 		"prefix": "entityfailurecase",
 		"body": [
 			"const factory ${1}EntityFailure.${2}(${4}) = _${3};",

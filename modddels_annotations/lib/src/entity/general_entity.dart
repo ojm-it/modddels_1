@@ -6,10 +6,8 @@ import '../common.dart';
 import 'package:equatable/equatable.dart';
 import '../value_object/value_object.dart';
 
-///An [GeneralEntity] is a [Modddel] similar to an [Entity], in a sense that it holds multiple modddels : [ValueObject]s or
-///Entities.
-///
-///The difference is that also validates all the modddels as a whole, via the [validateGeneral] method.
+///A GeneralEntity is an Entity that provides an extra validation step, that
+///validates the whole entity as a whole.
 ///
 ///### Detailed explanation :
 ///
