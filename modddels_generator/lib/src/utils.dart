@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -72,10 +71,36 @@ class EntityParameter {
   bool get isNullable =>
       parameter.type.nullabilitySuffix == NullabilitySuffix.question;
 
-  bool get hasValidAnnotation => _validChecker.hasAnnotationOfExact(parameter);
+  ///True if the parameter has the `@valid` annotation or the `@validWithGetter`
+  ///annotation
+  bool get hasValidAnnotation =>
+      _validChecker.hasAnnotationOfExact(parameter) ||
+      _validWithGetterChecker.hasAnnotationOfExact(parameter);
+
+  ///True if the parameter has the `@withGetter` annotation or the
+  ///`@validWithGetter` annotation
+
+  bool get hasWithGetterAnnotation =>
+      _withGetterChecker.hasAnnotationOfExact(parameter) ||
+      _validWithGetterChecker.hasAnnotationOfExact(parameter);
 }
 
 const _validChecker = TypeChecker.fromRuntime(ValidAnnotation);
+
+const _withGetterChecker = TypeChecker.fromRuntime(WithGetterAnnotation);
+
+const _validWithGetterChecker =
+    TypeChecker.fromRuntime(ValidWithGetterAnnotation);
+
+class KtListEntityClassInfo extends BaseEntityClassInfo {
+  KtListEntityClassInfo(String className, this.ktListType) : super(className) {
+    ktListTypeValid = 'Valid$ktListType';
+  }
+
+  final String ktListType;
+
+  late final String ktListTypeValid;
+}
 
 /* -------------------------------------------------------------------------- */
 /*                          General Entity class info                         */
@@ -103,20 +128,9 @@ class GeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
       String className, List<ParameterElement> namedParameters)
       : super(className) {
     this.namedParameters =
-        namedParameters.map((p) => GeneralEntityParameter(p)).toList();
+        namedParameters.map((p) => EntityParameter(p)).toList();
   }
-  late final List<GeneralEntityParameter> namedParameters;
-}
-
-class GeneralEntityParameter extends EntityParameter {
-  GeneralEntityParameter(ParameterElement parameter) : super(parameter);
-
-  bool? get generateGetter => hasValidAnnotation
-      ? _validChecker
-          .firstAnnotationOfExact(parameter)
-          ?.getField('generateGetter')
-          ?.toBoolValue()
-      : null;
+  late final List<EntityParameter> namedParameters;
 }
 
 class KtListGeneralEntityClassInfo extends BaseGeneralEntityClassInfo {

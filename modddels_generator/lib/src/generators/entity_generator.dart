@@ -30,10 +30,16 @@ class EntityGenerator {
       }
     }
 
-    ///TODO throw error if any of the parameters has a "withGetter" or
-    ///"validWithGetter" annotation, since these are useless inside an Entity.
-
     final classInfo = EntityClassInfo(className, namedParameters);
+
+    for (final param in classInfo.namedParameters) {
+      if (param.hasWithGetterAnnotation) {
+        throw InvalidGenerationSourceError(
+          'The @withGetter annotation is reserved for General Entities, and is useless for normal Entities.',
+          element: param.parameter,
+        );
+      }
+    }
 
     final classBuffer = StringBuffer();
 

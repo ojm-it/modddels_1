@@ -3,6 +3,7 @@ import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:modddels_generator/src/generators/entity_generator.dart';
 import 'package:modddels_generator/src/generators/general_entity_generator.dart';
+import 'package:modddels_generator/src/generators/ktlist_entity_generator.dart';
 import 'package:modddels_generator/src/generators/ktlist_general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
@@ -10,6 +11,7 @@ import 'package:source_gen/source_gen.dart';
 enum Model {
   valueObject,
   entity,
+  ktListEntity,
   generalEntity,
   ktListGeneralEntity,
 }
@@ -73,6 +75,10 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       modelType = Model.generalEntity;
     } else if (superClass.any((element) => element
         .getDisplayString(withNullability: false)
+        .startsWith('KtListEntity'))) {
+      modelType = Model.ktListEntity;
+    } else if (superClass.any((element) => element
+        .getDisplayString(withNullability: false)
         .startsWith('Entity'))) {
       modelType = Model.entity;
     } else {
@@ -97,6 +103,10 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
             .generate();
       case Model.entity:
         return EntityGenerator(
+                className: className, factoryConstructor: factoryConstructor)
+            .generate();
+      case Model.ktListEntity:
+        return KtListEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
     }

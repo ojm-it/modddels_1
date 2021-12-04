@@ -80,10 +80,10 @@ class GeneralEntityGenerator {
     }
     ''');
 
-    ///Getters for fields marked with '@validWithGetter'
+    ///Getters for fields marked with '@withGetter' (or with '@validWithGetter')
 
-    final getterParameters =
-        classInfo.namedParameters.where((e) => e.generateGetter == true);
+    final getterParameters = classInfo.namedParameters
+        .where((e) => e.hasWithGetterAnnotation == true);
 
     for (final param in getterParameters) {
       classBuffer.writeln('''
@@ -134,17 +134,15 @@ class GeneralEntityGenerator {
   }
 
   String generateContentVerification(
-      List<GeneralEntityParameter> params, GeneralEntityClassInfo classInfo) {
+      List<EntityParameter> params, GeneralEntityClassInfo classInfo) {
     final paramsToVerify = params.where((p) => !p.hasValidAnnotation).toList();
     return '''final contentVerification = 
       ${_makeContentVerificationRecursive(paramsToVerify.length, paramsToVerify, classInfo)}
     ''';
   }
 
-  String _makeContentVerificationRecursive(
-      int totalParamsToVerify,
-      List<GeneralEntityParameter> paramsToVerify,
-      GeneralEntityClassInfo classInfo) {
+  String _makeContentVerificationRecursive(int totalParamsToVerify,
+      List<EntityParameter> paramsToVerify, GeneralEntityClassInfo classInfo) {
     final comma = paramsToVerify.length == totalParamsToVerify ? ';' : ',';
 
     if (paramsToVerify.isNotEmpty) {
@@ -188,7 +186,7 @@ class GeneralEntityGenerator {
 
     ///class members
     for (final param in classInfo.namedParameters) {
-      if (param.generateGetter == true) {
+      if (param.hasWithGetterAnnotation == true) {
         classBuffer.writeln('@override');
       }
       final paramType =
@@ -237,7 +235,7 @@ class GeneralEntityGenerator {
 
     ///Fields getters
     for (final param in classInfo.namedParameters) {
-      if (param.generateGetter == true) {
+      if (param.hasWithGetterAnnotation == true) {
         classBuffer.writeln('@override');
       }
       classBuffer.writeln('${param.type} get ${param.name};');
