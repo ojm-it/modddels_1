@@ -61,6 +61,13 @@ mixin $NameList2 {
       required TResult Function(InvalidNameList2Content invalid) invalid}) {
     throw UnimplementedError();
   }
+
+  NameList2 copyWith(KtList<Name> Function(KtList<Name> list) callback) {
+    return match(
+      valid: (valid) => _create(callback(valid.list)),
+      invalid: (invalid) => _create(callback(invalid.list)),
+    );
+  }
 }
 
 class ValidNameList2 extends NameList2 implements ValidEntity {

@@ -67,6 +67,14 @@ mixin $FullNameList {
       required TResult Function(InvalidFullNameList invalid) invalid}) {
     throw UnimplementedError();
   }
+
+  FullNameList copyWith(
+      KtList<FullName> Function(KtList<FullName> list) callback) {
+    return match(
+      valid: (valid) => _create(callback(valid.list)),
+      invalid: (invalid) => _create(callback(invalid.list)),
+    );
+  }
 }
 
 class ValidFullNameList extends FullNameList implements ValidEntity {
