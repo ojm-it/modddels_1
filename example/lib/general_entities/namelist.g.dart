@@ -53,6 +53,11 @@ mixin $NameList {
     );
   }
 
+  int get size => match(
+        valid: (valid) => valid.list.size,
+        invalid: (invalid) => invalid.list.size,
+      );
+
   static Either<Failure, ValidNameList?> toBroadEitherNullable(
           NameList? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));

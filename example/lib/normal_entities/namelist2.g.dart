@@ -50,6 +50,8 @@ mixin $NameList2 {
         invalid: (invalid) => invalid.list,
       );
 
+  int get size => list.size;
+
   static Either<Failure, ValidNameList2?> toBroadEitherNullable(
           NameList2? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
