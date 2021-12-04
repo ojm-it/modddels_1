@@ -61,7 +61,7 @@ class GeneralEntityGenerator {
     }) {
       ${generateContentVerification(classInfo.namedParameters, classInfo)}
 
-      return contentVerification.match(
+      return contentVerification.map(
         ///The content is invalid
         (contentFailure) => ${classInfo.invalidEntityContent}._(
           contentFailure: contentFailure,
@@ -69,7 +69,7 @@ class GeneralEntityGenerator {
         ),
 
         ///The content is valid => We check if there's a general failure
-        (validContent) => const $className._().validateGeneral(validContent).match(
+        (validContent) => const $className._().validateGeneral(validContent).map(
           (generalFailure) => ${classInfo.invalidEntityGeneral}._(
             generalEntityFailure: generalFailure,
             ${classInfo.namedParameters.map((param) => '${param.name} : validContent.${param.name},').join()}
@@ -87,7 +87,7 @@ class GeneralEntityGenerator {
 
     for (final param in getterParameters) {
       classBuffer.writeln('''
-      ${param.type} get ${param.name} => match(
+      ${param.type} get ${param.name} => map(
         valid: (valid) => valid.${param.name},
         invalid: (invalid) => invalid.${param.name},
       );
@@ -99,13 +99,13 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
       $className? nullableEntity) =>
-      optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
+      optionOf(nullableEntity).map((t) => t.toBroadEither, () => right(null));
 
     ''');
 
-    ///match method
+    ///map method
     classBuffer.writeln('''
-    TResult match<TResult extends Object?>(
+    TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.validEntity} valid) valid,
       required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
         throw UnimplementedError();
@@ -117,7 +117,7 @@ class GeneralEntityGenerator {
     $className copyWith({
       ${classInfo.namedParameters.map((param) => '${param.optionalType} ${param.name},').join()}
     }) {
-      return match(
+      return map(
         valid: (valid) => _create(
           ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? valid.${param.name},').join()}
         ),
@@ -195,10 +195,10 @@ class GeneralEntityGenerator {
     }
     classBuffer.writeln('');
 
-    ///match method
+    ///map method
     classBuffer.writeln('''
     @override
-    TResult match<TResult extends Object?>(
+    TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.validEntity} valid) valid,
       required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
         return valid(this);
@@ -242,10 +242,10 @@ class GeneralEntityGenerator {
     }
     classBuffer.writeln('');
 
-    ///match method
+    ///map method
     classBuffer.writeln('''
     @override
-    TResult match<TResult extends Object?>(
+    TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.validEntity} valid) valid,
       required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
         return invalid(this);

@@ -87,7 +87,7 @@ class KtListGeneralEntityGenerator {
               ),
             );
         
-        return contentVerification.match(
+        return contentVerification.map(
           ///The content is invalid
           (contentFailure) => ${classInfo.invalidEntityContent}._(
             contentFailure: contentFailure,
@@ -97,7 +97,7 @@ class KtListGeneralEntityGenerator {
           ///The content is valid => We check if there's a general failure
           (validContent) => const $className._()
               .validateGeneral(${classInfo.validEntity}._(list: validContent))
-              .match(
+              .map(
                 (generalFailure) => ${classInfo.invalidEntityGeneral}._(
                   generalEntityFailure: generalFailure,
                   list: validContent,
@@ -111,7 +111,7 @@ class KtListGeneralEntityGenerator {
     ///getter for the size of the list
 
     classBuffer.writeln('''
-    int get size => match(
+    int get size => map(
         valid: (valid) => valid.list.size,
         invalid: (invalid)=> invalid.list.size,
       );
@@ -122,13 +122,13 @@ class KtListGeneralEntityGenerator {
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
           $className? nullableEntity) =>
-      optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
+      optionOf(nullableEntity).map((t) => t.toBroadEither, () => right(null));
     
     ''');
 
-    ///match method
+    ///map method
     classBuffer.writeln('''
-    TResult match<TResult extends Object?>(
+    TResult map<TResult extends Object?>(
         {required TResult Function(${classInfo.validEntity} valid) valid,
         required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
       throw UnimplementedError();
@@ -139,7 +139,7 @@ class KtListGeneralEntityGenerator {
     ///copyWith method
     classBuffer.writeln('''
     $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
-      return match(
+      return map(
         valid: (valid) => _create(callback(valid.list)),
         invalid: (invalid) => _create(callback(invalid.list)),
       );
@@ -170,10 +170,10 @@ class KtListGeneralEntityGenerator {
 
     ''');
 
-    ///match method
+    ///map method
     classBuffer.writeln('''
     @override
-    TResult match<TResult extends Object?>(
+    TResult map<TResult extends Object?>(
         {required TResult Function(${classInfo.validEntity} valid) valid,
         required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
       return valid(this);
@@ -215,10 +215,10 @@ class KtListGeneralEntityGenerator {
 
     ''');
 
-    ///match method
+    ///map method
     classBuffer.writeln('''
     @override
-    TResult match<TResult extends Object?>(
+    TResult map<TResult extends Object?>(
         {required TResult Function(${classInfo.validEntity} valid) valid,
         required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
       return invalid(this);

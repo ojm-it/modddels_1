@@ -43,7 +43,7 @@ class ValueObjectGenerator {
     ///create method
     classBuffer.writeln('''
     static $className _create(${classInfo.valueType} input) {
-      return const $className._().validateWithResult(input).match(
+      return const $className._().validateWithResult(input).map(
         (l) => ${classInfo.invalidValueObject}._(failure: l),
         (r) => ${classInfo.validValueObject}._(value: r),
       );
@@ -55,13 +55,13 @@ class ValueObjectGenerator {
     static Either<Failure, ${classInfo.validValueObject}?> toBroadEitherNullable(
       $className? nullableValueObject) =>
         optionOf(nullableValueObject)
-          .match((t) => t.toBroadEither, () => right(null));
+          .map((t) => t.toBroadEither, () => right(null));
 
     ''');
 
-    ///match method
+    ///map method
     classBuffer.writeln('''
-    TResult match<TResult extends Object?>(
+    TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.validValueObject} valid) valid,
       required TResult Function(${classInfo.invalidValueObject} invalid) invalid}) {
         throw UnimplementedError();
@@ -91,10 +91,10 @@ class ValueObjectGenerator {
 
     ''');
 
-    ///match method
+    ///map method
     classBuffer.writeln('''
     @override
-    TResult match<TResult extends Object?>(
+    TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.validValueObject} valid) valid,
       required TResult Function(${classInfo.invalidValueObject} invalid) invalid}) {
         return valid(this);
@@ -133,10 +133,10 @@ class ValueObjectGenerator {
     final ${classInfo.valueFailure} failure;
     ''');
 
-    ///match method
+    ///map method
     classBuffer.writeln('''
     @override
-    TResult match<TResult extends Object?>(
+    TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.validValueObject} valid) valid,
       required TResult Function(${classInfo.invalidValueObject} invalid) invalid}) {
         return invalid(this);
