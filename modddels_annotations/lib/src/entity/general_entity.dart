@@ -1,10 +1,8 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/src/entity/common.dart';
-import 'package:modddels_annotations/src/entity/entity.dart';
 
 import '../common.dart';
 import 'package:equatable/equatable.dart';
-import '../value_object/value_object.dart';
 
 ///A GeneralEntity is an Entity that provides an extra validation step, that
 ///validates the whole entity as a whole.
@@ -66,10 +64,9 @@ abstract class GeneralEntity<
   Either<Failure, V> get toBroadEither => map(
       valid: (valid) => right(valid),
       invalid: (invalid) => left(invalid.invalidMatch(
-          invalidEntityGeneral: (invalidEntityGeneral) =>
-              invalidEntityGeneral.generalEntityFailure,
-          invalidEntityContent: (invalidEntityContent) =>
-              invalidEntityContent.contentFailure)));
+          invalidGeneral: (invalidGeneral) =>
+              invalidGeneral.generalEntityFailure,
+          invalidContent: (invalidContent) => invalidContent.contentFailure)));
 }
 
 ///An [InvalidEntity] is an [GeneralEntity] that is invalid. It can either be :
@@ -77,12 +74,12 @@ abstract class GeneralEntity<
 /// - An [InvalidEntityGeneral]
 abstract class InvalidEntity<F extends GeneralEntityFailure,
     G extends InvalidEntityGeneral<F>, C extends InvalidEntityContent> {
-  ///Executes [invalidEntityGeneral] when this [InvalidEntity] is an
-  ///[InvalidEntityGeneral], and executes [invalidEntityContent] when it is an
+  ///Executes [invalidGeneral] when this [InvalidEntity] is an
+  ///[InvalidEntityGeneral], and executes [invalidContent] when it is an
   ///[InvalidEntityContent].
   TResult invalidMatch<TResult extends Object?>({
-    required TResult Function(G invalidEntityGeneral) invalidEntityGeneral,
-    required TResult Function(C invalidEntityContent) invalidEntityContent,
+    required TResult Function(G invalidGeneral) invalidGeneral,
+    required TResult Function(C invalidContent) invalidContent,
   });
 
   ///Same as [invalidMatch], but gives a direct access to the failures in the
