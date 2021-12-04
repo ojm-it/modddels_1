@@ -136,6 +136,17 @@ class KtListGeneralEntityGenerator {
     
     ''');
 
+    ///copyWith method
+    classBuffer.writeln('''
+    $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
+      return match(
+        valid: (valid) => _create(callback(valid.list)),
+        invalid: (invalid) => _create(callback(invalid.list)),
+      );
+    }
+    
+    ''');
+
     //End
     classBuffer.writeln('}');
   }
