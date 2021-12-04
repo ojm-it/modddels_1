@@ -43,7 +43,7 @@ class ValueObjectGenerator {
     ///create method
     classBuffer.writeln('''
     static $className _create(${classInfo.valueType} input) {
-      return const $className._().validateWithResult(input).map(
+      return const $className._().validateWithResult(input).match(
         (l) => ${classInfo.invalidValueObject}._(failure: l),
         (r) => ${classInfo.validValueObject}._(value: r),
       );
@@ -55,7 +55,7 @@ class ValueObjectGenerator {
     static Either<Failure, ${classInfo.validValueObject}?> toBroadEitherNullable(
       $className? nullableValueObject) =>
         optionOf(nullableValueObject)
-          .map((t) => t.toBroadEither, () => right(null));
+          .match((t) => t.toBroadEither, () => right(null));
 
     ''');
 

@@ -82,7 +82,7 @@ class KtListEntityGenerator {
               ),
             );
         
-        return contentVerification.map(
+        return contentVerification.match(
           ///The content is invalid
           (contentFailure) => ${classInfo.invalidEntityContent}._(
             contentFailure: contentFailure,
@@ -115,7 +115,7 @@ class KtListEntityGenerator {
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
           $className? nullableEntity) =>
-      optionOf(nullableEntity).map((t) => t.toBroadEither, () => right(null));
+      optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
     
     ''');
 

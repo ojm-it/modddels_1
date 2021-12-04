@@ -87,7 +87,7 @@ class KtListGeneralEntityGenerator {
               ),
             );
         
-        return contentVerification.map(
+        return contentVerification.match(
           ///The content is invalid
           (contentFailure) => ${classInfo.invalidEntityContent}._(
             contentFailure: contentFailure,
@@ -97,7 +97,7 @@ class KtListGeneralEntityGenerator {
           ///The content is valid => We check if there's a general failure
           (validContent) => const $className._()
               .validateGeneral(${classInfo.validEntity}._(list: validContent))
-              .map(
+              .match(
                 (generalFailure) => ${classInfo.invalidEntityGeneral}._(
                   generalEntityFailure: generalFailure,
                   list: validContent,
@@ -122,7 +122,7 @@ class KtListGeneralEntityGenerator {
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
           $className? nullableEntity) =>
-      optionOf(nullableEntity).map((t) => t.toBroadEither, () => right(null));
+      optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
     
     ''');
 

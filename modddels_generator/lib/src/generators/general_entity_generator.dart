@@ -61,7 +61,7 @@ class GeneralEntityGenerator {
     }) {
       ${generateContentVerification(classInfo.namedParameters, classInfo)}
 
-      return contentVerification.map(
+      return contentVerification.match(
         ///The content is invalid
         (contentFailure) => ${classInfo.invalidEntityContent}._(
           contentFailure: contentFailure,
@@ -69,7 +69,7 @@ class GeneralEntityGenerator {
         ),
 
         ///The content is valid => We check if there's a general failure
-        (validContent) => const $className._().validateGeneral(validContent).map(
+        (validContent) => const $className._().validateGeneral(validContent).match(
           (generalFailure) => ${classInfo.invalidEntityGeneral}._(
             generalEntityFailure: generalFailure,
             ${classInfo.namedParameters.map((param) => '${param.name} : validContent.${param.name},').join()}
@@ -99,7 +99,7 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
       $className? nullableEntity) =>
-      optionOf(nullableEntity).map((t) => t.toBroadEither, () => right(null));
+      optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
     ''');
 
