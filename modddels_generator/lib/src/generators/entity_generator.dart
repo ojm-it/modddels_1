@@ -102,7 +102,7 @@ class EntityGenerator {
     classBuffer.writeln('''
     TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalid) invalid}) {
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
         throw UnimplementedError();
     }
     ''');
@@ -192,7 +192,7 @@ class EntityGenerator {
     @override
     TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalid) invalid}) {
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
         return valid(this);
     }
 
@@ -242,7 +242,7 @@ class EntityGenerator {
     @override
     TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalid) invalid}) {
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
         return invalid(this);
     }
     ''');

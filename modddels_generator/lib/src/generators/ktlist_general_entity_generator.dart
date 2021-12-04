@@ -259,11 +259,11 @@ class KtListGeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult invalidMatch<TResult extends Object?>(
-        {required TResult Function(${classInfo.invalidEntityGeneral} invalidEntityGeneral)
-            invalidEntityGeneral,
-        required TResult Function(${classInfo.invalidEntityContent} invalidEntityContent)
-            invalidEntityContent}) {
-      return invalidEntityContent(this);
+        {required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+            invalidGeneral,
+        required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+            invalidContent}) {
+      return invalidContent(this);
     }
     ''');
 
@@ -321,11 +321,11 @@ class KtListGeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult invalidMatch<TResult extends Object?>(
-        {required TResult Function(${classInfo.invalidEntityGeneral} invalidEntityGeneral)
-            invalidEntityGeneral,
-        required TResult Function(${classInfo.invalidEntityContent} invalidEntityContent)
-            invalidEntityContent}) {
-      return invalidEntityGeneral(this);
+        {required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+            invalidGeneral,
+        required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+            invalidContent}) {
+      return invalidGeneral(this);
     }
 
     ''');
