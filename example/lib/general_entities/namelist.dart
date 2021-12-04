@@ -1,14 +1,14 @@
+import 'package:example/value_objects.dart/name.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kt_dart/collection.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
-import 'package:example/name.dart';
 
 part 'namelist.freezed.dart';
 part 'namelist.g.dart';
 
 @modddel
-class NameList extends KtListEntity<
+class NameList extends KtListGeneralEntity<
     NameListEntityFailure,
     InvalidNameListGeneral,
     InvalidNameListContent,

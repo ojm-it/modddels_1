@@ -5,10 +5,12 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:example/fullname.dart';
-import 'package:example/fullname_list.dart';
-import 'package:example/name.dart';
-import 'package:example/namelist.dart';
+import 'package:example/general_entities/fullname.dart';
+import 'package:example/general_entities/fullname_list.dart';
+import 'package:example/general_entities/namelist.dart';
+import 'package:example/normal_entities/fullname2.dart';
+import 'package:example/normal_entities/namelist2.dart';
+import 'package:example/value_objects.dart/name.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -36,14 +38,14 @@ void main() {
   final name1 = Name('Maman');
   final name1bis = Name('Maman');
 
-  final name2 = Name('Omar');
+  final name2 = Name('');
   final name2bis = Name('Omar');
 
   final name3 = Name('Younes');
   final name3bis = Name('Younes');
 
-  final nameList1 = NameList(KtList.of(name1, name2, name3));
-  final nameList2 = NameList(KtList.of(name1bis, name2bis, name3bis));
+  final nameList1 = NameList2(KtList.of(name1, name2, name3));
+  final nameList2 = NameList2(KtList.of(name1bis, name2bis, name3bis));
 
   print(nameList1);
 
@@ -53,7 +55,7 @@ void main() {
 
   print('------------------');
 
-  final nameListEmpty = NameList(const KtList.empty());
+  final nameListEmpty = NameList2(const KtList.empty());
 
   print(nameListEmpty);
 
@@ -63,26 +65,11 @@ void main() {
 
   final lastName = Name('J.');
 
-  final fullName1 = FullName(firstName: name2, lastName: lastName);
+  final fullName1 = FullName2(firstName: name2, lastName: lastName);
 
-  final fullName2 = FullName(firstName: name3, lastName: lastName);
+  final fullName2 = FullName2(firstName: name3, lastName: lastName);
 
-  final fullNameList = FullNameList(KtList.of(fullName1, fullName1, fullName2));
-  final fullNameListbis =
-      FullNameList(KtList.of(fullName1, fullName1, fullName2));
+  print(fullName1);
 
-  print(fullNameList);
-  print(fullNameList == fullNameListbis);
-
-  print('------------------');
-
-  final tooLongFullName = FullName(
-      firstName: name2,
-      lastName:
-          Name('This is a very long last name that will hopefully be invalid'));
-
-  final fullNameListInv =
-      FullNameList(KtList.of(fullName1, fullName2, tooLongFullName));
-
-  print(fullNameListInv);
+  print(fullName2);
 }

@@ -44,6 +44,11 @@ mixin $FullName {
     );
   }
 
+  Name get lastName => match(
+        valid: (valid) => valid.lastName,
+        invalid: (invalid) => invalid.lastName,
+      );
+
   bool get hasMiddleName => match(
         valid: (valid) => valid.hasMiddleName,
         invalid: (invalid) => invalid.hasMiddleName,
@@ -87,6 +92,7 @@ class ValidFullName extends FullName implements ValidEntity {
   }) : super._();
 
   final ValidName firstName;
+  @override
   final ValidName lastName;
   @override
   final bool hasMiddleName;
@@ -113,6 +119,7 @@ abstract class InvalidFullName extends FullName
   const InvalidFullName._() : super._();
 
   Name get firstName;
+  @override
   Name get lastName;
   @override
   bool get hasMiddleName;

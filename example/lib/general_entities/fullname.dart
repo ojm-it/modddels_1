@@ -1,17 +1,21 @@
+import 'package:example/value_objects.dart/name.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:fpdart/fpdart.dart';
-import 'name.dart';
 
 part 'fullname.g.dart';
 part 'fullname.freezed.dart';
 
 @modddel
-class FullName extends Entity<FullNameEntityFailure, InvalidFullNameGeneral,
-    InvalidFullNameContent, InvalidFullName, ValidFullName> with $FullName {
+class FullName extends GeneralEntity<
+    FullNameEntityFailure,
+    InvalidFullNameGeneral,
+    InvalidFullNameContent,
+    InvalidFullName,
+    ValidFullName> with $FullName {
   factory FullName({
     required Name firstName,
-    required Name lastName,
+    @withGetter required Name lastName,
     @validWithGetter bool hasMiddleName = false,
   }) {
     return $FullName._create(

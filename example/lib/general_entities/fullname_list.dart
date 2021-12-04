@@ -1,4 +1,4 @@
-import 'package:example/fullname.dart';
+import 'package:example/general_entities/fullname.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kt_dart/collection.dart';
@@ -8,7 +8,7 @@ part 'fullname_list.g.dart';
 part 'fullname_list.freezed.dart';
 
 @modddel
-class FullNameList extends KtListEntity<
+class FullNameList extends KtListGeneralEntity<
     FullNameListEntityFailure,
     InvalidFullNameListGeneral,
     InvalidFullNameListContent,
