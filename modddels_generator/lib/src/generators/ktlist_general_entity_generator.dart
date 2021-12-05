@@ -206,15 +206,8 @@ class KtListGeneralEntityGenerator {
 
     ''');
 
-    ///map method
+    ///maybeMap method
     classBuffer.writeln('''
-    @override
-    TResult map<TResult extends Object?>(
-        {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
-      return valid(this);
-    }
-
     @override
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
