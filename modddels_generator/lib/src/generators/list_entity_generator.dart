@@ -2,8 +2,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
-class KtListEntityGenerator {
-  KtListEntityGenerator(
+class ListEntityGenerator {
+  ListEntityGenerator(
       {required this.className, required this.factoryConstructor});
 
   final String className;
@@ -38,7 +38,7 @@ class KtListEntityGenerator {
       );
     }
 
-    final classInfo = KtListEntityClassInfo(className, ktListType);
+    final classInfo = ListEntityClassInfo(className, ktListType);
 
     final classBuffer = StringBuffer();
 
@@ -51,7 +51,7 @@ class KtListEntityGenerator {
     return classBuffer.toString();
   }
 
-  void makeMixin(StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+  void makeMixin(StringBuffer classBuffer, ListEntityClassInfo classInfo) {
     classBuffer.writeln('mixin \$$className {');
 
     //create method
@@ -161,7 +161,7 @@ class KtListEntityGenerator {
   }
 
   void makeValidEntity(
-      StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, ListEntityClassInfo classInfo) {
     classBuffer.writeln(
         'class ${classInfo.validEntity} extends $className implements ValidEntity {');
 
@@ -207,7 +207,7 @@ class KtListEntityGenerator {
   }
 
   void makeInvalidEntityContent(
-      StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, ListEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityContent} extends $className
       implements InvalidEntityContent {

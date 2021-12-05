@@ -3,17 +3,17 @@ import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:modddels_generator/src/generators/entity_generator.dart';
 import 'package:modddels_generator/src/generators/general_entity_generator.dart';
-import 'package:modddels_generator/src/generators/ktlist_entity_generator.dart';
-import 'package:modddels_generator/src/generators/ktlist_general_entity_generator.dart';
+import 'package:modddels_generator/src/generators/list_entity_generator.dart';
+import 'package:modddels_generator/src/generators/list_general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
 
 enum Model {
   valueObject,
   entity,
-  ktListEntity,
+  listEntity,
   generalEntity,
-  ktListGeneralEntity,
+  listGeneralEntity,
 }
 
 class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
@@ -67,23 +67,24 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       modelType = Model.valueObject;
     } else if (superClass.any((element) => element
         .getDisplayString(withNullability: false)
-        .startsWith('KtListGeneralEntity'))) {
-      modelType = Model.ktListGeneralEntity;
+        .startsWith('ListGeneralEntity'))) {
+      modelType = Model.listGeneralEntity;
     } else if (superClass.any((element) => element
         .getDisplayString(withNullability: false)
         .startsWith('GeneralEntity'))) {
       modelType = Model.generalEntity;
     } else if (superClass.any((element) => element
         .getDisplayString(withNullability: false)
-        .startsWith('KtListEntity'))) {
-      modelType = Model.ktListEntity;
+        .startsWith('ListEntity'))) {
+      modelType = Model.listEntity;
     } else if (superClass.any((element) => element
         .getDisplayString(withNullability: false)
         .startsWith('Entity'))) {
       modelType = Model.entity;
     } else {
+      //TODO update error message
       throw InvalidGenerationSourceError(
-        'Should either extend GeneralEntity, KtListGeneralEntity, or ValueObject',
+        'Should either extend GeneralEntity, ListGeneralEntity, or ValueObject',
         element: classElement,
       );
     }
@@ -93,8 +94,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
         return ValueObjectGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
-      case Model.ktListGeneralEntity:
-        return KtListGeneralEntityGenerator(
+      case Model.listGeneralEntity:
+        return ListGeneralEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
       case Model.generalEntity:
@@ -105,8 +106,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
         return EntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
-      case Model.ktListEntity:
-        return KtListEntityGenerator(
+      case Model.listEntity:
+        return ListEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
     }

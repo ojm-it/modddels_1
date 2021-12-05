@@ -92,8 +92,8 @@ const _withGetterChecker = TypeChecker.fromRuntime(WithGetterAnnotation);
 const _validWithGetterChecker =
     TypeChecker.fromRuntime(ValidWithGetterAnnotation);
 
-class KtListEntityClassInfo extends BaseEntityClassInfo {
-  KtListEntityClassInfo(String className, this.ktListType) : super(className) {
+class ListEntityClassInfo extends BaseEntityClassInfo {
+  ListEntityClassInfo(String className, this.ktListType) : super(className) {
     ktListTypeValid = 'Valid$ktListType';
   }
 
@@ -133,8 +133,8 @@ class GeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
   late final List<EntityParameter> namedParameters;
 }
 
-class KtListGeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
-  KtListGeneralEntityClassInfo(String className, this.ktListType)
+class ListGeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
+  ListGeneralEntityClassInfo(String className, this.ktListType)
       : super(className) {
     ktListTypeValid = 'Valid$ktListType';
   }

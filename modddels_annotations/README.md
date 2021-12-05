@@ -19,9 +19,9 @@ Available modddels :
 
 - ValueObject
 - Entity 
-- KtListEntity
+- ListEntity
 - GeneralEntity
-- KtListGeneralEntity
+- ListGeneralEntity
 
 # Getting started
 
@@ -135,14 +135,14 @@ factory FullName({
   }) { ...
 ```
 
-### KtListEntity
-A KtListEntity is similar to an Entity in a sense that it holds a List of other modddels (of the same type). Again :
+### ListEntity
+A ListEntity is similar to an Entity in a sense that it holds a List of other modddels (of the same type). Again :
  
  - If any of the modddels is invalid, then the whole entity is Invalid. (It becomes an `InvalidEntityContent`).
 
  - If all the modddels are valid, then the entity is valid (It becomes a `ValidEntity`).
 
-NB: When empty, the KtListEntity is considered valid. If you want a different behaviour, consider using a `KtListGeneralEntity` and providing your own general validation.
+NB: When empty, the ListEntity is considered valid. If you want a different behaviour, consider using a `ListGeneralEntity` and providing your own general validation.
 
 ## General Entity :
 
@@ -241,8 +241,8 @@ A good usecase for this would be for an "id" field.
 
 You can use the `@valid` annotation as you would with a normal Entity. If you want to use both `@valid` and `@withGetter` annotation, you can use the shorthand `@validWithGetter` annotation.
 
-### KtListGeneralEntity
-A KtListGeneralEntity is a `KtListEntity` which provides an extra validation step, just like a `GeneralEntity`.
+### ListGeneralEntity
+A ListGeneralEntity is a `ListEntity` which provides an extra validation step, just like a `GeneralEntity`.
 
 ## Remarks
 
@@ -322,10 +322,10 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 		"description": "Entity"
 	},
 	"KtList Entity": {
-		"prefix": "ktlistentity",
+		"prefix": "listentity",
 		"body": [
 			"@modddel",
-			"class ${1} extends KtListEntity<Invalid${1}Content, Valid${1}> with $${1} {",
+			"class ${1} extends ListEntity<Invalid${1}Content, Valid${1}> with $${1} {",
 			"  factory ${1}(KtList<${2}> list) {",
 			"    return $${1}._create(list);",
 			"  }",
@@ -362,10 +362,10 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 		"description": "General Entity"
 	},
 	"KtList General Entity": {
-		"prefix": "ktlistgeneralentity",
+		"prefix": "listgeneralentity",
 		"body": [
 			"@modddel",
-			"class ${1} extends KtListGeneralEntity<${1}EntityFailure, Invalid${1}General,",
+			"class ${1} extends ListGeneralEntity<${1}EntityFailure, Invalid${1}General,",
 			"    Invalid${1}Content, Invalid${1}, Valid${1}> with $${1} {",
 			"  factory ${1}(KtList<${2}> list) {",
 			"    return $${1}._create(list);",
