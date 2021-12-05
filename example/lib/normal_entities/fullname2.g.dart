@@ -55,11 +55,22 @@ mixin $FullName2 {
           FullName2? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidFullName2 valid) valid,
-      required TResult Function(InvalidFullName2Content invalidContent)
-          invalidContent}) {
+  TResult map<TResult extends Object?>({
+    required TResult Function(ValidFullName2 valid) valid,
+    required TResult Function(InvalidFullName2Content invalidContent)
+        invalidContent,
+  }) {
     throw UnimplementedError();
+  }
+
+  TResult mapValidity<TResult extends Object?>({
+    required TResult Function(ValidFullName2 valid) valid,
+    required TResult Function(InvalidFullName2Content invalidContent) invalid,
+  }) {
+    return map(
+      valid: valid,
+      invalidContent: invalid,
+    );
   }
 
   FullName2 copyWith({
@@ -97,10 +108,11 @@ class ValidFullName2 extends FullName2 implements ValidEntity {
   final bool hasMiddleName;
 
   @override
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidFullName2 valid) valid,
-      required TResult Function(InvalidFullName2Content invalidContent)
-          invalidContent}) {
+  TResult map<TResult extends Object?>({
+    required TResult Function(ValidFullName2 valid) valid,
+    required TResult Function(InvalidFullName2Content invalidContent)
+        invalidContent,
+  }) {
     return valid(this);
   }
 
@@ -125,6 +137,9 @@ class InvalidFullName2Content extends FullName2
   final Failure contentFailure;
 
   @override
+  Failure get failure => contentFailure;
+
+  @override
   final Name firstName;
   @override
   final Name lastName;
@@ -132,10 +147,11 @@ class InvalidFullName2Content extends FullName2
   final bool hasMiddleName;
 
   @override
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidFullName2 valid) valid,
-      required TResult Function(InvalidFullName2Content invalidContent)
-          invalidContent}) {
+  TResult map<TResult extends Object?>({
+    required TResult Function(ValidFullName2 valid) valid,
+    required TResult Function(InvalidFullName2Content invalidContent)
+        invalidContent,
+  }) {
     return invalidContent(this);
   }
 

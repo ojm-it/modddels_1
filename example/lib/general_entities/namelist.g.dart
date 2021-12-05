@@ -53,7 +53,7 @@ mixin $NameList {
     );
   }
 
-  int get size => map(
+  int get size => mapValidity(
         valid: (valid) => valid.list.size,
         invalid: (invalid) => invalid.list.size,
       );
@@ -62,14 +62,42 @@ mixin $NameList {
           NameList? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidNameList valid) valid,
-      required TResult Function(InvalidNameList invalid) invalid}) {
+  TResult map<TResult extends Object?>({
+    required TResult Function(ValidNameList valid) valid,
+    required TResult Function(InvalidNameListContent invalidContent)
+        invalidContent,
+    required TResult Function(InvalidNameListGeneral invalidGeneral)
+        invalidGeneral,
+  }) {
+    return maybeMap(
+      valid: valid,
+      invalidContent: invalidContent,
+      invalidGeneral: invalidGeneral,
+      orElse: (invalid) => throw UnreachableError(),
+    );
+  }
+
+  TResult maybeMap<TResult extends Object?>({
+    required TResult Function(ValidNameList valid) valid,
+    TResult Function(InvalidNameListContent invalidContent)? invalidContent,
+    TResult Function(InvalidNameListGeneral invalidGeneral)? invalidGeneral,
+    required TResult Function(InvalidNameList invalid) orElse,
+  }) {
     throw UnimplementedError();
   }
 
+  TResult mapValidity<TResult extends Object?>({
+    required TResult Function(ValidNameList valid) valid,
+    required TResult Function(InvalidNameList invalid) invalid,
+  }) {
+    return maybeMap(
+      valid: valid,
+      orElse: invalid,
+    );
+  }
+
   NameList copyWith(KtList<Name> Function(KtList<Name> list) callback) {
-    return map(
+    return mapValidity(
       valid: (valid) => _create(callback(valid.list)),
       invalid: (invalid) => _create(callback(invalid.list)),
     );
@@ -84,9 +112,12 @@ class ValidNameList extends NameList implements ValidEntity {
   final KtList<ValidName> list;
 
   @override
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidNameList valid) valid,
-      required TResult Function(InvalidNameList invalid) invalid}) {
+  TResult maybeMap<TResult extends Object?>({
+    required TResult Function(ValidNameList valid) valid,
+    TResult Function(InvalidNameListContent invalidContent)? invalidContent,
+    TResult Function(InvalidNameListGeneral invalidGeneral)? invalidGeneral,
+    required TResult Function(InvalidNameList invalid) orElse,
+  }) {
     return valid(this);
   }
 
@@ -96,19 +127,44 @@ class ValidNameList extends NameList implements ValidEntity {
       ];
 }
 
-abstract class InvalidNameList extends NameList
-    implements
-        InvalidEntity<NameListEntityFailure, InvalidNameListGeneral,
-            InvalidNameListContent> {
+abstract class InvalidNameList extends NameList implements InvalidEntity {
   const InvalidNameList._() : super._();
 
   KtList<Name> get list;
 
   @override
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidNameList valid) valid,
-      required TResult Function(InvalidNameList invalid) invalid}) {
-    return invalid(this);
+  Failure get failure => whenInvalid(
+        contentFailure: (contentFailure) => contentFailure,
+        generalEntityFailure: (generalEntityFailure) => generalEntityFailure,
+      );
+
+  TResult mapInvalid<TResult extends Object?>({
+    required TResult Function(InvalidNameListContent invalidContent)
+        invalidContent,
+    required TResult Function(InvalidNameListGeneral invalidGeneral)
+        invalidGeneral,
+  }) {
+    return maybeMap(
+      valid: (valid) => throw UnreachableError(),
+      invalidContent: invalidContent,
+      invalidGeneral: invalidGeneral,
+      orElse: (invalid) => throw UnreachableError(),
+    );
+  }
+
+  TResult whenInvalid<TResult extends Object?>({
+    required TResult Function(Failure contentFailure) contentFailure,
+    required TResult Function(NameListEntityFailure generalEntityFailure)
+        generalEntityFailure,
+  }) {
+    return maybeMap(
+      valid: (valid) => throw UnreachableError(),
+      invalidContent: (invalidContent) =>
+          contentFailure(invalidContent.contentFailure),
+      invalidGeneral: (invalidGeneral) =>
+          generalEntityFailure(invalidGeneral.generalEntityFailure),
+      orElse: (invalid) => throw UnreachableError(),
+    );
   }
 }
 
@@ -126,21 +182,16 @@ class InvalidNameListContent extends InvalidNameList
   final KtList<Name> list;
 
   @override
-  TResult invalidMatch<TResult extends Object?>(
-      {required TResult Function(InvalidNameListGeneral invalidGeneral)
-          invalidGeneral,
-      required TResult Function(InvalidNameListContent invalidContent)
-          invalidContent}) {
-    return invalidContent(this);
-  }
-
-  @override
-  TResult invalidWhen<TResult extends Object?>({
-    required TResult Function(NameListEntityFailure generalEntityFailure)
-        generalEntityFailure,
-    required TResult Function(Failure contentFailure) contentFailure,
+  TResult maybeMap<TResult extends Object?>({
+    required TResult Function(ValidNameList valid) valid,
+    TResult Function(InvalidNameListContent invalidContent)? invalidContent,
+    TResult Function(InvalidNameListGeneral invalidGeneral)? invalidGeneral,
+    required TResult Function(InvalidNameList invalid) orElse,
   }) {
-    return contentFailure(this.contentFailure);
+    if (invalidContent != null) {
+      return invalidContent(this);
+    }
+    return orElse(this);
   }
 
   @override
@@ -164,21 +215,16 @@ class InvalidNameListGeneral extends InvalidNameList
   final KtList<ValidName> list;
 
   @override
-  TResult invalidMatch<TResult extends Object?>(
-      {required TResult Function(InvalidNameListGeneral invalidGeneral)
-          invalidGeneral,
-      required TResult Function(InvalidNameListContent invalidContent)
-          invalidContent}) {
-    return invalidGeneral(this);
-  }
-
-  @override
-  TResult invalidWhen<TResult extends Object?>({
-    required TResult Function(NameListEntityFailure generalEntityFailure)
-        generalEntityFailure,
-    required TResult Function(Failure contentFailure) contentFailure,
+  TResult maybeMap<TResult extends Object?>({
+    required TResult Function(ValidNameList valid) valid,
+    TResult Function(InvalidNameListContent invalidContent)? invalidContent,
+    TResult Function(InvalidNameListGeneral invalidGeneral)? invalidGeneral,
+    required TResult Function(InvalidNameList invalid) orElse,
   }) {
-    return generalEntityFailure(this.generalEntityFailure);
+    if (invalidGeneral != null) {
+      return invalidGeneral(this);
+    }
+    return orElse(this);
   }
 
   @override

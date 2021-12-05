@@ -56,11 +56,22 @@ mixin $NameList2 {
           NameList2? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidNameList2 valid) valid,
-      required TResult Function(InvalidNameList2Content invalidContent)
-          invalidContent}) {
+  TResult map<TResult extends Object?>({
+    required TResult Function(ValidNameList2 valid) valid,
+    required TResult Function(InvalidNameList2Content invalidContent)
+        invalidContent,
+  }) {
     throw UnimplementedError();
+  }
+
+  TResult mapValidity<TResult extends Object?>({
+    required TResult Function(ValidNameList2 valid) valid,
+    required TResult Function(InvalidNameList2Content invalidContent) invalid,
+  }) {
+    return map(
+      valid: valid,
+      invalidContent: invalid,
+    );
   }
 
   NameList2 copyWith(KtList<Name> Function(KtList<Name> list) callback) {
@@ -81,10 +92,11 @@ class ValidNameList2 extends NameList2 implements ValidEntity {
   final KtList<ValidName> list;
 
   @override
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidNameList2 valid) valid,
-      required TResult Function(InvalidNameList2Content invalidContent)
-          invalidContent}) {
+  TResult map<TResult extends Object?>({
+    required TResult Function(ValidNameList2 valid) valid,
+    required TResult Function(InvalidNameList2Content invalidContent)
+        invalidContent,
+  }) {
     return valid(this);
   }
 
@@ -105,13 +117,17 @@ class InvalidNameList2Content extends NameList2
   final Failure contentFailure;
 
   @override
+  Failure get failure => contentFailure;
+
+  @override
   final KtList<Name> list;
 
   @override
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidNameList2 valid) valid,
-      required TResult Function(InvalidNameList2Content invalidContent)
-          invalidContent}) {
+  TResult map<TResult extends Object?>({
+    required TResult Function(ValidNameList2 valid) valid,
+    required TResult Function(InvalidNameList2Content invalidContent)
+        invalidContent,
+  }) {
     return invalidContent(this);
   }
 

@@ -44,12 +44,12 @@ mixin $FullName {
     );
   }
 
-  Name get lastName => map(
+  Name get lastName => mapValidity(
         valid: (valid) => valid.lastName,
         invalid: (invalid) => invalid.lastName,
       );
 
-  bool get hasMiddleName => map(
+  bool get hasMiddleName => mapValidity(
         valid: (valid) => valid.hasMiddleName,
         invalid: (invalid) => invalid.hasMiddleName,
       );
@@ -58,10 +58,38 @@ mixin $FullName {
           FullName? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidFullName valid) valid,
-      required TResult Function(InvalidFullName invalid) invalid}) {
+  TResult map<TResult extends Object?>({
+    required TResult Function(ValidFullName valid) valid,
+    required TResult Function(InvalidFullNameContent invalidContent)
+        invalidContent,
+    required TResult Function(InvalidFullNameGeneral invalidGeneral)
+        invalidGeneral,
+  }) {
+    return maybeMap(
+      valid: valid,
+      invalidContent: invalidContent,
+      invalidGeneral: invalidGeneral,
+      orElse: (invalid) => throw UnreachableError(),
+    );
+  }
+
+  TResult maybeMap<TResult extends Object?>({
+    required TResult Function(ValidFullName valid) valid,
+    TResult Function(InvalidFullNameContent invalidContent)? invalidContent,
+    TResult Function(InvalidFullNameGeneral invalidGeneral)? invalidGeneral,
+    required TResult Function(InvalidFullName invalid) orElse,
+  }) {
     throw UnimplementedError();
+  }
+
+  TResult mapValidity<TResult extends Object?>({
+    required TResult Function(ValidFullName valid) valid,
+    required TResult Function(InvalidFullName invalid) invalid,
+  }) {
+    return maybeMap(
+      valid: valid,
+      orElse: invalid,
+    );
   }
 
   FullName copyWith({
@@ -69,7 +97,7 @@ mixin $FullName {
     Name? lastName,
     bool? hasMiddleName,
   }) {
-    return map(
+    return mapValidity(
       valid: (valid) => _create(
         firstName: firstName ?? valid.firstName,
         lastName: lastName ?? valid.lastName,
@@ -98,9 +126,12 @@ class ValidFullName extends FullName implements ValidEntity {
   final bool hasMiddleName;
 
   @override
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidFullName valid) valid,
-      required TResult Function(InvalidFullName invalid) invalid}) {
+  TResult maybeMap<TResult extends Object?>({
+    required TResult Function(ValidFullName valid) valid,
+    TResult Function(InvalidFullNameContent invalidContent)? invalidContent,
+    TResult Function(InvalidFullNameGeneral invalidGeneral)? invalidGeneral,
+    required TResult Function(InvalidFullName invalid) orElse,
+  }) {
     return valid(this);
   }
 
@@ -112,10 +143,7 @@ class ValidFullName extends FullName implements ValidEntity {
       ];
 }
 
-abstract class InvalidFullName extends FullName
-    implements
-        InvalidEntity<FullNameEntityFailure, InvalidFullNameGeneral,
-            InvalidFullNameContent> {
+abstract class InvalidFullName extends FullName implements InvalidEntity {
   const InvalidFullName._() : super._();
 
   Name get firstName;
@@ -125,10 +153,38 @@ abstract class InvalidFullName extends FullName
   bool get hasMiddleName;
 
   @override
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidFullName valid) valid,
-      required TResult Function(InvalidFullName invalid) invalid}) {
-    return invalid(this);
+  Failure get failure => whenInvalid(
+        contentFailure: (contentFailure) => contentFailure,
+        generalEntityFailure: (generalEntityFailure) => generalEntityFailure,
+      );
+
+  TResult mapInvalid<TResult extends Object?>({
+    required TResult Function(InvalidFullNameContent invalidContent)
+        invalidContent,
+    required TResult Function(InvalidFullNameGeneral invalidGeneral)
+        invalidGeneral,
+  }) {
+    return maybeMap(
+      valid: (valid) => throw UnreachableError(),
+      invalidContent: invalidContent,
+      invalidGeneral: invalidGeneral,
+      orElse: (invalid) => throw UnreachableError(),
+    );
+  }
+
+  TResult whenInvalid<TResult extends Object?>({
+    required TResult Function(Failure contentFailure) contentFailure,
+    required TResult Function(FullNameEntityFailure generalEntityFailure)
+        generalEntityFailure,
+  }) {
+    return maybeMap(
+      valid: (valid) => throw UnreachableError(),
+      invalidContent: (invalidContent) =>
+          contentFailure(invalidContent.contentFailure),
+      invalidGeneral: (invalidGeneral) =>
+          generalEntityFailure(invalidGeneral.generalEntityFailure),
+      orElse: (invalid) => throw UnreachableError(),
+    );
   }
 }
 
@@ -152,21 +208,16 @@ class InvalidFullNameContent extends InvalidFullName
   final bool hasMiddleName;
 
   @override
-  TResult invalidMatch<TResult extends Object?>(
-      {required TResult Function(InvalidFullNameGeneral invalidGeneral)
-          invalidGeneral,
-      required TResult Function(InvalidFullNameContent invalidContent)
-          invalidContent}) {
-    return invalidContent(this);
-  }
-
-  @override
-  TResult invalidWhen<TResult extends Object?>({
-    required TResult Function(FullNameEntityFailure generalEntityFailure)
-        generalEntityFailure,
-    required TResult Function(Failure contentFailure) contentFailure,
+  TResult maybeMap<TResult extends Object?>({
+    required TResult Function(ValidFullName valid) valid,
+    TResult Function(InvalidFullNameContent invalidContent)? invalidContent,
+    TResult Function(InvalidFullNameGeneral invalidGeneral)? invalidGeneral,
+    required TResult Function(InvalidFullName invalid) orElse,
   }) {
-    return contentFailure(this.contentFailure);
+    if (invalidContent != null) {
+      return invalidContent(this);
+    }
+    return orElse(this);
   }
 
   @override
@@ -198,21 +249,16 @@ class InvalidFullNameGeneral extends InvalidFullName
   final bool hasMiddleName;
 
   @override
-  TResult invalidMatch<TResult extends Object?>(
-      {required TResult Function(InvalidFullNameGeneral invalidGeneral)
-          invalidGeneral,
-      required TResult Function(InvalidFullNameContent invalidContent)
-          invalidContent}) {
-    return invalidGeneral(this);
-  }
-
-  @override
-  TResult invalidWhen<TResult extends Object?>({
-    required TResult Function(FullNameEntityFailure generalEntityFailure)
-        generalEntityFailure,
-    required TResult Function(Failure contentFailure) contentFailure,
+  TResult maybeMap<TResult extends Object?>({
+    required TResult Function(ValidFullName valid) valid,
+    TResult Function(InvalidFullNameContent invalidContent)? invalidContent,
+    TResult Function(InvalidFullNameGeneral invalidGeneral)? invalidGeneral,
+    required TResult Function(InvalidFullName invalid) orElse,
   }) {
-    return generalEntityFailure(this.generalEntityFailure);
+    if (invalidGeneral != null) {
+      return invalidGeneral(this);
+    }
+    return orElse(this);
   }
 
   @override

@@ -8,7 +8,7 @@ part 'fullname_list.g.dart';
 part 'fullname_list.freezed.dart';
 
 @modddel
-class FullNameList extends KtListGeneralEntity<
+class FullNameList extends ListGeneralEntity<
     FullNameListEntityFailure,
     InvalidFullNameListGeneral,
     InvalidFullNameListContent,

@@ -227,7 +227,7 @@ packages:
       name: freezed
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.0.2"
   freezed_annotation:
     dependency: "direct main"
     description:
@@ -337,8 +337,8 @@ packages:
     dependency: "direct main"
     description:
       path: modddels_annotations
-      ref: master
-      resolved-ref: "61ab2a9d8e94100e464ce5455dc4b1b4afe66eac"
+      ref: dev
+      resolved-ref: "7eccb2e9de91d54f9d4786fe5f7578212047decd"
       url: "git://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"
@@ -346,8 +346,8 @@ packages:
     dependency: "direct dev"
     description:
       path: modddels_generator
-      ref: master
-      resolved-ref: "61ab2a9d8e94100e464ce5455dc4b1b4afe66eac"
+      ref: dev
+      resolved-ref: "7eccb2e9de91d54f9d4786fe5f7578212047decd"
       url: "git://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"

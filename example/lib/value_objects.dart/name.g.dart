@@ -19,10 +19,21 @@ mixin $Name {
       optionOf(nullableValueObject)
           .match((t) => t.toBroadEither, () => right(null));
 
-  TResult map<TResult extends Object?>(
-      {required TResult Function(ValidName valid) valid,
-      required TResult Function(InvalidName invalid) invalid}) {
+  TResult map<TResult extends Object?>({
+    required TResult Function(ValidName valid) valid,
+    required TResult Function(InvalidName invalid) invalid,
+  }) {
     throw UnimplementedError();
+  }
+
+  TResult mapValidity<TResult extends Object?>({
+    required TResult Function(ValidName valid) valid,
+    required TResult Function(InvalidName invalid) invalid,
+  }) {
+    return map(
+      valid: valid,
+      invalid: invalid,
+    );
   }
 }
 
