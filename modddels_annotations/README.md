@@ -321,7 +321,7 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 		],
 		"description": "Entity"
 	},
-	"KtList Entity": {
+	"List Entity": {
 		"prefix": "listentity",
 		"body": [
 			"@modddel",
@@ -334,7 +334,7 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 			"",
 			"}",
 		],
-		"description": "KtList Entity"
+		"description": "List Entity"
 	},
 	"General Entity": {
 		"prefix": "generalentity",
@@ -361,7 +361,7 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 		],
 		"description": "General Entity"
 	},
-	"KtList General Entity": {
+	"List General Entity": {
 		"prefix": "listgeneralentity",
 		"body": [
 			"@modddel",
@@ -380,7 +380,7 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 			"  }",
 			"}",
 		],
-		"description": "KtList GeneralEntity"
+		"description": "List General Entity"
 	},
 	"General Entity Failure": {
 		"prefix": "entityfailure",
