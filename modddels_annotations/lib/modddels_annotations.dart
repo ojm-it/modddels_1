@@ -7,5 +7,5 @@ export 'src/value_object/value_object.dart';
 export 'src/entity/general_entity.dart';
 export 'src/entity/entity.dart';
 export 'src/entity/common.dart';
-export 'src/entity/kt_list/ktlist_general_entity.dart';
-export 'src/entity/kt_list/ktlist_entity.dart';
+export 'src/entity/list/list_general_entity.dart';
+export 'src/entity/list/list_entity.dart';
