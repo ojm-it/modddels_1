@@ -1,5 +1,6 @@
 library modddels_annotations;
 
+export 'src/errors.dart';
 export 'src/common.dart';
 export 'src/annotations.dart';
 export 'src/value_object/value_object.dart';
