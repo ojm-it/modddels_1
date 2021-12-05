@@ -34,15 +34,3 @@ abstract class GeneralEntity<
   ///   a [ValidEntity]
   Option<F> validateGeneral(V valid);
 }
-
-///An [InvalidEntityGeneral] is an [InvalidEntity] caused by a
-///[GeneralEntityFailure]. All the modddels inside this [GeneralEntity] are valid, but
-///the [GeneralEntity] as a whole is invalid.
-///
-abstract class InvalidEntityGeneral<F extends GeneralEntityFailure>
-    extends InvalidEntity {
-  F get generalEntityFailure;
-}
-
-///A [GeneralEntityFailure] is a [Failure] of an [GeneralEntity] as a whole.
-abstract class GeneralEntityFailure implements Failure {}

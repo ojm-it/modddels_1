@@ -1,3 +1,4 @@
+import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:modddels_annotations/src/entity/common.dart';
 
@@ -7,6 +8,16 @@ abstract class ListGeneralEntity<
     G extends InvalidEntityGeneral<F>,
     C extends InvalidEntityContent,
     I extends InvalidEntity,
-    V extends ValidEntity> extends GeneralEntity<F, G, C, I, V> {
+    V extends ValidEntity> extends Modddel<I, V> {
   const ListGeneralEntity();
+
+  //TODO update this documentation.
+
+  ///After this [GeneralEntity]'s modddels have been validated and are valid, this
+  ///validates the entity as a whole.
+  /// - If it returns some() [GeneralEntityFailure], then this [GeneralEntity] will be
+  ///   an [InvalidEntityContent]
+  /// - If it returns none() [GeneralEntityFailure], then this [GeneralEntity] will be
+  ///   a [ValidEntity]
+  Option<F> validateGeneral(V valid);
 }
