@@ -5,6 +5,9 @@ import 'package:modddels_annotations/src/common.dart';
 ///modddels as [ValidValueObject]s / [ValidEntity]s.
 abstract class ValidEntity extends ValidModddel {}
 
+///An [InvalidEntity] is an [GeneralEntity] that is invalid. It can either be :
+/// - An [InvalidEntityContent]
+/// - An [InvalidEntityGeneral]
 abstract class InvalidEntity extends InvalidModddel {}
 
 ///An [InvalidEntityContent] is an [InvalidEntity] made invalid because one of

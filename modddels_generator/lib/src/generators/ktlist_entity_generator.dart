@@ -121,11 +121,27 @@ class KtListEntityGenerator {
 
     ///map method
     classBuffer.writeln('''
-    TResult map<TResult extends Object?>(
-        {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+    }) {
       throw UnimplementedError();
-    } 
+    }
+    
+    ''');
+
+    ///mapValidity method
+    classBuffer.writeln('''
+    TResult mapValidity<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalid,
+    }) {
+      return map(
+        valid: valid,
+        invalidContent: invalid,
+      );
+    }
     
     ''');
 
@@ -167,9 +183,11 @@ class KtListEntityGenerator {
     ///map method
     classBuffer.writeln('''
     @override
-    TResult map<TResult extends Object?>(
-        {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+    }) {
       return valid(this);
     }
 
@@ -210,17 +228,22 @@ class KtListEntityGenerator {
     final Failure contentFailure;
 
     @override
+    Failure get failure => contentFailure;
+
+    @override
     final KtList<${classInfo.ktListType}> list;
     ''');
 
     ///map method
     classBuffer.writeln('''
     @override
-    TResult map<TResult extends Object?>(
-        {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+    }) {
       return invalidContent(this);
-    }
+    }  
 
     ''');
 

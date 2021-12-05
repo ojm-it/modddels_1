@@ -87,7 +87,7 @@ class GeneralEntityGenerator {
 
     for (final param in getterParameters) {
       classBuffer.writeln('''
-      ${param.type} get ${param.name} => map(
+      ${param.type} get ${param.name} => mapValidity(
         valid: (valid) => valid.${param.name},
         invalid: (invalid) => invalid.${param.name},
       );
@@ -105,11 +105,48 @@ class GeneralEntityGenerator {
 
     ///map method
     classBuffer.writeln('''
-    TResult map<TResult extends Object?>(
-      {required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
-        throw UnimplementedError();
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+      required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+          invalidGeneral,
+    }) {
+      return maybeMap(
+        valid: valid,
+        invalidContent: invalidContent,
+        invalidGeneral: invalidGeneral,
+        orElse: (invalid) => throw UnreachableError(),
+      );
     }
+
+    ''');
+
+    ///maybe map method
+    classBuffer.writeln('''
+    TResult maybeMap<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+    }) {
+      throw UnimplementedError();
+    }
+
+    ''');
+
+    ///mapValidity method
+    classBuffer.writeln('''
+    TResult mapValidity<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntity} invalid) invalid,
+    }) {
+      return maybeMap(
+        valid: valid,
+        orElse: invalid,
+      );
+    }
+
     ''');
 
     ///copyWith method
@@ -117,7 +154,7 @@ class GeneralEntityGenerator {
     $className copyWith({
       ${classInfo.namedParameters.map((param) => '${param.optionalType} ${param.name},').join()}
     }) {
-      return map(
+      return mapValidity(
         valid: (valid) => _create(
           ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? valid.${param.name},').join()}
         ),
@@ -195,13 +232,16 @@ class GeneralEntityGenerator {
     }
     classBuffer.writeln('');
 
-    ///map method
+    ///maybeMap method
     classBuffer.writeln('''
     @override
-    TResult map<TResult extends Object?>(
-      {required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
-        return valid(this);
+    TResult maybeMap<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+    }) {
+      return valid(this);
     }
 
     ''');
@@ -222,9 +262,7 @@ class GeneralEntityGenerator {
       StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     abstract class ${classInfo.invalidEntity} extends $className
-      implements
-        InvalidEntity<${classInfo.generalEntityFailure}, ${classInfo.invalidEntityGeneral},
-          ${classInfo.invalidEntityContent}> {
+      implements InvalidEntity {
     ''');
 
     ///private constructor
@@ -233,7 +271,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///Fields getters
+    ///Fields Getters
     for (final param in classInfo.namedParameters) {
       if (param.hasWithGetterAnnotation == true) {
         classBuffer.writeln('@override');
@@ -242,13 +280,48 @@ class GeneralEntityGenerator {
     }
     classBuffer.writeln('');
 
-    ///map method
+    ///Failure getter
     classBuffer.writeln('''
     @override
-    TResult map<TResult extends Object?>(
-      {required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
-        return invalid(this);
+    Failure get failure => whenInvalid(
+          contentFailure: (contentFailure) => contentFailure,
+          generalEntityFailure: (generalEntityFailure) => generalEntityFailure,
+        );
+
+    ''');
+
+    ///mapInvalid method
+    classBuffer.writeln('''
+    TResult mapInvalid<TResult extends Object?>({
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+      required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+          invalidGeneral,
+    }) {
+      return maybeMap(
+        valid: (valid) => throw UnreachableError(),
+        invalidContent: invalidContent,
+        invalidGeneral: invalidGeneral,
+        orElse: (invalid) => throw UnreachableError(),
+      );
+    }
+    ''');
+
+    ///whenInvalid method
+    classBuffer.writeln('''
+    TResult whenInvalid<TResult extends Object?>({
+      required TResult Function(Failure contentFailure) contentFailure,
+      required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)
+          generalEntityFailure,
+    }) {
+      return maybeMap(
+        valid: (valid) => throw UnreachableError(),
+        invalidContent: (invalidContent) =>
+            contentFailure(invalidContent.contentFailure),
+        invalidGeneral: (invalidGeneral) =>
+            generalEntityFailure(invalidGeneral.generalEntityFailure),
+        orElse: (invalid) => throw UnreachableError(),
+      );
     }
     ''');
 
@@ -283,27 +356,19 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///invalidMatch method
+    ///maybeMap method
     classBuffer.writeln('''
     @override
-    TResult invalidMatch<TResult extends Object?>(
-      {required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
-        invalidGeneral,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
-        invalidContent}) {
-          return invalidContent(this);
-    }
-    ''');
-
-    ///invalidWhen method
-    classBuffer.writeln('''
-    @override
-    TResult invalidWhen<TResult extends Object?>({
-      required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)
-        generalEntityFailure,
-      required TResult Function(Failure contentFailure) contentFailure,
+    TResult maybeMap<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
     }) {
-      return contentFailure(this.contentFailure);
+      if (invalidContent != null) {
+        return invalidContent(this);
+      }
+      return orElse(this);
     }
     ''');
 
@@ -349,7 +414,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///invalidMatch method
+    ///maybeMap method
     classBuffer.writeln('''
     @override
     TResult invalidMatch<TResult extends Object?>(
@@ -359,19 +424,19 @@ class GeneralEntityGenerator {
         invalidContent}) {
           return invalidGeneral(this);
     }
-    ''');
 
-    ///invalidWhen method
-    classBuffer.writeln('''
     @override
-    TResult invalidWhen<TResult extends Object?>({
-      required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)
-        generalEntityFailure,
-      required TResult Function(Failure contentFailure) contentFailure,
+    TResult maybeMap<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
     }) {
-      return generalEntityFailure(this.generalEntityFailure);
+      if (invalidGeneral != null) {
+        return invalidGeneral(this);
+      }
+      return orElse(this);
     }
-
     ''');
 
     ///allProps method

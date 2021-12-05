@@ -61,11 +61,27 @@ class ValueObjectGenerator {
 
     ///map method
     classBuffer.writeln('''
-    TResult map<TResult extends Object?>(
-      {required TResult Function(${classInfo.validValueObject} valid) valid,
-      required TResult Function(${classInfo.invalidValueObject} invalid) invalid}) {
-        throw UnimplementedError();
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validValueObject} valid) valid,
+      required TResult Function(${classInfo.invalidValueObject} invalid) invalid,
+    }) {
+      throw UnimplementedError();
     }
+    
+    ''');
+
+    ///mapValidity method
+    classBuffer.writeln('''
+    TResult mapValidity<TResult extends Object?>({
+      required TResult Function(${classInfo.validValueObject} valid) valid,
+      required TResult Function(${classInfo.invalidValueObject} invalid) invalid,
+    }) {
+      return map(
+        valid: valid,
+        invalid: invalid,
+      );
+    }
+    
     ''');
 
     //End

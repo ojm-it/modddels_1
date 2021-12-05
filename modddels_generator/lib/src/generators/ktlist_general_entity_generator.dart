@@ -111,7 +111,7 @@ class KtListGeneralEntityGenerator {
     ///getter for the size of the list
 
     classBuffer.writeln('''
-    int get size => map(
+    int get size => mapValidity(
         valid: (valid) => valid.list.size,
         invalid: (invalid)=> invalid.list.size,
       );
@@ -128,18 +128,54 @@ class KtListGeneralEntityGenerator {
 
     ///map method
     classBuffer.writeln('''
-    TResult map<TResult extends Object?>(
-        {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+      required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+          invalidGeneral,
+    }) {
+      return maybeMap(
+        valid: valid,
+        invalidContent: invalidContent,
+        invalidGeneral: invalidGeneral,
+        orElse: (invalid) => throw UnreachableError(),
+      );
+    }
+    
+    ''');
+
+    ///maybeMap method
+    classBuffer.writeln('''
+    TResult maybeMap<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+    }) {
       throw UnimplementedError();
-    } 
+    }
+    
+    ''');
+
+    ///maybeMap method
+    classBuffer.writeln('''
+    TResult mapValidity<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntity} invalid) invalid,
+    }) {
+      return maybeMap(
+        valid: valid,
+        orElse: invalid,
+      );
+    }
     
     ''');
 
     ///copyWith method
     classBuffer.writeln('''
     $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
-      return map(
+      return mapValidity(
         valid: (valid) => _create(callback(valid.list)),
         invalid: (invalid) => _create(callback(invalid.list)),
       );
@@ -179,6 +215,16 @@ class KtListGeneralEntityGenerator {
       return valid(this);
     }
 
+    @override
+    TResult maybeMap<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+    }) {
+      return valid(this);
+    }
+
     ''');
 
     ///allProps method
@@ -198,9 +244,7 @@ class KtListGeneralEntityGenerator {
       StringBuffer classBuffer, KtListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     abstract class ${classInfo.invalidEntity} extends $className
-    implements
-        InvalidEntity<${classInfo.generalEntityFailure}, ${classInfo.invalidEntityGeneral},
-            ${classInfo.invalidEntityContent}> {
+    implements InvalidEntity {
     ''');
 
     ///private constructor
@@ -215,13 +259,49 @@ class KtListGeneralEntityGenerator {
 
     ''');
 
-    ///map method
+    ///Failure getter
     classBuffer.writeln('''
     @override
-    TResult map<TResult extends Object?>(
-        {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntity} invalid) invalid}) {
-      return invalid(this);
+    Failure get failure => whenInvalid(
+          contentFailure: (contentFailure) => contentFailure,
+          generalEntityFailure: (generalEntityFailure) => generalEntityFailure,
+        );
+
+    ''');
+
+    ///mapInvalid method
+    classBuffer.writeln('''
+    TResult mapInvalid<TResult extends Object?>({
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+      required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+          invalidGeneral,
+    }) {
+      return maybeMap(
+        valid: (valid) => throw UnreachableError(),
+        invalidContent: invalidContent,
+        invalidGeneral: invalidGeneral,
+        orElse: (invalid) => throw UnreachableError(),
+      );
+    }
+
+    ''');
+
+    ///whenInvalid method
+    classBuffer.writeln('''
+    TResult whenInvalid<TResult extends Object?>({
+      required TResult Function(Failure contentFailure) contentFailure,
+      required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)
+          generalEntityFailure,
+    }) {
+      return maybeMap(
+        valid: (valid) => throw UnreachableError(),
+        invalidContent: (invalidContent) =>
+            contentFailure(invalidContent.contentFailure),
+        invalidGeneral: (invalidGeneral) =>
+            generalEntityFailure(invalidGeneral.generalEntityFailure),
+        orElse: (invalid) => throw UnreachableError(),
+      );
     }
 
     ''');
@@ -255,27 +335,19 @@ class KtListGeneralEntityGenerator {
     final KtList<${classInfo.ktListType}> list;
     ''');
 
-    ///invalidMatch method
+    ///maybeMap method
     classBuffer.writeln('''
     @override
-    TResult invalidMatch<TResult extends Object?>(
-        {required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
-            invalidGeneral,
-        required TResult Function(${classInfo.invalidEntityContent} invalidContent)
-            invalidContent}) {
-      return invalidContent(this);
-    }
-    ''');
-
-    ///invalidWhen method
-    classBuffer.writeln('''
-    @override
-    TResult invalidWhen<TResult extends Object?>({
-      required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)
-          generalEntityFailure,
-      required TResult Function(Failure contentFailure) contentFailure,
+    TResult maybeMap<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
     }) {
-      return contentFailure(this.contentFailure);
+      if (invalidContent != null) {
+        return invalidContent(this);
+      }
+      return orElse(this);
     }
     ''');
 
@@ -317,30 +389,21 @@ class KtListGeneralEntityGenerator {
 
     ''');
 
-    ///invalidMatch method
+    ///maybeMap method
     classBuffer.writeln('''
     @override
-    TResult invalidMatch<TResult extends Object?>(
-        {required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
-            invalidGeneral,
-        required TResult Function(${classInfo.invalidEntityContent} invalidContent)
-            invalidContent}) {
-      return invalidGeneral(this);
-    }
-
-    ''');
-
-    ///invalidWhen method
-    classBuffer.writeln('''
-    @override
-    TResult invalidWhen<TResult extends Object?>({
-      required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)
-          generalEntityFailure,
-      required TResult Function(Failure contentFailure) contentFailure,
+    TResult maybeMap<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
     }) {
-      return generalEntityFailure(this.generalEntityFailure);
+      if (invalidGeneral != null) {
+        return invalidGeneral(this);
+      }
+      return orElse(this);
     }
-    
+
     ''');
 
     ///allProps method

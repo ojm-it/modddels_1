@@ -35,29 +35,6 @@ abstract class GeneralEntity<
   Option<F> validateGeneral(V valid);
 }
 
-// ///An [InvalidEntity] is an [GeneralEntity] that is invalid. It can either be :
-// /// - An [InvalidEntityContent]
-// /// - An [InvalidEntityGeneral]
-// abstract class InvalidEntity<
-//     F extends GeneralEntityFailure,
-//     G extends InvalidEntityGeneral<F>,
-//     C extends InvalidEntityContent> extends InvalidModddel {
-//   ///Executes [invalidGeneral] when this [InvalidEntity] is an
-//   ///[InvalidEntityGeneral], and executes [invalidContent] when it is an
-//   ///[InvalidEntityContent].
-//   TResult mapInvalid<TResult extends Object?>({
-//     required TResult Function(G invalidGeneral) invalidGeneral,
-//     required TResult Function(C invalidContent) invalidContent,
-//   });
-
-//   ///Same as [mapInvalid], but gives a direct access to the failures in the
-//   ///callbacks
-//   TResult whenInvalid<TResult extends Object?>({
-//     required TResult Function(F generalEntityFailure) generalEntityFailure,
-//     required TResult Function(Failure contentFailure) contentFailure,
-//   });
-// }
-
 ///An [InvalidEntityGeneral] is an [InvalidEntity] caused by a
 ///[GeneralEntityFailure]. All the modddels inside this [GeneralEntity] are valid, but
 ///the [GeneralEntity] as a whole is invalid.

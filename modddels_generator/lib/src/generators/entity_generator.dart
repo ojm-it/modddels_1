@@ -100,11 +100,28 @@ class EntityGenerator {
 
     ///map method
     classBuffer.writeln('''
-    TResult map<TResult extends Object?>(
-      {required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
-        throw UnimplementedError();
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+    }) {
+      throw UnimplementedError();
     }
+
+    ''');
+
+    ///map validity method
+    classBuffer.writeln('''
+    TResult mapValidity<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalid,
+    }) {
+      return map(
+        valid: valid,
+        invalidContent: invalid,
+      );
+    }
+
     ''');
 
     ///copyWith method
@@ -190,10 +207,12 @@ class EntityGenerator {
     ///map method
     classBuffer.writeln('''
     @override
-    TResult map<TResult extends Object?>(
-      {required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
-        return valid(this);
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+    }) {
+      return valid(this);
     }
 
     ''');
@@ -230,6 +249,9 @@ class EntityGenerator {
     @override
     final Failure contentFailure;
 
+    @override
+    Failure get failure => contentFailure;
+
     ${classInfo.namedParameters.map((param) => '''
     @override
     final ${param.type} ${param.name};
@@ -240,11 +262,14 @@ class EntityGenerator {
     ///map method
     classBuffer.writeln('''
     @override
-    TResult map<TResult extends Object?>(
-      {required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
-        return invalidContent(this);
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+    }) {
+      return invalidContent(this);
     }
+
     ''');
 
     ///allProps method
