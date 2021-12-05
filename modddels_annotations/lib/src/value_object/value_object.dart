@@ -14,7 +14,7 @@ abstract class ValueObject<
     T,
     F extends ValueFailure<T>,
     I extends InvalidValueObject<T, F>,
-    V extends ValidValueObject<T>> extends Equatable with Modddel {
+    V extends ValidValueObject<T>> extends Modddel<I, V> {
   const ValueObject();
 
   ///Validates the value that will be held inside this [ValueObject].
@@ -30,58 +30,20 @@ abstract class ValueObject<
       () => right(input),
     );
   }
-
-  ///Whether this [ValueObject] is a [ValidValueObject]
-  bool get isValid => map(valid: (valid) => true, invalid: (invalid) => false);
-
-  ///Executes [valid] when this [ValueObject] is valid, otherwise executes [invalid].
-  TResult map<TResult extends Object?>({
-    required TResult Function(V valid) valid,
-    required TResult Function(I invalid) invalid,
-  });
-
-  ///Converts this [ValueObject] to an [Either] where left is
-  ///[InvalidValueObject], and right is [ValidValueObject].
-  Either<I, V> get toEither => map(
-        valid: (valid) => right(valid),
-        invalid: (invalid) => left(invalid),
-      );
-
-  ///Same as [toEither], but the left is broadened to be the [Failure] that
-  ///caused this [ValueObject] to be invalid.
-  ///
-  ///NB: The [Failure] is always a [ValueFailure], but the type is broaded to
-  ///[Failure] on purpose.
-  Either<Failure, V> get toBroadEither => map(
-        valid: (valid) => right(valid),
-        invalid: (invalid) => left(invalid.failure),
-      );
-
-  ///This is the list of all the class members, used by Equatable for the
-  ///hashCode and equality functions.
-  @override
-  List<Object?> get props => map(
-      valid: (valid) => valid.allProps, invalid: (invalid) => invalid.allProps);
 }
 
 ///A [ValidValueObject] is a [ValueObject] that is valid. It holds the validated
 ///[value] of type [T].
-abstract class ValidValueObject<T> {
+abstract class ValidValueObject<T> extends ValidModddel {
   T get value;
-
-  ///This is the list of all the class members, used by Equatable for the
-  ///hashCode and equality functions.
-  List<Object?> get allProps;
 }
 
 ///An [InvalidValueObject] is a [ValueObject] that is invalid. It holds the
 ///[ValueFailure] that made it invalid.
-abstract class InvalidValueObject<T, F extends ValueFailure<T>> {
+abstract class InvalidValueObject<T, F extends ValueFailure<T>>
+    extends InvalidModddel {
+  @override
   F get failure;
-
-  ///This is the list of all the class members, used by Equatable for the
-  ///hashCode and equality functions.
-  List<Object?> get allProps;
 }
 
 ///A [ValueFailure] is a [Failure] caused by an invalid value of a [ValueObject]

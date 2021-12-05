@@ -16,3 +16,13 @@ abstract class KtListEntity<C extends InvalidEntityContent,
     V extends ValidEntity> extends Entity<C, V> {
   const KtListEntity();
 }
+
+
+//TODO
+
+// abstract class SizedKtListEntity<C extends InvalidEntityContent,
+//     V extends ValidEntity> extends Entity<C, V> {
+//   const SizedKtListEntity();
+// }
+
+

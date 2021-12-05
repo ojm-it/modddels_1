@@ -45,9 +45,9 @@ mixin $NameList2 {
     );
   }
 
-  KtList<Name> get list => match(
+  KtList<Name> get list => map(
         valid: (valid) => valid.list,
-        invalid: (invalid) => invalid.list,
+        invalidContent: (invalidContent) => invalidContent.list,
       );
 
   int get size => list.size;
@@ -56,16 +56,18 @@ mixin $NameList2 {
           NameList2? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidNameList2 valid) valid,
-      required TResult Function(InvalidNameList2Content invalid) invalid}) {
+      required TResult Function(InvalidNameList2Content invalidContent)
+          invalidContent}) {
     throw UnimplementedError();
   }
 
   NameList2 copyWith(KtList<Name> Function(KtList<Name> list) callback) {
-    return match(
+    return map(
       valid: (valid) => _create(callback(valid.list)),
-      invalid: (invalid) => _create(callback(invalid.list)),
+      invalidContent: (invalidContent) =>
+          _create(callback(invalidContent.list)),
     );
   }
 }
@@ -79,9 +81,10 @@ class ValidNameList2 extends NameList2 implements ValidEntity {
   final KtList<ValidName> list;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidNameList2 valid) valid,
-      required TResult Function(InvalidNameList2Content invalid) invalid}) {
+      required TResult Function(InvalidNameList2Content invalidContent)
+          invalidContent}) {
     return valid(this);
   }
 
@@ -105,10 +108,11 @@ class InvalidNameList2Content extends NameList2
   final KtList<Name> list;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidNameList2 valid) valid,
-      required TResult Function(InvalidNameList2Content invalid) invalid}) {
-    return invalid(this);
+      required TResult Function(InvalidNameList2Content invalidContent)
+          invalidContent}) {
+    return invalidContent(this);
   }
 
   @override

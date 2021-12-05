@@ -44,12 +44,12 @@ mixin $FullName {
     );
   }
 
-  Name get lastName => match(
+  Name get lastName => map(
         valid: (valid) => valid.lastName,
         invalid: (invalid) => invalid.lastName,
       );
 
-  bool get hasMiddleName => match(
+  bool get hasMiddleName => map(
         valid: (valid) => valid.hasMiddleName,
         invalid: (invalid) => invalid.hasMiddleName,
       );
@@ -58,7 +58,7 @@ mixin $FullName {
           FullName? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidFullName valid) valid,
       required TResult Function(InvalidFullName invalid) invalid}) {
     throw UnimplementedError();
@@ -69,7 +69,7 @@ mixin $FullName {
     Name? lastName,
     bool? hasMiddleName,
   }) {
-    return match(
+    return map(
       valid: (valid) => _create(
         firstName: firstName ?? valid.firstName,
         lastName: lastName ?? valid.lastName,
@@ -98,7 +98,7 @@ class ValidFullName extends FullName implements ValidEntity {
   final bool hasMiddleName;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidFullName valid) valid,
       required TResult Function(InvalidFullName invalid) invalid}) {
     return valid(this);
@@ -125,7 +125,7 @@ abstract class InvalidFullName extends FullName
   bool get hasMiddleName;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidFullName valid) valid,
       required TResult Function(InvalidFullName invalid) invalid}) {
     return invalid(this);
@@ -153,11 +153,11 @@ class InvalidFullNameContent extends InvalidFullName
 
   @override
   TResult invalidMatch<TResult extends Object?>(
-      {required TResult Function(InvalidFullNameGeneral invalidEntityGeneral)
-          invalidEntityGeneral,
-      required TResult Function(InvalidFullNameContent invalidEntityContent)
-          invalidEntityContent}) {
-    return invalidEntityContent(this);
+      {required TResult Function(InvalidFullNameGeneral invalidGeneral)
+          invalidGeneral,
+      required TResult Function(InvalidFullNameContent invalidContent)
+          invalidContent}) {
+    return invalidContent(this);
   }
 
   @override
@@ -199,11 +199,11 @@ class InvalidFullNameGeneral extends InvalidFullName
 
   @override
   TResult invalidMatch<TResult extends Object?>(
-      {required TResult Function(InvalidFullNameGeneral invalidEntityGeneral)
-          invalidEntityGeneral,
-      required TResult Function(InvalidFullNameContent invalidEntityContent)
-          invalidEntityContent}) {
-    return invalidEntityGeneral(this);
+      {required TResult Function(InvalidFullNameGeneral invalidGeneral)
+          invalidGeneral,
+      required TResult Function(InvalidFullNameContent invalidContent)
+          invalidContent}) {
+    return invalidGeneral(this);
   }
 
   @override

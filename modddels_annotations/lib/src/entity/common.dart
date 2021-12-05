@@ -3,19 +3,13 @@ import 'package:modddels_annotations/src/common.dart';
 
 ///A [ValidEntity] is an [GeneralEntity] that is valid. It holds all the valid
 ///modddels as [ValidValueObject]s / [ValidEntity]s.
-abstract class ValidEntity {
-  ///This is the list of all the class members, used by Equatable for the
-  ///hashCode and equality functions.
-  List<Object?> get allProps;
-}
+abstract class ValidEntity extends ValidModddel {}
+
+abstract class InvalidEntity extends InvalidModddel {}
 
 ///An [InvalidEntityContent] is an [InvalidEntity] made invalid because one of
 ///its modddels is invalid. It holds the [Failure] of the invalid modddel.
-abstract class InvalidEntityContent {
+abstract class InvalidEntityContent extends InvalidEntity {
   ///The failure of the invalid modddel inside this [GeneralEntity]
   Failure get contentFailure;
-
-  ///This is the list of all the class members, used by Equatable for the
-  ///hashCode and equality functions.
-  List<Object?> get allProps;
 }

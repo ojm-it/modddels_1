@@ -19,7 +19,7 @@ mixin $Name {
       optionOf(nullableValueObject)
           .match((t) => t.toBroadEither, () => right(null));
 
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidName valid) valid,
       required TResult Function(InvalidName invalid) invalid}) {
     throw UnimplementedError();
@@ -33,7 +33,7 @@ class ValidName extends Name implements ValidValueObject<String> {
   final String value;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidName valid) valid,
       required TResult Function(InvalidName invalid) invalid}) {
     return valid(this);
@@ -53,7 +53,7 @@ class InvalidName extends Name
   final NameValueFailure failure;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidName valid) valid,
       required TResult Function(InvalidName invalid) invalid}) {
     return invalid(this);

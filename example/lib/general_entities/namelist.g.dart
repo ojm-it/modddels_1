@@ -53,7 +53,7 @@ mixin $NameList {
     );
   }
 
-  int get size => match(
+  int get size => map(
         valid: (valid) => valid.list.size,
         invalid: (invalid) => invalid.list.size,
       );
@@ -62,14 +62,14 @@ mixin $NameList {
           NameList? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidNameList valid) valid,
       required TResult Function(InvalidNameList invalid) invalid}) {
     throw UnimplementedError();
   }
 
   NameList copyWith(KtList<Name> Function(KtList<Name> list) callback) {
-    return match(
+    return map(
       valid: (valid) => _create(callback(valid.list)),
       invalid: (invalid) => _create(callback(invalid.list)),
     );
@@ -84,7 +84,7 @@ class ValidNameList extends NameList implements ValidEntity {
   final KtList<ValidName> list;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidNameList valid) valid,
       required TResult Function(InvalidNameList invalid) invalid}) {
     return valid(this);
@@ -105,7 +105,7 @@ abstract class InvalidNameList extends NameList
   KtList<Name> get list;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidNameList valid) valid,
       required TResult Function(InvalidNameList invalid) invalid}) {
     return invalid(this);
@@ -127,11 +127,11 @@ class InvalidNameListContent extends InvalidNameList
 
   @override
   TResult invalidMatch<TResult extends Object?>(
-      {required TResult Function(InvalidNameListGeneral invalidEntityGeneral)
-          invalidEntityGeneral,
-      required TResult Function(InvalidNameListContent invalidEntityContent)
-          invalidEntityContent}) {
-    return invalidEntityContent(this);
+      {required TResult Function(InvalidNameListGeneral invalidGeneral)
+          invalidGeneral,
+      required TResult Function(InvalidNameListContent invalidContent)
+          invalidContent}) {
+    return invalidContent(this);
   }
 
   @override
@@ -165,11 +165,11 @@ class InvalidNameListGeneral extends InvalidNameList
 
   @override
   TResult invalidMatch<TResult extends Object?>(
-      {required TResult Function(InvalidNameListGeneral invalidEntityGeneral)
-          invalidEntityGeneral,
-      required TResult Function(InvalidNameListContent invalidEntityContent)
-          invalidEntityContent}) {
-    return invalidEntityGeneral(this);
+      {required TResult Function(InvalidNameListGeneral invalidGeneral)
+          invalidGeneral,
+      required TResult Function(InvalidNameListContent invalidContent)
+          invalidContent}) {
+    return invalidGeneral(this);
   }
 
   @override

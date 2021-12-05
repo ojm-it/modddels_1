@@ -36,28 +36,29 @@ mixin $FullName2 {
     );
   }
 
-  Name get firstName => match(
+  Name get firstName => map(
         valid: (valid) => valid.firstName,
-        invalid: (invalid) => invalid.firstName,
+        invalidContent: (invalidContent) => invalidContent.firstName,
       );
 
-  Name get lastName => match(
+  Name get lastName => map(
         valid: (valid) => valid.lastName,
-        invalid: (invalid) => invalid.lastName,
+        invalidContent: (invalidContent) => invalidContent.lastName,
       );
 
-  bool get hasMiddleName => match(
+  bool get hasMiddleName => map(
         valid: (valid) => valid.hasMiddleName,
-        invalid: (invalid) => invalid.hasMiddleName,
+        invalidContent: (invalidContent) => invalidContent.hasMiddleName,
       );
 
   static Either<Failure, ValidFullName2?> toBroadEitherNullable(
           FullName2? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidFullName2 valid) valid,
-      required TResult Function(InvalidFullName2Content invalid) invalid}) {
+      required TResult Function(InvalidFullName2Content invalidContent)
+          invalidContent}) {
     throw UnimplementedError();
   }
 
@@ -66,16 +67,16 @@ mixin $FullName2 {
     Name? lastName,
     bool? hasMiddleName,
   }) {
-    return match(
+    return map(
       valid: (valid) => _create(
         firstName: firstName ?? valid.firstName,
         lastName: lastName ?? valid.lastName,
         hasMiddleName: hasMiddleName ?? valid.hasMiddleName,
       ),
-      invalid: (invalid) => _create(
-        firstName: firstName ?? invalid.firstName,
-        lastName: lastName ?? invalid.lastName,
-        hasMiddleName: hasMiddleName ?? invalid.hasMiddleName,
+      invalidContent: (invalidContent) => _create(
+        firstName: firstName ?? invalidContent.firstName,
+        lastName: lastName ?? invalidContent.lastName,
+        hasMiddleName: hasMiddleName ?? invalidContent.hasMiddleName,
       ),
     );
   }
@@ -96,9 +97,10 @@ class ValidFullName2 extends FullName2 implements ValidEntity {
   final bool hasMiddleName;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidFullName2 valid) valid,
-      required TResult Function(InvalidFullName2Content invalid) invalid}) {
+      required TResult Function(InvalidFullName2Content invalidContent)
+          invalidContent}) {
     return valid(this);
   }
 
@@ -130,10 +132,11 @@ class InvalidFullName2Content extends FullName2
   final bool hasMiddleName;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidFullName2 valid) valid,
-      required TResult Function(InvalidFullName2Content invalid) invalid}) {
-    return invalid(this);
+      required TResult Function(InvalidFullName2Content invalidContent)
+          invalidContent}) {
+    return invalidContent(this);
   }
 
   @override
