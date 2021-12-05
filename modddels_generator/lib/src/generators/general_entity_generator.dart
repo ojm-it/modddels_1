@@ -417,15 +417,6 @@ class GeneralEntityGenerator {
     ///maybeMap method
     classBuffer.writeln('''
     @override
-    TResult invalidMatch<TResult extends Object?>(
-      {required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
-        invalidGeneral,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
-        invalidContent}) {
-          return invalidGeneral(this);
-    }
-
-    @override
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
       TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
