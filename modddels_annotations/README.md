@@ -13,8 +13,37 @@ and the Flutter guide for
 
 # Intro
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Modddels are "validated" objects that can have two states : *Valid* or *Invalid*.
+
+Depending on the modddel, there are different types of validations, which are run in a specific order. If all the validations pass, then the modddel is *Valid*. Otherwise, it is *Invalid* and holds a failure. The *Invalid* state is further subdivided into multiple states, each one corresponding to a failed validation.
+
+The different states a Modddel can have are represented with **Sealed Classes**. This allows to deal with the different states of the Modddel in a compile-safe way, making impossible states impossible.
+
+# Table of contents
+
+- [Intro](#intro)
+- [Table of contents](#table-of-contents)
+- [Features](#features)
+- [Getting started](#getting-started)
+- [Usage](#usage)
+	- [Value object](#value-object)
+		- [Usage](#usage-1)
+	- [Entity](#entity)
+		- [Usage](#usage-2)
+		- [The valid annotation](#the-valid-annotation)
+	- [ListEntity](#listentity)
+	- [SizedListEntity](#sizedlistentity)
+	- [General Entity](#general-entity)
+		- [Usage](#usage-3)
+		- [Fields getters](#fields-getters)
+		- [The valid annotation](#the-valid-annotation-1)
+	- [ListGeneralEntity](#listgeneralentity)
+	- [SizedListGeneralEntity](#sizedlistgeneralentity)
+	- [Additionnal remarks](#additionnal-remarks)
+		- [Optional and Nullable types](#optional-and-nullable-types)
+		- [Modddels that are always valid](#modddels-that-are-always-valid)
+- [VsCode snippets](#vscode-snippets)
+- [Additional information](#additional-information)
 
 # Features
 
@@ -23,8 +52,10 @@ Available modddels :
 - ValueObject
 - Entity
 - ListEntity
+- SizedListEntity
 - GeneralEntity
 - ListGeneralEntity
+- SizedListGeneralEntity
 
 # Getting started
 
@@ -36,6 +67,15 @@ You should have these packages installed :
 # Usage
 
 ## Value object
+
+A Value Object is a Modddel that holds a single value, which is validated via the `validate` method. This method returns `some` `ValueFailure` if the value is invalid, otherwise returns `none`.
+
+When creating the SizedListEntity, the validation is made in this order :
+
+1. **Value Validation** : If the value is valid, this ValueObject becomes an `InvalidValueObject` that holds the `ValueFailure`.
+2. **→ Validations passed** : This ValueObject is valid, and becomes a `ValidValueObject`.
+  
+### Usage
 
 1. Create a ValueObject, and annotate it with `@modddel`
 
@@ -89,15 +129,18 @@ You should have these packages installed :
 
 5. Run the generator
 
+---
+
 ## Entity
 
 An `Entity` is a modddel that holds multiple modddels (ValueObjects, Entities...).
 
-- If any of its moddels is invalid, then the whole entity is Invalid. (It becomes an `InvalidEntityContent`).
+After creating the Entity, the validation is made in this order :
 
-- If all the modddels are valid, then the entity is valid (It becomes a `ValidEntity`).
+1. **Content Validation** : If any of its modddels is invalid, then this Entity becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
+2. **→ Validations passed** : The entity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
 
-### Usage of Entity
+### Usage
 
 1. Create an Entity, and annotate it with `@modddel`
 
@@ -140,32 +183,40 @@ factory FullName({
   }) { ...
 ```
 
-### ListEntity
+## ListEntity
 
-A ListEntity is similar to an Entity in a sense that it holds a List of other modddels (of the same type). Again :
+A ListEntity is similar to an `Entity` in a sense that it holds a List of other modddels (of the same type).
 
-- If any of the modddels is invalid, then the whole entity is Invalid. (It becomes an `InvalidEntityContent`).
+When creating a ListEntity, the validation is made in this order :
 
-- If all the modddels are valid, then the entity is valid (It becomes a `ValidEntity`).
+1. **Content validation** : If any of the modddels is invalid, then this ListEntity becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
+2. **→ Validations passed** : This ListEntity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
 
-NB: When empty, the ListEntity is considered valid. If you want a different behaviour, consider using a `ListGeneralEntity` and providing your own general validation.
+NB: When empty, the ListEntity is considered valid. If you want a different behaviour, consider using a `SizedListEntity` and providing your own size validation.
+
+## SizedListEntity
+
+A SizedListEntity is similar to a `ListEntity`, but its size is validated via the `validateSize` method. This method returns `some` `SizeFailure` if the size is invalid, otherwise returns `none`.
+
+When creating a SizedListEntity, the validation is made in this order :
+
+1. **Size validation** : If the size is invalid, then this SizedListEntity becomes an `InvalidEntitySize`.
+2. **Content validation** : If any of the modddels is invalid, then this SizedListEntity becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
+3. **→ Validations passed** : This SizedListEntity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
+
+---
 
 ## General Entity
 
-A GeneralEntity is an Entity that provides an extra validation step, that validates the whole entity as a whole.
+A GeneralEntity is similar to an Entity, but it provides an extra validation step at the end that validates the entity as a whole, via the `validateGeneral` method. This method returns `some` `GeneralFailure` if the entity isn't valid as a whole, otherwise returns `none`.
 
-When instantiated, it first verifies that all its modddels are valid.
+When creating a GeneralEntity, the validation is made in this order :
 
-- If one of its modddels is invalid, then this `GeneralEntity` is invalid. It becomes an `InvalidEntityContent`.
+1. **Content validation** : If any of the modddels is invalid, then this GeneralEntity becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
+2. **General validation** : If this GeneralEntity is invalid as a whole, then it becomes an `InvalidEntityGeneral` that holds the `GeneralFailure`.
+3. **→ Validations passed** : This GeneralEntity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
 
-- If all the modddels are valid, then this `GeneralEntity` is validated with the
-   `validateGeneral` method.
-
-  - If it's invalid, then this `GeneralEntity` is invalid. It becomes an `InvalidEntityGeneral`.
-
-  - If it's valid, then this `GeneralEntity` is valid (It becomes a `ValidEntity`)
-
-### Usage of General Entity
+### Usage
 
 1. Create a General Entity, and annotate it with `@modddel`
 
@@ -225,14 +276,15 @@ When instantiated, it first verifies that all its modddels are valid.
 
 ### Fields getters
 
-Unlike a normal Entity, the GeneralEntity hides its modddels inside `ValidEntity` and `InvalidEntity`, so you can ony access them after calling the "match" method.
+Unlike a normal Entity, the GeneralEntity hides its modddels inside `ValidEntity` and `InvalidEntity`, so you can only access them after calling the "mapValidity" method (or other map methods).
+
 For example :
 
 ```dart
   final firstName = fullName.firstName;
   //ERROR : The getter 'firstName' isn't defined for the type 'FullName'.
 
-  final firstName = fullName.match(
+  final firstName = fullName.mapValidity(
       valid: (valid) => valid.firstName,
       invalid: (invalid) => invalid.firstName);
   //No error.
@@ -245,13 +297,38 @@ A good usecase for this would be for an "id" field.
 
 ### The valid annotation
 
-You can use the `@valid` annotation as you would with a normal Entity. If you want to use both `@valid` and `@withGetter` annotation, you can use the shorthand `@validWithGetter` annotation.
+You can use the `@valid` annotation as you would with a normal Entity.
 
-### ListGeneralEntity
+If you want to use both `@valid` and `@withGetter` annotation, you can use the shorthand `@validWithGetter` annotation.
 
-A ListGeneralEntity is a `ListEntity` which provides an extra validation step, just like a `GeneralEntity`.
+## ListGeneralEntity
 
-## Remarks
+A ListGeneralEntity is the `GeneralEntity` version of a `ListEntity` : It provides an extra validation step at the end that validates the entity as a whole, via the `validateGeneral` method. This method returns `some` `GeneralFailure` if the entity isn't valid as a whole, otherwise returns `none`.
+
+When creating a ListGeneralEntity, the validation is made in this order :
+
+1. **Content validation** : If any of the modddels is invalid, then this ListGeneralEntity becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
+2. **General validation** : If this ListGeneralEntity is invalid as a whole, then it becomes an `InvalidEntityGeneral` that holds the `GeneralFailure`.
+3. **→ Validations passed** : This ListGeneralEntity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
+
+## SizedListGeneralEntity
+
+A SizedListGeneralEntity is similar to a `ListGeneralEntity`, but its size is validated via the `validateSize` method. This method returns `some` `SizeFailure` if the size is invalid, otherwise returns `none`.
+
+When creating a SizedListGeneralEntity, the validation is made in this order :
+
+1. **Size validation** : If the size is invalid, then this SizedListGeneralEntity becomes an `InvalidEntitySize`.
+2. **Content validation** : If any of the modddels is invalid, then this SizedListGeneralEntity becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
+3. **General validation** : If this SizedListGeneralEntity is invalid as a whole, then it becomes an `InvalidEntityGeneral` that holds the `GeneralFailure`.
+4. **→ Validations passed** : This SizedListGeneralEntity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
+
+> **NB :** You may notice that the **Size validation** occurs first, before the **Content validation**. This is so that no matter if this modddel's content is valid or not, if its size is invalid, it becomes an `InvalidEntitySize` holding a `SizeFailure`.
+>
+> If you want the size to be validated only if all the modddels are valid, you can do so in the **General validation** step, so that the size is validated last. In that case, if the size is invalid, then this modddel becomes an `InvalidEntityGeneral` holding a `GeneralFailure`.
+
+---
+
+## Additionnal remarks
 
 ### Optional and Nullable types
 
@@ -437,7 +514,7 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 		],
 		"description": "Sized List General Entity"
 	},
-	"General Entity Failure": {
+	"General Failure": {
 		"prefix": "generalfailure",
 		"body": [
 			"@freezed",
@@ -445,14 +522,31 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 			"  const factory ${1}GeneralFailure.${2}(${4}) = _${3};",
 			"}"
 		],
-		"description": "General Entity Failure"
+		"description": "General Failure"
 	},
-	"General Entity Failure Union Case": {
+	"General Failure Union Case": {
 		"prefix": "generalfailurecase",
 		"body": [
 			"const factory ${1}GeneralFailure.${2}(${4}) = _${3};",
 		],
-		"description": "Value Failure Union Case"
+		"description": "General Failure Union Case"
+	},
+	"Size Failure": {
+		"prefix": "sizefailure",
+		"body": [
+			"@freezed",
+			"class ${1}SizeFailure extends SizeFailure with _$${1}SizeFailure {",
+			"  const factory ${1}SizeFailure.${2}(${4}) = _${3};",
+			"}"
+		],
+		"description": "Size Failure"
+	},
+	"Size Failure Union Case": {
+		"prefix": "sizefailurecase",
+		"body": [
+			"const factory ${1}SizeFailure.${2}(${4}) = _${3};",
+		],
+		"description": "Size Failure Union Case"
 	},
 }
 ```
