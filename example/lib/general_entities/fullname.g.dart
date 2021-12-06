@@ -12,6 +12,42 @@ mixin $FullName {
     required Name lastName,
     required bool hasMiddleName,
   }) {
+    return _verifyContent(
+      firstName: firstName,
+      lastName: lastName,
+      hasMiddleName: hasMiddleName,
+    ).match(
+      ///The content is invalid
+      (contentFailure) => InvalidFullNameContent._(
+        contentFailure: contentFailure,
+        firstName: firstName,
+        lastName: lastName,
+        hasMiddleName: hasMiddleName,
+      ),
+
+      ///The content is valid => We check if there's a general failure
+      (validContent) => _verifyGeneral(validContent).match(
+        (generalFailure) => InvalidFullNameGeneral._(
+          generalFailure: generalFailure,
+          firstName: validContent.firstName,
+          lastName: validContent.lastName,
+          hasMiddleName: validContent.hasMiddleName,
+        ),
+        (validGeneral) => validGeneral,
+      ),
+    );
+  }
+
+  ///If any of the modddels is invalid, this holds its failure on the Left (the
+  ///failure of the first invalid modddel encountered)
+  ///
+  ///Otherwise, holds all the modddels as valid modddels, wrapped inside a
+  ///ValidEntity, on the Right.
+  static Either<Failure, ValidFullName> _verifyContent({
+    required Name firstName,
+    required Name lastName,
+    required bool hasMiddleName,
+  }) {
     final contentVerification = firstName.toBroadEither.flatMap(
       (validFirstName) => lastName.toBroadEither.flatMap(
         (validLastName) => right(ValidFullName._(
@@ -22,26 +58,13 @@ mixin $FullName {
       ),
     );
 
-    return contentVerification.match(
-      ///The content is invalid
-      (contentFailure) => InvalidFullNameContent._(
-        contentFailure: contentFailure,
-        firstName: firstName,
-        lastName: lastName,
-        hasMiddleName: hasMiddleName,
-      ),
+    return contentVerification;
+  }
 
-      ///The content is valid => We check if there's a general failure
-      (validContent) => const FullName._().validateGeneral(validContent).match(
-            (generalFailure) => InvalidFullNameGeneral._(
-              generalFailure: generalFailure,
-              firstName: validContent.firstName,
-              lastName: validContent.lastName,
-              hasMiddleName: validContent.hasMiddleName,
-            ),
-            () => validContent,
-          ),
-    );
+  static Either<FullNameGeneralFailure, ValidFullName> _verifyGeneral(
+      ValidFullName validEntity) {
+    final generalVerification = const FullName._().validateGeneral(validEntity);
+    return generalVerification.toEither(() => validEntity).swap();
   }
 
   Name get lastName => mapValidity(

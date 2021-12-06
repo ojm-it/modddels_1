@@ -10,10 +10,23 @@ mixin $NameList2 {
   static NameList2 _create(
     KtList<Name> list,
   ) {
-    ///If any of the list elements is invalid, this holds its failure on the Left (the
-    ///failure of the first invalid element encountered)
-    ///
-    ///Otherwise, holds all the elements as valid modddels, on the Right.
+    return _verifyContent(list).match(
+      ///The content is invalid
+      (contentFailure) => InvalidNameList2Content._(
+        contentFailure: contentFailure,
+        list: list,
+      ),
+
+      ///The content is valid => The entity is valid
+      (validContent) => ValidNameList2._(list: validContent),
+    );
+  }
+
+  ///If any of the list elements is invalid, this holds its failure on the Left (the
+  ///failure of the first invalid element encountered)
+  ///
+  ///Otherwise, holds all the elements as valid modddels, on the Right.
+  static Either<Failure, KtList<ValidName>> _verifyContent(KtList<Name> list) {
     final contentVerification = list
         .map((element) => element.toBroadEither)
         .fold<Either<Failure, KtList<ValidName>>>(
@@ -32,17 +45,7 @@ mixin $NameList2 {
             ),
           ),
         );
-
-    return contentVerification.match(
-      ///The content is invalid
-      (contentFailure) => InvalidNameList2Content._(
-        contentFailure: contentFailure,
-        list: list,
-      ),
-
-      ///The content is valid => The entity is valid
-      (validContent) => ValidNameList2._(list: validContent),
-    );
+    return contentVerification;
   }
 
   KtList<Name> get list => map(

@@ -10,10 +10,29 @@ mixin $NameList {
   static NameList _create(
     KtList<Name> list,
   ) {
-    ///If any of the list elements is invalid, this holds its failure on the Left (the
-    ///failure of the first invalid element encountered)
-    ///
-    ///Otherwise, holds all the elements as valid modddels, on the Right.
+    return _verifyContent(list).match(
+      ///The content is invalid
+      (contentFailure) => InvalidNameListContent._(
+        contentFailure: contentFailure,
+        list: list,
+      ),
+
+      ///The content is valid => We check if there's a general failure
+      (validContent) => _verifyGeneral(validContent).match(
+        (generalFailure) => InvalidNameListGeneral._(
+          generalFailure: generalFailure,
+          list: validContent,
+        ),
+        (validGeneral) => ValidNameList._(list: validGeneral),
+      ),
+    );
+  }
+
+  ///If any of the list elements is invalid, this holds its failure on the Left (the
+  ///failure of the first invalid element encountered)
+  ///
+  ///Otherwise, holds all the elements as valid modddels, on the Right.
+  static Either<Failure, KtList<ValidName>> _verifyContent(KtList<Name> list) {
     final contentVerification = list
         .map((element) => element.toBroadEither)
         .fold<Either<Failure, KtList<ValidName>>>(
@@ -32,25 +51,14 @@ mixin $NameList {
             ),
           ),
         );
+    return contentVerification;
+  }
 
-    return contentVerification.match(
-      ///The content is invalid
-      (contentFailure) => InvalidNameListContent._(
-        contentFailure: contentFailure,
-        list: list,
-      ),
-
-      ///The content is valid => We check if there's a general failure
-      (validContent) => const NameList._()
-          .validateGeneral(ValidNameList._(list: validContent))
-          .match(
-            (generalFailure) => InvalidNameListGeneral._(
-              generalFailure: generalFailure,
-              list: validContent,
-            ),
-            () => ValidNameList._(list: validContent),
-          ),
-    );
+  static Either<NameListGeneralFailure, KtList<ValidName>> _verifyGeneral(
+      KtList<ValidName> validList) {
+    final generalVerification =
+        const NameList._().validateGeneral(ValidNameList._(list: validList));
+    return generalVerification.toEither(() => validList).swap();
   }
 
   int get size => mapValidity(

@@ -10,6 +10,7 @@
 .svn/
 .history/
 .vscode
+.markdownlint.yaml
 
 # IntelliJ related
 *.iml

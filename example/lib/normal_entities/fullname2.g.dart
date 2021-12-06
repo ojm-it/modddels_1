@@ -12,17 +12,11 @@ mixin $FullName2 {
     required Name lastName,
     required bool hasMiddleName,
   }) {
-    final contentVerification = firstName.toBroadEither.flatMap(
-      (validFirstName) => lastName.toBroadEither.flatMap(
-        (validLastName) => right(ValidFullName2._(
-          firstName: validFirstName,
-          lastName: validLastName,
-          hasMiddleName: hasMiddleName,
-        )),
-      ),
-    );
-
-    return contentVerification.match(
+    return _verifyContent(
+      firstName: firstName,
+      lastName: lastName,
+      hasMiddleName: hasMiddleName,
+    ).match(
       ///The content is invalid
       (contentFailure) => InvalidFullName2Content._(
         contentFailure: contentFailure,
@@ -34,6 +28,29 @@ mixin $FullName2 {
       ///The content is valid => The entity is valid
       (validContent) => validContent,
     );
+  }
+
+  ///If any of the modddels is invalid, this holds its failure on the Left (the
+  ///failure of the first invalid modddel encountered)
+  ///
+  ///Otherwise, holds all the modddels as valid modddels, wrapped inside a
+  ///ValidEntity, on the Right.
+  static Either<Failure, ValidFullName2> _verifyContent({
+    required Name firstName,
+    required Name lastName,
+    required bool hasMiddleName,
+  }) {
+    final contentVerification = firstName.toBroadEither.flatMap(
+      (validFirstName) => lastName.toBroadEither.flatMap(
+        (validLastName) => right(ValidFullName2._(
+          firstName: validFirstName,
+          lastName: validLastName,
+          hasMiddleName: hasMiddleName,
+        )),
+      ),
+    );
+
+    return contentVerification;
   }
 
   Name get firstName => map(

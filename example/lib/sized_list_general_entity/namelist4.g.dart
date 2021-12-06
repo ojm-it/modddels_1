@@ -61,10 +61,10 @@ mixin $NameList4 {
   }
 
   static Either<NameList4GeneralFailure, KtList<ValidName>> _verifyGeneral(
-      KtList<ValidName> list) {
+      KtList<ValidName> validList) {
     final generalVerification =
-        const NameList4._().validateGeneral(ValidNameList4._(list: list));
-    return generalVerification.toEither(() => list).swap();
+        const NameList4._().validateGeneral(ValidNameList4._(list: validList));
+    return generalVerification.toEither(() => validList).swap();
   }
 
   int get size => mapValidity(
