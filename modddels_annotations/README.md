@@ -11,14 +11,17 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages). 
 -->
 
+# Intro
+
 TODO: Put a short description of the package here that helps potential users
 know whether this package might be useful for them.
 
 # Features
+
 Available modddels :
 
 - ValueObject
-- Entity 
+- Entity
 - ListEntity
 - GeneralEntity
 - ListGeneralEntity
@@ -26,98 +29,100 @@ Available modddels :
 # Getting started
 
 You should have these packages installed :
+
 - fpdart
 - freezed
 
 # Usage
 
-## Value object :
+## Value object
 
 1. Create a ValueObject, and annotate it with `@modddel`
 
-```dart
-@modddel
-class Name extends ValueObject<String, NameValueFailure, InvalidName, ValidName>
-    with $Name {
-  factory Name(String input) {
-    return $Name._create(input);
-  }
+	```dart
+	@modddel
+	class Name extends ValueObject<String, NameValueFailure, InvalidName, ValidName>
+		with $Name {
+	factory Name(String input) {
+		return $Name._create(input);
+	}
 
-  const Name._();
+	const Name._();
 
-  @override
-  Option<NameValueFailure> validate(String input) {
-    // TODO: implement validate
-    return none();
-  }
-}
-```
+	@override
+	Option<NameValueFailure> validate(String input) {
+		// TODO: implement validate
+		return none();
+	}
+	}
+	```
 
 2. Create a Freezed ValueFailure for your ValueObject
 
-```dart
-@freezed
-class NameValueFailure extends ValueFailure<String> with _$NameValueFailure {
-  const factory NameValueFailure.empty({
-    required String failedValue,
-  }) = _Empty;
-}
-```
+	```dart
+	@freezed
+	class NameValueFailure extends ValueFailure<String> with _$NameValueFailure {
+	const factory NameValueFailure.empty({
+		required String failedValue,
+	}) = _Empty;
+	}
+	```
 
 3. Add the part statements
 
-```dart
-part 'name.g.dart';
-part 'name.freezed.dart';
-```
+	```dart
+	part 'name.g.dart';
+	part 'name.freezed.dart';
+	```
 
 4. Implement the `validate` method :
 
-```dart
-  @override
-  Option<NameValueFailure> validate(String input) {
-    if (input.isEmpty) {
-        return some(NameValueFailure.empty(failedValue: input));
-    }
-    return none();
-  }
-```
+	```dart
+	@override
+	Option<NameValueFailure> validate(String input) {
+		if (input.isEmpty) {
+			return some(NameValueFailure.empty(failedValue: input));
+		}
+		return none();
+	}
+	```
 
 5. Run the generator
 
-## Entity :
+## Entity
+
 An `Entity` is a modddel that holds multiple modddels (ValueObjects, Entities...).
 
- - If any of its moddels is invalid, then the whole entity is Invalid. (It becomes an `InvalidEntityContent`).
+- If any of its moddels is invalid, then the whole entity is Invalid. (It becomes an `InvalidEntityContent`).
 
- - If all the modddels are valid, then the entity is valid (It becomes a `ValidEntity`).
+- If all the modddels are valid, then the entity is valid (It becomes a `ValidEntity`).
 
-### Usage :
+### Usage of Entity
 
 1. Create an Entity, and annotate it with `@modddel`
 
-```dart
-@modddel
-class FullName extends Entity<InvalidFullNameContent, ValidFullName> with $FullName {
-  factory FullName({
-    required Name firstName,
-    required Name lastName,
-  }) {
-    return $FullName._create(
-      firstName: firstName,
-      lastName: lastName,
-    );
-  }
+	```dart
+	@modddel
+	class FullName extends Entity<InvalidFullNameContent, ValidFullName> with $FullName {
+	factory FullName({
+		required Name firstName,
+		required Name lastName,
+	}) {
+		return $FullName._create(
+		firstName: firstName,
+		lastName: lastName,
+		);
+	}
 
-  const FullName._();
-}
-```
+	const FullName._();
+	}
+	```
 
 2. Add the part statement
 
-```dart
-part 'fullname.g.dart';
-```
+	```dart
+	part 'fullname.g.dart';
+	```
 
 3. Run the generator
 
@@ -136,90 +141,91 @@ factory FullName({
 ```
 
 ### ListEntity
-A ListEntity is similar to an Entity in a sense that it holds a List of other modddels (of the same type). Again :
- 
- - If any of the modddels is invalid, then the whole entity is Invalid. (It becomes an `InvalidEntityContent`).
 
- - If all the modddels are valid, then the entity is valid (It becomes a `ValidEntity`).
+A ListEntity is similar to an Entity in a sense that it holds a List of other modddels (of the same type). Again :
+
+- If any of the modddels is invalid, then the whole entity is Invalid. (It becomes an `InvalidEntityContent`).
+
+- If all the modddels are valid, then the entity is valid (It becomes a `ValidEntity`).
 
 NB: When empty, the ListEntity is considered valid. If you want a different behaviour, consider using a `ListGeneralEntity` and providing your own general validation.
 
-## General Entity :
+## General Entity
 
 A GeneralEntity is an Entity that provides an extra validation step, that validates the whole entity as a whole.
 
 When instantiated, it first verifies that all its modddels are valid.
 
- - If one of its modddels is invalid, then this `GeneralEntity` is invalid. It becomes an `InvalidEntityContent`.
+- If one of its modddels is invalid, then this `GeneralEntity` is invalid. It becomes an `InvalidEntityContent`.
 
- - If all the modddels are valid, then this `GeneralEntity` is validated with the
+- If all the modddels are valid, then this `GeneralEntity` is validated with the
    `validateGeneral` method.
 
-   - If it's invalid, then this `GeneralEntity` is invalid. It becomes an `InvalidEntityGeneral`.
+  - If it's invalid, then this `GeneralEntity` is invalid. It becomes an `InvalidEntityGeneral`.
 
-   - If it's valid, then this `GeneralEntity` is valid (It becomes a `ValidEntity`)
+  - If it's valid, then this `GeneralEntity` is valid (It becomes a `ValidEntity`)
 
-### Usage
+### Usage of General Entity
 
 1. Create a General Entity, and annotate it with `@modddel`
 
-```dart
-@modddel
-class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullNameGeneral,
-    InvalidFullNameContent, InvalidFullName, ValidFullName> with $FullName {
-  factory FullName({
-    required Name firstName,
-    required Name lastName,
-  }) {
-    return $FullName._create(
-      firstName: firstName,
-      lastName: lastName,
-    );
-  }
+	```dart
+	@modddel
+	class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullNameGeneral,
+		InvalidFullNameContent, InvalidFullName, ValidFullName> with $FullName {
+	factory FullName({
+		required Name firstName,
+		required Name lastName,
+	}) {
+		return $FullName._create(
+		firstName: firstName,
+		lastName: lastName,
+		);
+	}
 
-  const FullName._();
+	const FullName._();
 
-  @override
-  Option<FullNameGeneralFailure> validateGeneral(ValidFullName valid) {
-    // TODO: implement validate
-    return none();
-  }
-}
-```
+	@override
+	Option<FullNameGeneralFailure> validateGeneral(ValidFullName valid) {
+		// TODO: implement validate
+		return none();
+	}
+	}
+	```
 
 2. Create a Freezed GeneralFailure for your Entity
 
-```dart
-@freezed
-class FullNameGeneralFailure extends GeneralFailure with _$FullNameGeneralFailure {
-  const factory FullNameGeneralFailure.tooLong() = _TooLong;
-}
-```
+	```dart
+	@freezed
+	class FullNameGeneralFailure extends GeneralFailure with _$FullNameGeneralFailure {
+	const factory FullNameGeneralFailure.tooLong() = _TooLong;
+	}
+	```
 
 3. Add the part statements
 
-```dart
-part 'fullname.g.dart';
-part 'fullname.freezed.dart';
-```
+	```dart
+	part 'fullname.g.dart';
+	part 'fullname.freezed.dart';
+	```
 
 4. Implement the `validate` method :
 
-```dart
-  @override
-  Option<FullNameGeneralFailure> validateGeneral(ValidFullName valid) {
-    if (valid.firstName.value.length + valid.lastName.value.length > 30) {
-      return some(const FullNameGeneralFailure.tooLong());
-    }
-    return none();
-  }
-```
+	```dart
+	@override
+	Option<FullNameGeneralFailure> validateGeneral(ValidFullName valid) {
+		if (valid.firstName.value.length + valid.lastName.value.length > 30) {
+		return some(const FullNameGeneralFailure.tooLong());
+		}
+		return none();
+	}
+	```
 
 5. Run the generator
 
 ### Fields getters
 
-Unlike a normal Entity, the GeneralEntity hides its modddels inside `ValidEntity` and `InvalidEntity`, so you can ony access them after calling the "match" method. 
+Unlike a normal Entity, the GeneralEntity hides its modddels inside `ValidEntity` and `InvalidEntity`, so you can ony access them after calling the "match" method.
 For example :
 
 ```dart
@@ -242,6 +248,7 @@ A good usecase for this would be for an "id" field.
 You can use the `@valid` annotation as you would with a normal Entity. If you want to use both `@valid` and `@withGetter` annotation, you can use the shorthand `@validWithGetter` annotation.
 
 ### ListGeneralEntity
+
 A ListGeneralEntity is a `ListEntity` which provides an extra validation step, just like a `GeneralEntity`.
 
 ## Remarks
@@ -450,9 +457,6 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 }
 ```
 
-
 # Additional information
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+TODO: Tell users more about the package: where to find more information, how to contribute to the package, how to file issues, what response they can expect from the package authors, and more.
