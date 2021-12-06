@@ -1,4 +1,3 @@
-import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:modddels_annotations/src/entity/common.dart';
 

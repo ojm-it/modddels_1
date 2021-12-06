@@ -2,7 +2,6 @@ import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/src/entity/common.dart';
 
 import '../common.dart';
-import 'package:equatable/equatable.dart';
 
 ///A GeneralEntity is an Entity that provides an extra validation step, that
 ///validates the whole entity as a whole.

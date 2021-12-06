@@ -7,7 +7,7 @@ import 'value_object/value_object.dart';
 
 ///The base class for [Entity], [GeneralEntity] and [ValueObject]
 abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
-    with EquatableMixin {
+    extends Equatable {
   const Modddel();
 
   ///Whether this [ValueObject] is a [ValidValueObject]
