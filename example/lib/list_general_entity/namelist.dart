@@ -8,11 +8,7 @@ part 'namelist.freezed.dart';
 part 'namelist.g.dart';
 
 @modddel
-class NameList extends ListGeneralEntity<
-    NameListEntityFailure,
-    InvalidNameListGeneral,
-    InvalidNameListContent,
-    InvalidNameList,
+class NameList extends ListGeneralEntity<NameListEntityFailure, InvalidNameList,
     ValidNameList> with $NameList {
   factory NameList(KtList<Name> list) {
     return $NameList._create(list);

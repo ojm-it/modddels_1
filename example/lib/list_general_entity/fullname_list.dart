@@ -8,12 +8,8 @@ part 'fullname_list.g.dart';
 part 'fullname_list.freezed.dart';
 
 @modddel
-class FullNameList extends ListGeneralEntity<
-    FullNameListEntityFailure,
-    InvalidFullNameListGeneral,
-    InvalidFullNameListContent,
-    InvalidFullNameList,
-    ValidFullNameList> with $FullNameList {
+class FullNameList extends ListGeneralEntity<FullNameListEntityFailure,
+    InvalidFullNameList, ValidFullNameList> with $FullNameList {
   factory FullNameList(KtList<FullName> list) {
     return $FullNameList._create(list);
   }

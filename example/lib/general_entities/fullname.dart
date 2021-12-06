@@ -7,12 +7,9 @@ part 'fullname.g.dart';
 part 'fullname.freezed.dart';
 
 @modddel
-class FullName extends GeneralEntity<
-    FullNameEntityFailure,
-    InvalidFullNameGeneral,
-    InvalidFullNameContent,
-    InvalidFullName,
-    ValidFullName> with $FullName {
+class FullName
+    extends GeneralEntity<FullNameEntityFailure, InvalidFullName, ValidFullName>
+    with $FullName {
   factory FullName({
     required Name firstName,
     @withGetter required Name lastName,
