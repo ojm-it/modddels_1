@@ -5,6 +5,7 @@ import 'package:modddels_generator/src/generators/entity_generator.dart';
 import 'package:modddels_generator/src/generators/general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/list_entity_generator.dart';
 import 'package:modddels_generator/src/generators/list_general_entity_generator.dart';
+import 'package:modddels_generator/src/generators/sized_list_general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -17,6 +18,7 @@ enum Model {
   sizedListEntity,
   generalEntity,
   listGeneralEntity,
+  sizedListGeneralEntity,
 }
 
 class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
@@ -62,36 +64,35 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
 
     Model modelType;
 
-    final superClass = classElement.allSupertypes;
+    final superClassName =
+        classElement.supertype?.getDisplayString(withNullability: false);
 
-    if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('ValueObject'))) {
+    print(superClassName);
+
+    if (superClassName == null) {
+      throw InvalidGenerationSourceError(
+        'Should extend a Modddel',
+        element: classElement,
+      );
+    }
+
+    if (superClassName.startsWith('ValueObject')) {
       modelType = Model.valueObject;
-    } else if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('ListGeneralEntity'))) {
+    } else if (superClassName.startsWith('ListGeneralEntity')) {
       modelType = Model.listGeneralEntity;
-    } else if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('GeneralEntity'))) {
+    } else if (superClassName.startsWith('SizedListGeneralEntity')) {
+      modelType = Model.sizedListGeneralEntity;
+    } else if (superClassName.startsWith('GeneralEntity')) {
       modelType = Model.generalEntity;
-    } else if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('ListEntity'))) {
+    } else if (superClassName.startsWith('ListEntity')) {
       modelType = Model.listEntity;
-    } else if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('SizedListEntity'))) {
+    } else if (superClassName.startsWith('SizedListEntity')) {
       modelType = Model.sizedListEntity;
-    } else if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('Entity'))) {
+    } else if (superClassName.startsWith('Entity')) {
       modelType = Model.entity;
     } else {
-      //TODO update error message
       throw InvalidGenerationSourceError(
-        'Should either extend GeneralEntity, ListGeneralEntity, or ValueObject',
+        'Should extend a Modddel',
         element: classElement,
       );
     }
@@ -103,6 +104,10 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
             .generate();
       case Model.listGeneralEntity:
         return ListGeneralEntityGenerator(
+                className: className, factoryConstructor: factoryConstructor)
+            .generate();
+      case Model.sizedListGeneralEntity:
+        return SizedListGeneralEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
       case Model.generalEntity:

@@ -106,6 +106,17 @@ class ListGeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
   late final String ktListTypeValid;
 }
 
+class SizedListGeneralEntityClassInfo extends ListGeneralEntityClassInfo {
+  SizedListGeneralEntityClassInfo(String className, String ktListType)
+      : super(className, ktListType) {
+    sizeFailure = '${className}SizeFailure';
+    invalidEntitySize = 'Invalid${className}Size';
+  }
+
+  late final String sizeFailure;
+  late final String invalidEntitySize;
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    Other                                   */
 /* -------------------------------------------------------------------------- */

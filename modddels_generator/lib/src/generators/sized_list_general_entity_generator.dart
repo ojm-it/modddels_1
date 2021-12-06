@@ -2,8 +2,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
-class SizedListEntityGenerator {
-  SizedListEntityGenerator(
+class SizedListGeneralEntityGenerator {
+  SizedListGeneralEntityGenerator(
       {required this.className, required this.factoryConstructor});
 
   final String className;
@@ -38,7 +38,7 @@ class SizedListEntityGenerator {
       );
     }
 
-    final classInfo = SizedListEntityClassInfo(className, ktListType);
+    final classInfo = SizedListGeneralEntityClassInfo(className, ktListType);
 
     final classBuffer = StringBuffer();
 
@@ -52,17 +52,20 @@ class SizedListEntityGenerator {
 
     makeInvalidEntityContent(classBuffer, classInfo);
 
+    makeInvalidEntityGeneral(classBuffer, classInfo);
+
     return classBuffer.toString();
   }
 
-  void makeMixin(StringBuffer classBuffer, SizedListEntityClassInfo classInfo) {
+  void makeMixin(
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('mixin \$$className {');
 
     //create method
     classBuffer.writeln('''
-      static $className _create(
-        KtList<${classInfo.ktListType}> list,
-      ) {
+    static $className _create(
+      KtList<${classInfo.ktListType}> list,
+    ) {
       return _verifySize(list).match(
         (sizeFailure) =>
             ${classInfo.invalidEntitySize}._(sizeFailure: sizeFailure, list: list),
@@ -71,7 +74,12 @@ class SizedListEntityGenerator {
             contentFailure: contentFailure,
             list: validSize,
           ),
-          (validContent) =>${classInfo.validEntity}._(list: validContent),
+          (validContent) => _verifyGeneral(validContent).match(
+            (generalFailure) => ${classInfo.invalidEntityGeneral}._(
+                  generalFailure: generalFailure,
+                  list: validContent,
+                ),
+            (validGeneral) => ${classInfo.validEntity}._(list: validGeneral)),
         ),
       );
     }
@@ -117,6 +125,17 @@ class SizedListEntityGenerator {
     
     ''');
 
+    ///_verifyGeneral function
+    classBuffer.writeln('''
+    static Either<${classInfo.generalFailure}, KtList<${classInfo.ktListTypeValid}>> _verifyGeneral(
+        KtList<${classInfo.ktListTypeValid}> list) {
+      final generalVerification =
+          const $className._().validateGeneral(${classInfo.validEntity}._(list: list));
+      return generalVerification.toEither(() => list).swap();
+    }
+      
+    ''');
+
     ///getter for the size of the list
 
     classBuffer.writeln('''
@@ -143,11 +162,14 @@ class SizedListEntityGenerator {
           invalidSize,
       required TResult Function(${classInfo.invalidEntityContent} invalidContent)
           invalidContent,      
+      required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+          invalidGeneral,
     }) {
       return maybeMap(
         valid: valid,
         invalidSize: invalidSize,
-        invalidContent: invalidContent,        
+        invalidContent: invalidContent,   
+        invalidGeneral: invalidGeneral,     
         orElse: (invalid) => throw UnreachableError(),
       );
     }
@@ -160,6 +182,7 @@ class SizedListEntityGenerator {
       required TResult Function(${classInfo.validEntity} valid) valid,
       TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
       TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
       required TResult Function(${classInfo.invalidEntity} invalid) orElse,
     }) {
       throw UnimplementedError();
@@ -197,7 +220,7 @@ class SizedListEntityGenerator {
   }
 
   void makeValidEntity(
-      StringBuffer classBuffer, SizedListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln(
         'class ${classInfo.validEntity} extends $className implements ValidEntity {');
 
@@ -222,6 +245,7 @@ class SizedListEntityGenerator {
       required TResult Function(${classInfo.validEntity} valid) valid,
       TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
       TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
       required TResult Function(${classInfo.invalidEntity} invalid) orElse,
     }) {
       return valid(this);
@@ -243,7 +267,7 @@ class SizedListEntityGenerator {
   }
 
   void makeInvalidEntity(
-      StringBuffer classBuffer, SizedListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     abstract class ${classInfo.invalidEntity} extends $className
     implements InvalidEntity {
@@ -267,6 +291,7 @@ class SizedListEntityGenerator {
     Failure get failure => whenInvalid(
           sizeFailure: (sizeFailure) => sizeFailure,
           contentFailure: (contentFailure) => contentFailure,
+          generalFailure: (generalFailure) => generalFailure,
         );
 
     ''');
@@ -278,11 +303,14 @@ class SizedListEntityGenerator {
           invalidSize,
       required TResult Function(${classInfo.invalidEntityContent} invalidContent)
           invalidContent,
+      required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+          invalidGeneral,
     }) {
       return maybeMap(
         valid: (valid) => throw UnreachableError(),
         invalidSize: invalidSize,
         invalidContent: invalidContent,
+        invalidGeneral: invalidGeneral,
         orElse: (invalid) => throw UnreachableError(),
       );
     }
@@ -295,6 +323,8 @@ class SizedListEntityGenerator {
       required TResult Function(${classInfo.sizeFailure} sizeFailure)
           sizeFailure,
       required TResult Function(Failure contentFailure) contentFailure,
+      required TResult Function(${classInfo.generalFailure} generalFailure)
+        generalFailure,
     }) {
       return maybeMap(
         valid: (valid) => throw UnreachableError(),
@@ -302,6 +332,8 @@ class SizedListEntityGenerator {
             sizeFailure(invalidSize.sizeFailure),
         invalidContent: (invalidContent) =>
             contentFailure(invalidContent.contentFailure),
+        invalidGeneral: (invalidGeneral) =>
+          generalFailure(invalidGeneral.generalFailure),
         orElse: (invalid) => throw UnreachableError(),
       );
     }
@@ -313,7 +345,7 @@ class SizedListEntityGenerator {
   }
 
   void makeInvalidEntitySize(
-      StringBuffer classBuffer, SizedListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntitySize} extends ${classInfo.invalidEntity}
       implements InvalidEntitySize<${classInfo.sizeFailure}> {
@@ -344,6 +376,7 @@ class SizedListEntityGenerator {
       required TResult Function(${classInfo.validEntity} valid) valid,
       TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
       TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
       required TResult Function(${classInfo.invalidEntity} invalid) orElse,
     }) {
       if (invalidSize != null) {
@@ -368,7 +401,7 @@ class SizedListEntityGenerator {
   }
 
   void makeInvalidEntityContent(
-      StringBuffer classBuffer, SizedListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityContent} extends ${classInfo.invalidEntity}
       implements InvalidEntityContent {
@@ -399,6 +432,7 @@ class SizedListEntityGenerator {
       required TResult Function(${classInfo.validEntity} valid) valid,
       TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
       TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
       required TResult Function(${classInfo.invalidEntity} invalid) orElse,
     }) {
       if (invalidContent != null) {
@@ -413,6 +447,62 @@ class SizedListEntityGenerator {
     @override
     List<Object?> get allProps => [
           contentFailure,
+          list,
+        ];
+    ''');
+
+    ///End
+    classBuffer.writeln('}');
+  }
+
+  void makeInvalidEntityGeneral(
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${classInfo.invalidEntityGeneral} extends ${classInfo.invalidEntity}
+      implements InvalidEntityGeneral<${classInfo.generalFailure}> {
+    ''');
+
+    ///private constructor
+    classBuffer.writeln('''
+    const ${classInfo.invalidEntityGeneral}._({
+      required this.generalFailure,
+      required this.list,
+    }) : super._();
+    ''');
+
+    ///Getters
+    classBuffer.writeln('''
+    @override
+    final ${classInfo.generalFailure} generalFailure;
+
+    @override
+    final KtList<${classInfo.ktListTypeValid}> list;
+
+    ''');
+
+    ///maybeMap method
+    classBuffer.writeln('''
+    @override
+    TResult maybeMap<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
+      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+    }) {
+      if (invalidGeneral != null) {
+        return invalidGeneral(this);
+      }
+      return orElse(this);
+    }
+
+    ''');
+
+    ///allProps method
+    classBuffer.writeln('''
+    @override
+    List<Object?> get allProps => [
+          generalFailure,
           list,
         ];
     ''');
