@@ -333,7 +333,7 @@ class SizedListEntityGenerator {
     final ${classInfo.sizeFailure} sizeFailure;
 
     @override
-    final KtList<${classInfo.ktListTypeValid}> list;
+    final KtList<${classInfo.ktListType}> list;
 
     ''');
 
