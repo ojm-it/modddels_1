@@ -9,3 +9,5 @@ export 'src/entity/entity.dart';
 export 'src/entity/common.dart';
 export 'src/entity/list/list_general_entity.dart';
 export 'src/entity/list/list_entity.dart';
+export 'src/entity/sized_list/sized_list_entity.dart';
+export 'src/entity/sized_list/sized_list_general_entity.dart';

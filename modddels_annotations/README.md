@@ -165,7 +165,7 @@ When instantiated, it first verifies that all its modddels are valid.
 
 ```dart
 @modddel
-class FullName extends GeneralEntity<FullNameEntityFailure, InvalidFullNameGeneral,
+class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullNameGeneral,
     InvalidFullNameContent, InvalidFullName, ValidFullName> with $FullName {
   factory FullName({
     required Name firstName,
@@ -180,19 +180,19 @@ class FullName extends GeneralEntity<FullNameEntityFailure, InvalidFullNameGener
   const FullName._();
 
   @override
-  Option<FullNameEntityFailure> validateGeneral(ValidFullName valid) {
+  Option<FullNameGeneralFailure> validateGeneral(ValidFullName valid) {
     // TODO: implement validate
     return none();
   }
 }
 ```
 
-2. Create a Freezed GeneralEntityFailure for your Entity
+2. Create a Freezed GeneralFailure for your Entity
 
 ```dart
 @freezed
-class FullNameEntityFailure extends GeneralEntityFailure with _$FullNameEntityFailure {
-  const factory FullNameEntityFailure.tooLong() = _TooLong;
+class FullNameGeneralFailure extends GeneralFailure with _$FullNameGeneralFailure {
+  const factory FullNameGeneralFailure.tooLong() = _TooLong;
 }
 ```
 
@@ -207,9 +207,9 @@ part 'fullname.freezed.dart';
 
 ```dart
   @override
-  Option<FullNameEntityFailure> validateGeneral(ValidFullName valid) {
+  Option<FullNameGeneralFailure> validateGeneral(ValidFullName valid) {
     if (valid.firstName.value.length + valid.lastName.value.length > 30) {
-      return some(const FullNameEntityFailure.tooLong());
+      return some(const FullNameGeneralFailure.tooLong());
     }
     return none();
   }
@@ -232,7 +232,7 @@ For example :
   //No error.
 ```
 
-That's because the GeneralEntity may have a `GeneralEntityFailure`, which may be unnoticed by you the developer.
+That's because the GeneralEntity may have a `GeneralFailure`, which may be unnoticed by you the developer.
 
 Nonetheless, if you want to have a direct getter for a field from the unvalidated GeneralEntity, you can use the @withGetter annotation.
 A good usecase for this would be for an "id" field.
@@ -340,8 +340,8 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 		"prefix": "generalentity",
 		"body": [
 			"@modddel",
-			"class ${1} extends GeneralEntity<${1}EntityFailure, Invalid${1}General,",
-			"    Invalid${1}Content, Invalid${1}, Valid${1}> with $${1} {",
+			"class ${1} extends GeneralEntity<${1}GeneralFailure,",
+			"    Invalid${1}, Valid${1}> with $${1} {",
 			"  factory ${1}({",
 			"    ${2}",
 			"  }) {",
@@ -353,7 +353,7 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 			"  const ${1}._();",
 			"",
 			"  @override",
-			"  Option<${1}EntityFailure> validateGeneral(Valid${1} valid) {",
+			"  Option<${1}GeneralFailure> validateGeneral(Valid${1} valid) {",
 			"    //TODO Implement validate",
 			"    return none();",
 			"  }",
@@ -365,8 +365,8 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 		"prefix": "listgeneralentity",
 		"body": [
 			"@modddel",
-			"class ${1} extends ListGeneralEntity<${1}EntityFailure, Invalid${1}General,",
-			"    Invalid${1}Content, Invalid${1}, Valid${1}> with $${1} {",
+			"class ${1} extends ListGeneralEntity<${1}GeneralFailure,",
+			"    Invalid${1}, Valid${1}> with $${1} {",
 			"  factory ${1}(KtList<${2}> list) {",
 			"    return $${1}._create(list);",
 			"  }",
@@ -374,7 +374,7 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 			"  const ${1}._();",
 			"",
 			"  @override",
-			"  Option<${1}EntityFailure> validateGeneral(Valid${1} valid) {",
+			"  Option<${1}GeneralFailure> validateGeneral(Valid${1} valid) {",
 			"    //TODO Implement validate",
 			"    return none();",
 			"  }",
@@ -383,19 +383,19 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 		"description": "List General Entity"
 	},
 	"General Entity Failure": {
-		"prefix": "entityfailure",
+		"prefix": "generalfailure",
 		"body": [
 			"@freezed",
-			"class ${1}EntityFailure extends GeneralEntityFailure with _$${1}EntityFailure {",
-			"  const factory ${1}EntityFailure.${2}(${4}) = _${3};",
+			"class ${1}GeneralFailure extends GeneralFailure with _$${1}GeneralFailure {",
+			"  const factory ${1}GeneralFailure.${2}(${4}) = _${3};",
 			"}"
 		],
 		"description": "General Entity Failure"
 	},
 	"General Entity Failure Union Case": {
-		"prefix": "entityfailurecase",
+		"prefix": "generalfailurecase",
 		"body": [
-			"const factory ${1}EntityFailure.${2}(${4}) = _${3};",
+			"const factory ${1}GeneralFailure.${2}(${4}) = _${3};",
 		],
 		"description": "Value Failure Union Case"
 	},

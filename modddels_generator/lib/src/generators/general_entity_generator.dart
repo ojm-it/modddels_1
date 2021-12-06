@@ -71,7 +71,7 @@ class GeneralEntityGenerator {
         ///The content is valid => We check if there's a general failure
         (validContent) => const $className._().validateGeneral(validContent).match(
           (generalFailure) => ${classInfo.invalidEntityGeneral}._(
-            generalEntityFailure: generalFailure,
+            generalFailure: generalFailure,
             ${classInfo.namedParameters.map((param) => '${param.name} : validContent.${param.name},').join()}
           ),
           () => validContent,
@@ -285,7 +285,7 @@ class GeneralEntityGenerator {
     @override
     Failure get failure => whenInvalid(
           contentFailure: (contentFailure) => contentFailure,
-          generalEntityFailure: (generalEntityFailure) => generalEntityFailure,
+          generalFailure: (generalFailure) => generalFailure,
         );
 
     ''');
@@ -311,15 +311,15 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     TResult whenInvalid<TResult extends Object?>({
       required TResult Function(Failure contentFailure) contentFailure,
-      required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)
-          generalEntityFailure,
+      required TResult Function(${classInfo.generalFailure} generalFailure)
+          generalFailure,
     }) {
       return maybeMap(
         valid: (valid) => throw UnreachableError(),
         invalidContent: (invalidContent) =>
             contentFailure(invalidContent.contentFailure),
         invalidGeneral: (invalidGeneral) =>
-            generalEntityFailure(invalidGeneral.generalEntityFailure),
+            generalFailure(invalidGeneral.generalFailure),
         orElse: (invalid) => throw UnreachableError(),
       );
     }
@@ -390,13 +390,13 @@ class GeneralEntityGenerator {
       StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityGeneral} extends ${classInfo.invalidEntity}
-      implements InvalidEntityGeneral<${classInfo.generalEntityFailure}> {
+      implements InvalidEntityGeneral<${classInfo.generalFailure}> {
     ''');
 
     ///private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntityGeneral}._({
-      required this.generalEntityFailure,
+      required this.generalFailure,
       ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
     }) : super._();
 
@@ -405,7 +405,7 @@ class GeneralEntityGenerator {
     ///Getters
     classBuffer.writeln('''
     @override
-    final ${classInfo.generalEntityFailure} generalEntityFailure;
+    final ${classInfo.generalFailure} generalFailure;
 
     ${classInfo.namedParameters.map((param) => '''
     @override
@@ -434,7 +434,7 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
-      generalEntityFailure,
+      generalFailure,
       ${classInfo.namedParameters.map((param) => '${param.name},').join()}
     ];
     ''');

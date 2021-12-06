@@ -16,10 +16,3 @@ abstract class ListEntity<C extends InvalidEntityContent, V extends ValidEntity>
     extends Modddel<C, V> {
   const ListEntity();
 }
-
-abstract class SizedListEntity<F extends EntitySizeFailure,
-    I extends InvalidEntity, V extends ValidEntity> extends Modddel<I, V> {
-  const SizedListEntity();
-
-  Option<F> validateSize(int listSize);
-}

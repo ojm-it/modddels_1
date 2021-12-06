@@ -62,5 +62,5 @@ abstract class InvalidModddel {
   List<Object?> get allProps;
 }
 
-///The base class for [GeneralEntityFailure] and [ValueFailure]
+///The base class for [GeneralFailure] and [ValueFailure]
 abstract class Failure {}

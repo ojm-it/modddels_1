@@ -28,7 +28,7 @@ const valid = ValidAnnotation();
 /// NB: Generally, it's better for the modddels to stay hidden inside the
 /// [ValidEntity] and [InvalidEntity], and not be accessed directly from withing
 /// the [GeneralEntity]. That's because the [GeneralEntity] may have a
-/// [GeneralEntityFailure], which may be inadvertantly unnoticed by you the
+/// [GeneralFailure], which may be inadvertantly unnoticed by you the
 /// developer.
 
 const withGetter = WithGetterAnnotation();

@@ -3,7 +3,7 @@ import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:modddels_annotations/src/entity/common.dart';
 
 ///A ListGeneralEntity is a [ListEntity] which provides an extra validation step, just like a [GeneralEntity].
-abstract class ListGeneralEntity<F extends GeneralEntityFailure,
+abstract class ListGeneralEntity<F extends GeneralFailure,
     I extends InvalidEntity, V extends ValidEntity> extends Modddel<I, V> {
   const ListGeneralEntity();
 
@@ -11,23 +11,9 @@ abstract class ListGeneralEntity<F extends GeneralEntityFailure,
 
   ///After this [GeneralEntity]'s modddels have been validated and are valid, this
   ///validates the entity as a whole.
-  /// - If it returns some() [GeneralEntityFailure], then this [GeneralEntity] will be
+  /// - If it returns some() [GeneralFailure], then this [GeneralEntity] will be
   ///   an [InvalidEntityContent]
-  /// - If it returns none() [GeneralEntityFailure], then this [GeneralEntity] will be
+  /// - If it returns none() [GeneralFailure], then this [GeneralEntity] will be
   ///   a [ValidEntity]
   Option<F> validateGeneral(V valid);
-}
-
-abstract class SizedListGeneralEntity<
-    FG extends GeneralEntityFailure,
-    FS extends EntitySizeFailure,
-    I extends InvalidEntity,
-    V extends ValidEntity> extends Modddel<I, V> {
-  const SizedListGeneralEntity();
-
-  //TODO update this documentation.
-
-  Option<FG> validateGeneral(V valid);
-
-  Option<FS> validateSize(int listSize);
 }

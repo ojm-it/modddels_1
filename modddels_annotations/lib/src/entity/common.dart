@@ -17,21 +17,20 @@ abstract class InvalidEntityContent extends InvalidEntity {
   Failure get contentFailure;
 }
 
-abstract class InvalidEntitySize<F extends EntitySizeFailure>
-    extends InvalidEntity {
-  F get entitySizeFailure;
+abstract class InvalidEntitySize<F extends SizeFailure> extends InvalidEntity {
+  F get sizeFailure;
 }
 
-abstract class EntitySizeFailure extends Failure {}
+abstract class SizeFailure extends Failure {}
 
 ///An [InvalidEntityGeneral] is an [InvalidEntity] caused by a
-///[GeneralEntityFailure]. All the modddels inside this [GeneralEntity] are valid, but
+///[GeneralFailure]. All the modddels inside this [GeneralEntity] are valid, but
 ///the [GeneralEntity] as a whole is invalid.
 ///
-abstract class InvalidEntityGeneral<F extends GeneralEntityFailure>
+abstract class InvalidEntityGeneral<F extends GeneralFailure>
     extends InvalidEntity {
-  F get generalEntityFailure;
+  F get generalFailure;
 }
 
-///A [GeneralEntityFailure] is a [Failure] of an [GeneralEntity] as a whole.
-abstract class GeneralEntityFailure extends Failure {}
+///A [GeneralFailure] is a [Failure] of an [GeneralEntity] as a whole.
+abstract class GeneralFailure extends Failure {}

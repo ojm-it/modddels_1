@@ -108,7 +108,7 @@ class ListEntityClassInfo extends BaseEntityClassInfo {
 
 abstract class BaseGeneralEntityClassInfo {
   BaseGeneralEntityClassInfo(this.className) {
-    generalEntityFailure = '${className}EntityFailure';
+    generalFailure = '${className}GeneralFailure';
     invalidEntityGeneral = 'Invalid${className}General';
     invalidEntityContent = 'Invalid${className}Content';
     invalidEntity = 'Invalid$className';
@@ -116,7 +116,7 @@ abstract class BaseGeneralEntityClassInfo {
   }
 
   final String className;
-  late final String generalEntityFailure;
+  late final String generalFailure;
   late final String invalidEntityGeneral;
   late final String invalidEntityContent;
   late final String invalidEntity;

@@ -99,7 +99,7 @@ class ListGeneralEntityGenerator {
               .validateGeneral(${classInfo.validEntity}._(list: validContent))
               .match(
                 (generalFailure) => ${classInfo.invalidEntityGeneral}._(
-                  generalEntityFailure: generalFailure,
+                  generalFailure: generalFailure,
                   list: validContent,
                 ),
                 () => ${classInfo.validEntity}._(list: validContent),
@@ -257,7 +257,7 @@ class ListGeneralEntityGenerator {
     @override
     Failure get failure => whenInvalid(
           contentFailure: (contentFailure) => contentFailure,
-          generalEntityFailure: (generalEntityFailure) => generalEntityFailure,
+          generalFailure: (generalFailure) => generalFailure,
         );
 
     ''');
@@ -284,15 +284,15 @@ class ListGeneralEntityGenerator {
     classBuffer.writeln('''
     TResult whenInvalid<TResult extends Object?>({
       required TResult Function(Failure contentFailure) contentFailure,
-      required TResult Function(${classInfo.generalEntityFailure} generalEntityFailure)
-          generalEntityFailure,
+      required TResult Function(${classInfo.generalFailure} generalFailure)
+          generalFailure,
     }) {
       return maybeMap(
         valid: (valid) => throw UnreachableError(),
         invalidContent: (invalidContent) =>
             contentFailure(invalidContent.contentFailure),
         invalidGeneral: (invalidGeneral) =>
-            generalEntityFailure(invalidGeneral.generalEntityFailure),
+            generalFailure(invalidGeneral.generalFailure),
         orElse: (invalid) => throw UnreachableError(),
       );
     }
@@ -361,13 +361,13 @@ class ListGeneralEntityGenerator {
       StringBuffer classBuffer, ListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityGeneral} extends ${classInfo.invalidEntity}
-      implements InvalidEntityGeneral<${classInfo.generalEntityFailure}> {
+      implements InvalidEntityGeneral<${classInfo.generalFailure}> {
     ''');
 
     ///private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntityGeneral}._({
-      required this.generalEntityFailure,
+      required this.generalFailure,
       required this.list,
     }) : super._();
     ''');
@@ -375,7 +375,7 @@ class ListGeneralEntityGenerator {
     ///Getters
     classBuffer.writeln('''
     @override
-    final ${classInfo.generalEntityFailure} generalEntityFailure;
+    final ${classInfo.generalFailure} generalFailure;
 
     @override
     final KtList<${classInfo.ktListTypeValid}> list;
@@ -403,7 +403,7 @@ class ListGeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
-          generalEntityFailure,
+          generalFailure,
           list,
         ];
     ''');
