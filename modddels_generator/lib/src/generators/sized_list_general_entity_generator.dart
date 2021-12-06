@@ -87,9 +87,9 @@ class SizedListGeneralEntityGenerator {
 
     ///_verifySize function
     classBuffer.writeln('''
-    static Either<${classInfo.sizeFailure}, KtList<Name>> _verifySize(
-        KtList<Name> list) {
-      final sizeVerification = const NameList3._().validateSize(list.size);
+    static Either<${classInfo.sizeFailure}, KtList<${classInfo.ktListType}>> _verifySize(
+        KtList<${classInfo.ktListType}> list) {
+      final sizeVerification = const $className._().validateSize(list.size);
       return sizeVerification.toEither(() => list).swap();
     }
     
