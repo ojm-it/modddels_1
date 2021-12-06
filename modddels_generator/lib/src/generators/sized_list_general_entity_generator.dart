@@ -128,10 +128,10 @@ class SizedListGeneralEntityGenerator {
     ///_verifyGeneral function
     classBuffer.writeln('''
     static Either<${classInfo.generalFailure}, KtList<${classInfo.ktListTypeValid}>> _verifyGeneral(
-        KtList<${classInfo.ktListTypeValid}> list) {
+        KtList<${classInfo.ktListTypeValid}> validList) {
       final generalVerification =
-          const $className._().validateGeneral(${classInfo.validEntity}._(list: list));
-      return generalVerification.toEither(() => list).swap();
+          const $className._().validateGeneral(${classInfo.validEntity}._(list: validList));
+      return generalVerification.toEither(() => validList).swap();
     }
       
     ''');
