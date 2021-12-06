@@ -8,8 +8,8 @@ part 'namelist.freezed.dart';
 part 'namelist.g.dart';
 
 @modddel
-class NameList extends ListGeneralEntity<NameListEntityFailure, InvalidNameList,
-    ValidNameList> with $NameList {
+class NameList extends ListGeneralEntity<NameListGeneralFailure,
+    InvalidNameList, ValidNameList> with $NameList {
   factory NameList(KtList<Name> list) {
     return $NameList._create(list);
   }
@@ -17,16 +17,16 @@ class NameList extends ListGeneralEntity<NameListEntityFailure, InvalidNameList,
   const NameList._();
 
   @override
-  Option<NameListEntityFailure> validateGeneral(ValidNameList valid) {
+  Option<NameListGeneralFailure> validateGeneral(ValidNameList valid) {
     if (valid.list.isEmpty()) {
-      return some(const NameListEntityFailure.empty());
+      return some(const NameListGeneralFailure.empty());
     }
     return none();
   }
 }
 
 @freezed
-class NameListEntityFailure extends GeneralEntityFailure
-    with _$NameListEntityFailure {
-  const factory NameListEntityFailure.empty() = _Empty;
+class NameListGeneralFailure extends GeneralFailure
+    with _$NameListGeneralFailure {
+  const factory NameListGeneralFailure.empty() = _Empty;
 }

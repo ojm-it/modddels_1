@@ -5,11 +5,8 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:example/general_entities/fullname.dart';
-import 'package:example/general_entities/fullname_list.dart';
-import 'package:example/general_entities/namelist.dart';
+import 'package:example/list_entity/namelist2.dart';
 import 'package:example/normal_entities/fullname2.dart';
-import 'package:example/normal_entities/namelist2.dart';
 import 'package:example/value_objects.dart/name.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

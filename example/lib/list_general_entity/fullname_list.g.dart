@@ -45,7 +45,7 @@ mixin $FullNameList {
           .validateGeneral(ValidFullNameList._(list: validContent))
           .match(
             (generalFailure) => InvalidFullNameListGeneral._(
-              generalEntityFailure: generalFailure,
+              generalFailure: generalFailure,
               list: validContent,
             ),
             () => ValidFullNameList._(list: validContent),
@@ -137,7 +137,7 @@ abstract class InvalidFullNameList extends FullNameList
   @override
   Failure get failure => whenInvalid(
         contentFailure: (contentFailure) => contentFailure,
-        generalEntityFailure: (generalEntityFailure) => generalEntityFailure,
+        generalFailure: (generalFailure) => generalFailure,
       );
 
   TResult mapInvalid<TResult extends Object?>({
@@ -156,15 +156,15 @@ abstract class InvalidFullNameList extends FullNameList
 
   TResult whenInvalid<TResult extends Object?>({
     required TResult Function(Failure contentFailure) contentFailure,
-    required TResult Function(FullNameListEntityFailure generalEntityFailure)
-        generalEntityFailure,
+    required TResult Function(FullNameListGeneralFailure generalFailure)
+        generalFailure,
   }) {
     return maybeMap(
       valid: (valid) => throw UnreachableError(),
       invalidContent: (invalidContent) =>
           contentFailure(invalidContent.contentFailure),
       invalidGeneral: (invalidGeneral) =>
-          generalEntityFailure(invalidGeneral.generalEntityFailure),
+          generalFailure(invalidGeneral.generalFailure),
       orElse: (invalid) => throw UnreachableError(),
     );
   }
@@ -204,14 +204,14 @@ class InvalidFullNameListContent extends InvalidFullNameList
 }
 
 class InvalidFullNameListGeneral extends InvalidFullNameList
-    implements InvalidEntityGeneral<FullNameListEntityFailure> {
+    implements InvalidEntityGeneral<FullNameListGeneralFailure> {
   const InvalidFullNameListGeneral._({
-    required this.generalEntityFailure,
+    required this.generalFailure,
     required this.list,
   }) : super._();
 
   @override
-  final FullNameListEntityFailure generalEntityFailure;
+  final FullNameListGeneralFailure generalFailure;
 
   @override
   final KtList<ValidFullName> list;
@@ -231,7 +231,7 @@ class InvalidFullNameListGeneral extends InvalidFullNameList
 
   @override
   List<Object?> get allProps => [
-        generalEntityFailure,
+        generalFailure,
         list,
       ];
 }

@@ -34,7 +34,7 @@ mixin $FullName {
       ///The content is valid => We check if there's a general failure
       (validContent) => const FullName._().validateGeneral(validContent).match(
             (generalFailure) => InvalidFullNameGeneral._(
-              generalEntityFailure: generalFailure,
+              generalFailure: generalFailure,
               firstName: validContent.firstName,
               lastName: validContent.lastName,
               hasMiddleName: validContent.hasMiddleName,
@@ -155,7 +155,7 @@ abstract class InvalidFullName extends FullName implements InvalidEntity {
   @override
   Failure get failure => whenInvalid(
         contentFailure: (contentFailure) => contentFailure,
-        generalEntityFailure: (generalEntityFailure) => generalEntityFailure,
+        generalFailure: (generalFailure) => generalFailure,
       );
 
   TResult mapInvalid<TResult extends Object?>({
@@ -174,15 +174,15 @@ abstract class InvalidFullName extends FullName implements InvalidEntity {
 
   TResult whenInvalid<TResult extends Object?>({
     required TResult Function(Failure contentFailure) contentFailure,
-    required TResult Function(FullNameEntityFailure generalEntityFailure)
-        generalEntityFailure,
+    required TResult Function(FullNameGeneralFailure generalFailure)
+        generalFailure,
   }) {
     return maybeMap(
       valid: (valid) => throw UnreachableError(),
       invalidContent: (invalidContent) =>
           contentFailure(invalidContent.contentFailure),
       invalidGeneral: (invalidGeneral) =>
-          generalEntityFailure(invalidGeneral.generalEntityFailure),
+          generalFailure(invalidGeneral.generalFailure),
       orElse: (invalid) => throw UnreachableError(),
     );
   }
@@ -230,16 +230,16 @@ class InvalidFullNameContent extends InvalidFullName
 }
 
 class InvalidFullNameGeneral extends InvalidFullName
-    implements InvalidEntityGeneral<FullNameEntityFailure> {
+    implements InvalidEntityGeneral<FullNameGeneralFailure> {
   const InvalidFullNameGeneral._({
-    required this.generalEntityFailure,
+    required this.generalFailure,
     required this.firstName,
     required this.lastName,
     required this.hasMiddleName,
   }) : super._();
 
   @override
-  final FullNameEntityFailure generalEntityFailure;
+  final FullNameGeneralFailure generalFailure;
 
   @override
   final ValidName firstName;
@@ -263,7 +263,7 @@ class InvalidFullNameGeneral extends InvalidFullName
 
   @override
   List<Object?> get allProps => [
-        generalEntityFailure,
+        generalFailure,
         firstName,
         lastName,
         hasMiddleName,

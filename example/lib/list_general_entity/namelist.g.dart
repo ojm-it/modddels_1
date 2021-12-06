@@ -45,7 +45,7 @@ mixin $NameList {
           .validateGeneral(ValidNameList._(list: validContent))
           .match(
             (generalFailure) => InvalidNameListGeneral._(
-              generalEntityFailure: generalFailure,
+              generalFailure: generalFailure,
               list: validContent,
             ),
             () => ValidNameList._(list: validContent),
@@ -135,7 +135,7 @@ abstract class InvalidNameList extends NameList implements InvalidEntity {
   @override
   Failure get failure => whenInvalid(
         contentFailure: (contentFailure) => contentFailure,
-        generalEntityFailure: (generalEntityFailure) => generalEntityFailure,
+        generalFailure: (generalFailure) => generalFailure,
       );
 
   TResult mapInvalid<TResult extends Object?>({
@@ -154,15 +154,15 @@ abstract class InvalidNameList extends NameList implements InvalidEntity {
 
   TResult whenInvalid<TResult extends Object?>({
     required TResult Function(Failure contentFailure) contentFailure,
-    required TResult Function(NameListEntityFailure generalEntityFailure)
-        generalEntityFailure,
+    required TResult Function(NameListGeneralFailure generalFailure)
+        generalFailure,
   }) {
     return maybeMap(
       valid: (valid) => throw UnreachableError(),
       invalidContent: (invalidContent) =>
           contentFailure(invalidContent.contentFailure),
       invalidGeneral: (invalidGeneral) =>
-          generalEntityFailure(invalidGeneral.generalEntityFailure),
+          generalFailure(invalidGeneral.generalFailure),
       orElse: (invalid) => throw UnreachableError(),
     );
   }
@@ -202,14 +202,14 @@ class InvalidNameListContent extends InvalidNameList
 }
 
 class InvalidNameListGeneral extends InvalidNameList
-    implements InvalidEntityGeneral<NameListEntityFailure> {
+    implements InvalidEntityGeneral<NameListGeneralFailure> {
   const InvalidNameListGeneral._({
-    required this.generalEntityFailure,
+    required this.generalFailure,
     required this.list,
   }) : super._();
 
   @override
-  final NameListEntityFailure generalEntityFailure;
+  final NameListGeneralFailure generalFailure;
 
   @override
   final KtList<ValidName> list;
@@ -229,7 +229,7 @@ class InvalidNameListGeneral extends InvalidNameList
 
   @override
   List<Object?> get allProps => [
-        generalEntityFailure,
+        generalFailure,
         list,
       ];
 }
