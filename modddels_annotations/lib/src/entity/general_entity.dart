@@ -18,12 +18,8 @@ import 'package:equatable/equatable.dart';
 ///   - If it's invalid, then this [GeneralEntity] will be an [InvalidEntity] of type
 ///     [I], more precisely, an [InvalidEntityGeneral] of type [G]
 ///   - If it's valid, then this [GeneralEntity] will be a [ValidEntity] of type [V]
-abstract class GeneralEntity<
-    F extends GeneralEntityFailure,
-    G extends InvalidEntityGeneral<F>,
-    C extends InvalidEntityContent,
-    I extends InvalidEntity,
-    V extends ValidEntity> extends Modddel<I, V> {
+abstract class GeneralEntity<F extends GeneralEntityFailure,
+    I extends InvalidEntity, V extends ValidEntity> extends Modddel<I, V> {
   const GeneralEntity();
 
   ///After this [GeneralEntity]'s modddels have been validated and are valid, this

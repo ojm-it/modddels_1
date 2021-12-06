@@ -47,7 +47,7 @@ abstract class InvalidValueObject<T, F extends ValueFailure<T>>
 }
 
 ///A [ValueFailure] is a [Failure] caused by an invalid value of a [ValueObject]
-abstract class ValueFailure<T> implements Failure {
+abstract class ValueFailure<T> extends Failure {
   ///All the freezed subclasses union cases should have in their constructor the
   ///proprety [failedValue], so that it becomes accessible.
   ///
