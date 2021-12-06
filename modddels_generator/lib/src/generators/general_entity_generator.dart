@@ -54,14 +54,14 @@ class GeneralEntityGenerator {
     
     ''');
 
-    //create method
+    ///create method
     classBuffer.writeln('''
     static $className _create({
       ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
     }) {
-      ${generateContentVerification(classInfo.namedParameters, classInfo)}
-
-      return contentVerification.match(
+      return _verifyContent(
+        ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
+      ).match(
         ///The content is invalid
         (contentFailure) => ${classInfo.invalidEntityContent}._(
           contentFailure: contentFailure,
@@ -69,15 +69,42 @@ class GeneralEntityGenerator {
         ),
 
         ///The content is valid => We check if there's a general failure
-        (validContent) => const $className._().validateGeneral(validContent).match(
+        (validContent) => _verifyGeneral(validContent).match(
           (generalFailure) => ${classInfo.invalidEntityGeneral}._(
             generalFailure: generalFailure,
             ${classInfo.namedParameters.map((param) => '${param.name} : validContent.${param.name},').join()}
           ),
-          () => validContent,
+          (validGeneral) => validGeneral,
         ),
       );
     }
+
+    ''');
+
+    ///verifyContent function
+    classBuffer.writeln('''
+    ///If any of the modddels is invalid, this holds its failure on the Left (the
+    ///failure of the first invalid modddel encountered)
+    ///
+    ///Otherwise, holds all the modddels as valid modddels, wrapped inside a
+    ///ValidEntity, on the Right.
+    static Either<Failure, ${classInfo.validEntity}> _verifyContent({
+      ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
+    }) {
+      ${generateContentVerification(classInfo.namedParameters, classInfo)}
+      return contentVerification;
+    }
+
+    ''');
+
+    ///verifyGeneral function
+    classBuffer.writeln('''
+    static Either<${classInfo.generalFailure}, ${classInfo.validEntity}> _verifyGeneral(
+      ${classInfo.validEntity} validEntity) {
+      final generalVerification = const $className._().validateGeneral(validEntity);
+      return generalVerification.toEither(() => validEntity).swap();
+    }
+
     ''');
 
     ///Getters for fields marked with '@withGetter' (or with '@validWithGetter')

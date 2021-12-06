@@ -61,52 +61,70 @@ class ListGeneralEntityGenerator {
 
     //create method
     classBuffer.writeln('''
-      static $className _create(
-        KtList<${classInfo.ktListType}> list,
-      ) {
-        ///If any of the list elements is invalid, this holds its failure on the Left (the
-        ///failure of the first invalid element encountered)
-        ///
-        ///Otherwise, holds all the elements as valid modddels, on the Right.
-        final contentVerification = list
-            .map((element) => element.toBroadEither)
-            .fold<Either<Failure, KtList<${classInfo.ktListTypeValid}>>>(
-              //We start with an empty list of elements on the right
-              right(const KtList<${classInfo.ktListTypeValid}>.empty()),
-              (acc, element) => acc.fold(
-                (l) => left(l),
-                (r) => element.fold(
-                  (elementFailure) => left(elementFailure),
+    static $className _create(
+      KtList<${classInfo.ktListType}> list,
+    ) {
+      return _verifyContent(list).match(
+        ///The content is invalid
+        (contentFailure) => ${classInfo.invalidEntityContent}._(
+          contentFailure: contentFailure,
+          list: list,
+        ),
 
-                  ///If the element is valid and the "acc" (accumulation) holds a
-                  ///list of valid elements (on the right), we append this element
-                  ///to the list
-                  (validElement) =>
-                      right(KtList.from([...r.asList(), validElement])),
-                ),
-              ),
-            );
-        
-        return contentVerification.match(
-          ///The content is invalid
-          (contentFailure) => ${classInfo.invalidEntityContent}._(
-            contentFailure: contentFailure,
-            list: list,
+        ///The content is valid => We check if there's a general failure
+        (validContent) => _verifyGeneral(validContent).match(
+          (generalFailure) => ${classInfo.invalidEntityGeneral}._(
+            generalFailure: generalFailure,
+            list: validContent,
           ),
+          (validGeneral) => ${classInfo.validEntity}._(list: validGeneral),
+        ),
+      );
+    }
+    
+    ''');
 
-          ///The content is valid => We check if there's a general failure
-          (validContent) => const $className._()
-              .validateGeneral(${classInfo.validEntity}._(list: validContent))
-              .match(
-                (generalFailure) => ${classInfo.invalidEntityGeneral}._(
-                  generalFailure: generalFailure,
-                  list: validContent,
-                ),
-                () => ${classInfo.validEntity}._(list: validContent),
+    ///verifyContent function
+    classBuffer.writeln('''
+    ///If any of the list elements is invalid, this holds its failure on the Left (the
+    ///failure of the first invalid element encountered)
+    ///
+    ///Otherwise, holds all the elements as valid modddels, on the Right.
+    static Either<Failure, KtList<${classInfo.ktListTypeValid}>> _verifyContent(
+        KtList<${classInfo.ktListType}> list) {
+      final contentVerification = list
+          .map((element) => element.toBroadEither)
+          .fold<Either<Failure, KtList<${classInfo.ktListTypeValid}>>>(
+            //We start with an empty list of elements on the right
+            right(const KtList<${classInfo.ktListTypeValid}>.empty()),
+            (acc, element) => acc.fold(
+              (l) => left(l),
+              (r) => element.fold(
+                (elementFailure) => left(elementFailure),
+
+                ///If the element is valid and the "acc" (accumulation) holds a
+                ///list of valid elements (on the right), we append this element
+                ///to the list
+                (validElement) =>
+                    right(KtList.from([...r.asList(), validElement])),
               ),
-        );
-      }
-      ''');
+            ),
+          );
+      return contentVerification;
+    }
+
+    ''');
+
+    ///verifyGeneral function
+    classBuffer.writeln('''
+    static Either<${classInfo.generalFailure}, KtList<${classInfo.ktListTypeValid}>>
+        _verifyGeneral(KtList<${classInfo.ktListTypeValid}> validList) {
+      final generalVerification = const $className._()
+          .validateGeneral(${classInfo.validEntity}._(list: validList));
+      return generalVerification.toEither(() => validList).swap();
+    }
+
+    ''');
 
     ///getter for the size of the list
 

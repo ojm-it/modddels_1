@@ -58,23 +58,38 @@ class EntityGenerator {
     
     ''');
 
-    //create method
+    ///create method
     classBuffer.writeln('''
     static $className _create({
       ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
     }) {
-      ${generateContentVerification(classInfo.namedParameters, classInfo)}
-
-      return contentVerification.match(
+      return _verifyContent(
+        ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
+      ).match(
         ///The content is invalid
         (contentFailure) => ${classInfo.invalidEntityContent}._(
           contentFailure: contentFailure,
-          ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
+           ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
         ),
 
         ///The content is valid => The entity is valid
         (validContent) => validContent,
       );
+    }
+    ''');
+
+    ///verifyContent function
+    classBuffer.writeln('''
+    ///If any of the modddels is invalid, this holds its failure on the Left (the
+    ///failure of the first invalid modddel encountered)
+    ///
+    ///Otherwise, holds all the modddels as valid modddels, wrapped inside a
+    ///ValidEntity, on the Right.
+    static Either<Failure, ${classInfo.validEntity}> _verifyContent({
+     ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
+    }) {
+      ${generateContentVerification(classInfo.namedParameters, classInfo)}
+      return contentVerification;
     }
     ''');
 

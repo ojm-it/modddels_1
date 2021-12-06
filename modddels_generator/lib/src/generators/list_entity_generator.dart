@@ -59,30 +59,7 @@ class ListEntityGenerator {
       static $className _create(
         KtList<${classInfo.ktListType}> list,
       ) {
-        ///If any of the list elements is invalid, this holds its failure on the Left (the
-        ///failure of the first invalid element encountered)
-        ///
-        ///Otherwise, holds all the elements as valid modddels, on the Right.
-        final contentVerification = list
-            .map((element) => element.toBroadEither)
-            .fold<Either<Failure, KtList<${classInfo.ktListTypeValid}>>>(
-              //We start with an empty list of elements on the right
-              right(const KtList<${classInfo.ktListTypeValid}>.empty()),
-              (acc, element) => acc.fold(
-                (l) => left(l),
-                (r) => element.fold(
-                  (elementFailure) => left(elementFailure),
-
-                  ///If the element is valid and the "acc" (accumulation) holds a
-                  ///list of valid elements (on the right), we append this element
-                  ///to the list
-                  (validElement) =>
-                      right(KtList.from([...r.asList(), validElement])),
-                ),
-              ),
-            );
-        
-        return contentVerification.match(
+        return _verifyContent(list).match(
           ///The content is invalid
           (contentFailure) => ${classInfo.invalidEntityContent}._(
             contentFailure: contentFailure,
@@ -94,6 +71,36 @@ class ListEntityGenerator {
         );
       }
       ''');
+
+    ///verifyContent function
+    classBuffer.writeln('''
+    ///If any of the list elements is invalid, this holds its failure on the Left (the
+    ///failure of the first invalid element encountered)
+    ///
+    ///Otherwise, holds all the elements as valid modddels, on the Right.
+    static Either<Failure, KtList<${classInfo.ktListTypeValid}>> _verifyContent(KtList<${classInfo.ktListType}> list) {
+      final contentVerification = list
+          .map((element) => element.toBroadEither)
+          .fold<Either<Failure, KtList<${classInfo.ktListTypeValid}>>>(
+            //We start with an empty list of elements on the right
+            right(const KtList<${classInfo.ktListTypeValid}>.empty()),
+            (acc, element) => acc.fold(
+              (l) => left(l),
+              (r) => element.fold(
+                (elementFailure) => left(elementFailure),
+
+                ///If the element is valid and the "acc" (accumulation) holds a
+                ///list of valid elements (on the right), we append this element
+                ///to the list
+                (validElement) =>
+                    right(KtList.from([...r.asList(), validElement])),
+              ),
+            ),
+          );
+      return contentVerification;
+    }
+    
+    ''');
 
     ///getter for the list
     classBuffer.writeln('''
