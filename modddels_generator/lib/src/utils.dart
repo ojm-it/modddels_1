@@ -41,6 +41,75 @@ class EntityClassInfo extends BaseEntityClassInfo {
   late final List<EntityParameter> namedParameters;
 }
 
+class ListEntityClassInfo extends BaseEntityClassInfo {
+  ListEntityClassInfo(String className, this.ktListType) : super(className) {
+    ktListTypeValid = 'Valid$ktListType';
+  }
+
+  final String ktListType;
+
+  late final String ktListTypeValid;
+}
+
+class SizedListEntityClassInfo extends ListEntityClassInfo {
+  SizedListEntityClassInfo(String className, String ktListType)
+      : super(className, ktListType) {
+    sizeFailure = '${className}SizeFailure';
+    invalidEntity = 'Invalid$className';
+    invalidEntitySize = 'Invalid${className}Size';
+  }
+
+  late final String sizeFailure;
+  late final String invalidEntity;
+  late final String invalidEntitySize;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                          General Entity class info                         */
+/* -------------------------------------------------------------------------- */
+
+abstract class BaseGeneralEntityClassInfo {
+  BaseGeneralEntityClassInfo(this.className) {
+    generalFailure = '${className}GeneralFailure';
+    invalidEntityGeneral = 'Invalid${className}General';
+    invalidEntityContent = 'Invalid${className}Content';
+    invalidEntity = 'Invalid$className';
+    validEntity = 'Valid$className';
+  }
+
+  final String className;
+  late final String generalFailure;
+  late final String invalidEntityGeneral;
+  late final String invalidEntityContent;
+  late final String invalidEntity;
+  late final String validEntity;
+}
+
+class GeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
+  GeneralEntityClassInfo(
+      String className, List<ParameterElement> namedParameters)
+      : super(className) {
+    this.namedParameters =
+        namedParameters.map((p) => EntityParameter(p)).toList();
+  }
+  late final List<EntityParameter> namedParameters;
+}
+
+class ListGeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
+  ListGeneralEntityClassInfo(String className, this.ktListType)
+      : super(className) {
+    ktListTypeValid = 'Valid$ktListType';
+  }
+
+  final String ktListType;
+
+  late final String ktListTypeValid;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    Other                                   */
+/* -------------------------------------------------------------------------- */
+
 class EntityParameter {
   EntityParameter(this.parameter) : assert(parameter.isNamed);
   final ParameterElement parameter;
@@ -91,58 +160,6 @@ const _withGetterChecker = TypeChecker.fromRuntime(WithGetterAnnotation);
 
 const _validWithGetterChecker =
     TypeChecker.fromRuntime(ValidWithGetterAnnotation);
-
-class ListEntityClassInfo extends BaseEntityClassInfo {
-  ListEntityClassInfo(String className, this.ktListType) : super(className) {
-    ktListTypeValid = 'Valid$ktListType';
-  }
-
-  final String ktListType;
-
-  late final String ktListTypeValid;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                          General Entity class info                         */
-/* -------------------------------------------------------------------------- */
-
-abstract class BaseGeneralEntityClassInfo {
-  BaseGeneralEntityClassInfo(this.className) {
-    generalFailure = '${className}GeneralFailure';
-    invalidEntityGeneral = 'Invalid${className}General';
-    invalidEntityContent = 'Invalid${className}Content';
-    invalidEntity = 'Invalid$className';
-    validEntity = 'Valid$className';
-  }
-
-  final String className;
-  late final String generalFailure;
-  late final String invalidEntityGeneral;
-  late final String invalidEntityContent;
-  late final String invalidEntity;
-  late final String validEntity;
-}
-
-class GeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
-  GeneralEntityClassInfo(
-      String className, List<ParameterElement> namedParameters)
-      : super(className) {
-    this.namedParameters =
-        namedParameters.map((p) => EntityParameter(p)).toList();
-  }
-  late final List<EntityParameter> namedParameters;
-}
-
-class ListGeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
-  ListGeneralEntityClassInfo(String className, this.ktListType)
-      : super(className) {
-    ktListTypeValid = 'Valid$ktListType';
-  }
-
-  final String ktListType;
-
-  late final String ktListTypeValid;
-}
 
 extension StringExtension on String {
   String capitalize() {

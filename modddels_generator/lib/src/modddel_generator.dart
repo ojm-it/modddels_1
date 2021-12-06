@@ -8,10 +8,13 @@ import 'package:modddels_generator/src/generators/list_general_entity_generator.
 import 'package:modddels_generator/src/generators/value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
 
+import 'generators/sized_list_entity_generator.dart';
+
 enum Model {
   valueObject,
   entity,
   listEntity,
+  sizedListEntity,
   generalEntity,
   listGeneralEntity,
 }
@@ -79,6 +82,10 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       modelType = Model.listEntity;
     } else if (superClass.any((element) => element
         .getDisplayString(withNullability: false)
+        .startsWith('SizedListEntity'))) {
+      modelType = Model.sizedListEntity;
+    } else if (superClass.any((element) => element
+        .getDisplayString(withNullability: false)
         .startsWith('Entity'))) {
       modelType = Model.entity;
     } else {
@@ -108,6 +115,10 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
             .generate();
       case Model.listEntity:
         return ListEntityGenerator(
+                className: className, factoryConstructor: factoryConstructor)
+            .generate();
+      case Model.sizedListEntity:
+        return SizedListEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
     }
