@@ -14,9 +14,6 @@ abstract class InvalidEntity extends InvalidModddel {}
 /// list of modddels it is holding is invalid. It holds the [SizeFailure].
 abstract class InvalidEntitySize<F extends SizeFailure> extends InvalidEntity {
   F get sizeFailure;
-
-  @override
-  F get failure => sizeFailure;
 }
 
 /// An [InvalidEntityContent] is an [InvalidEntity] made invalid because one of
@@ -25,9 +22,6 @@ abstract class InvalidEntitySize<F extends SizeFailure> extends InvalidEntity {
 abstract class InvalidEntityContent extends InvalidEntity {
   /// The failure of the first encountered invalid modddel inside this entity.
   Failure get contentFailure;
-
-  @override
-  Failure get failure => contentFailure;
 }
 
 /// An [InvalidEntityGeneral] is an [InvalidEntity] caused by a [GeneralFailure].
@@ -37,9 +31,6 @@ abstract class InvalidEntityContent extends InvalidEntity {
 abstract class InvalidEntityGeneral<F extends GeneralFailure>
     extends InvalidEntity {
   F get generalFailure;
-
-  @override
-  F get failure => generalFailure;
 }
 
 /// A [SizeFailure] is a [Failure] of the size of a [SizedListEntity] or
