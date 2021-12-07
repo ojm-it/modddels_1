@@ -8,22 +8,30 @@ part of 'name.dart';
 
 mixin $Name {
   static Name _create(String input) {
+    /// 1. **Value Validation**
     return _verifyValue(input).match(
-      (l) => InvalidName._(failure: l),
-      (r) => ValidName._(value: r),
+      (valueFailure) => InvalidName._(failure: valueFailure),
+
+      /// 2. **→ Validations passed**
+      (validValue) => ValidName._(value: validValue),
     );
   }
 
+  /// If the value is invalid, this holds the [ValueFailure] on the Left.
+  /// Otherwise, holds the value on the Right.
   static Either<NameValueFailure, String> _verifyValue(String input) {
     final valueVerification = const Name._().validateValue(input);
     return valueVerification.toEither(() => input).swap();
   }
 
+  /// If [nullableValueObject] is null, returns `right(null)`.
+  /// Otherwise, returns `nullableValueObject.toBroadEither`.
   static Either<Failure, ValidName?> toBroadEitherNullable(
           Name? nullableValueObject) =>
       optionOf(nullableValueObject)
           .match((t) => t.toBroadEither, () => right(null));
 
+  /// Same as [mapValidity] (because there is only one invalid union-case)
   TResult map<TResult extends Object?>({
     required TResult Function(ValidName valid) valid,
     required TResult Function(InvalidName invalid) invalid,
@@ -31,6 +39,8 @@ mixin $Name {
     throw UnimplementedError();
   }
 
+  /// Pattern matching for the two different union-cases of this ValueObject :
+  /// valid and invalid.
   TResult mapValidity<TResult extends Object?>({
     required TResult Function(ValidName valid) valid,
     required TResult Function(InvalidName invalid) invalid,

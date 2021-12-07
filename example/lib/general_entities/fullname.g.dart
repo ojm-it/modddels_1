@@ -12,12 +12,12 @@ mixin $FullName {
     required Name lastName,
     required bool hasMiddleName,
   }) {
+    /// 1. **Content validation**
     return _verifyContent(
       firstName: firstName,
       lastName: lastName,
       hasMiddleName: hasMiddleName,
     ).match(
-      ///The content is invalid
       (contentFailure) => InvalidFullNameContent._(
         contentFailure: contentFailure,
         firstName: firstName,
@@ -25,7 +25,7 @@ mixin $FullName {
         hasMiddleName: hasMiddleName,
       ),
 
-      ///The content is valid => We check if there's a general failure
+      /// 2. **General validation**
       (validContent) => _verifyGeneral(validContent).match(
         (generalFailure) => InvalidFullNameGeneral._(
           generalFailure: generalFailure,
@@ -33,16 +33,18 @@ mixin $FullName {
           lastName: validContent.lastName,
           hasMiddleName: validContent.hasMiddleName,
         ),
+
+        /// 3. **→ Validations passed**
         (validGeneral) => validGeneral,
       ),
     );
   }
 
-  ///If any of the modddels is invalid, this holds its failure on the Left (the
-  ///failure of the first invalid modddel encountered)
+  /// If any of the modddels is invalid, this holds its failure on the Left (the
+  /// failure of the first invalid modddel encountered)
   ///
-  ///Otherwise, holds all the modddels as valid modddels, wrapped inside a
-  ///ValidEntity, on the Right.
+  /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
+  /// ValidEntity, on the Right.
   static Either<Failure, ValidFullName> _verifyContent({
     required Name firstName,
     required Name lastName,
@@ -61,6 +63,8 @@ mixin $FullName {
     return contentVerification;
   }
 
+  /// If the entity is invalid as a whole, this holds the [GeneralFailure] on
+  /// the Left. Otherwise, holds the ValidEntity on the Right.
   static Either<FullNameGeneralFailure, ValidFullName> _verifyGeneral(
       ValidFullName validEntity) {
     final generalVerification = const FullName._().validateGeneral(validEntity);
@@ -77,10 +81,16 @@ mixin $FullName {
         invalid: (invalid) => invalid.hasMiddleName,
       );
 
+  /// If [nullableEntity] is null, returns `right(null)`.
+  /// Otherwise, returns `nullableEntity.toBroadEither`.
   static Either<Failure, ValidFullName?> toBroadEitherNullable(
           FullName? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
+  /// Similar to [mapValidity], but the "base" invalid union-case is replaced by
+  /// the "specific" invalid union-cases of this entity :
+  /// - [InvalidEntityContent]
+  /// - [InvalidEntityGeneral]
   TResult map<TResult extends Object?>({
     required TResult Function(ValidFullName valid) valid,
     required TResult Function(InvalidFullNameContent invalidContent)
@@ -96,6 +106,8 @@ mixin $FullName {
     );
   }
 
+  /// Equivalent to [map], but only the [valid] callback is required. It also
+  /// adds an extra orElse required parameter, for fallback behavior.
   TResult maybeMap<TResult extends Object?>({
     required TResult Function(ValidFullName valid) valid,
     TResult Function(InvalidFullNameContent invalidContent)? invalidContent,
@@ -105,6 +117,8 @@ mixin $FullName {
     throw UnimplementedError();
   }
 
+  /// Pattern matching for the two different union-cases of this entity : valid
+  /// and invalid.
   TResult mapValidity<TResult extends Object?>({
     required TResult Function(ValidFullName valid) valid,
     required TResult Function(InvalidFullName invalid) invalid,
@@ -115,6 +129,10 @@ mixin $FullName {
     );
   }
 
+  /// Creates a clone of this entity with the new specified values.
+  ///
+  /// The resulting entity is totally independent from this entity. It is
+  /// validated upon creation, and can be either valid or invalid.
   FullName copyWith({
     Name? firstName,
     Name? lastName,
@@ -181,6 +199,10 @@ abstract class InvalidFullName extends FullName implements InvalidEntity {
         generalFailure: (generalFailure) => generalFailure,
       );
 
+  /// Pattern matching for the "specific" invalid union-cases of this "base"
+  /// invalid union-case, which are :
+  /// - [InvalidEntityContent]
+  /// - [InvalidEntityGeneral]
   TResult mapInvalid<TResult extends Object?>({
     required TResult Function(InvalidFullNameContent invalidContent)
         invalidContent,
@@ -195,6 +217,8 @@ abstract class InvalidFullName extends FullName implements InvalidEntity {
     );
   }
 
+  /// Similar to [mapInvalid], but the union-cases are replaced by the failures
+  /// they hold.
   TResult whenInvalid<TResult extends Object?>({
     required TResult Function(Failure contentFailure) contentFailure,
     required TResult Function(FullNameGeneralFailure generalFailure)

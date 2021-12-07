@@ -10,43 +10,46 @@ mixin $FullNameList {
   static FullNameList _create(
     KtList<FullName> list,
   ) {
+    /// 1. **Content validation**
     return _verifyContent(list).match(
-      ///The content is invalid
       (contentFailure) => InvalidFullNameListContent._(
         contentFailure: contentFailure,
         list: list,
       ),
 
-      ///The content is valid => We check if there's a general failure
+      /// 2. **General validation**
       (validContent) => _verifyGeneral(validContent).match(
         (generalFailure) => InvalidFullNameListGeneral._(
           generalFailure: generalFailure,
           list: validContent,
         ),
+
+        /// 3. **→ Validations passed**
         (validGeneral) => ValidFullNameList._(list: validGeneral),
       ),
     );
   }
 
-  ///If any of the list elements is invalid, this holds its failure on the Left (the
-  ///failure of the first invalid element encountered)
+  /// If any of the list elements is invalid, this holds its failure on the Left
+  /// (the failure of the first invalid element encountered)
   ///
-  ///Otherwise, holds all the elements as valid modddels, on the Right.
+  /// Otherwise, holds the list of all the elements as valid modddels, on the
+  /// Right.
   static Either<Failure, KtList<ValidFullName>> _verifyContent(
       KtList<FullName> list) {
     final contentVerification = list
         .map((element) => element.toBroadEither)
         .fold<Either<Failure, KtList<ValidFullName>>>(
-          //We start with an empty list of elements on the right
+          /// We start with an empty list of elements on the right
           right(const KtList<ValidFullName>.empty()),
           (acc, element) => acc.fold(
             (l) => left(l),
             (r) => element.fold(
               (elementFailure) => left(elementFailure),
 
-              ///If the element is valid and the "acc" (accumulation) holds a
-              ///list of valid elements (on the right), we append this element
-              ///to the list
+              /// If the element is valid and the "acc" (accumulation) holds a
+              /// list of valid elements (on the right), we append this element
+              /// to the list
               (validElement) =>
                   right(KtList.from([...r.asList(), validElement])),
             ),
@@ -55,6 +58,8 @@ mixin $FullNameList {
     return contentVerification;
   }
 
+  /// If the entity is invalid as a whole, this holds the [GeneralFailure] on
+  /// the Left. Otherwise, holds the ValidEntity on the Right.
   static Either<FullNameListGeneralFailure, KtList<ValidFullName>>
       _verifyGeneral(KtList<ValidFullName> validList) {
     final generalVerification = const FullNameList._()
@@ -62,15 +67,22 @@ mixin $FullNameList {
     return generalVerification.toEither(() => validList).swap();
   }
 
+  /// The size of the list
   int get size => mapValidity(
         valid: (valid) => valid.list.size,
         invalid: (invalid) => invalid.list.size,
       );
 
+  /// If [nullableEntity] is null, returns `right(null)`.
+  /// Otherwise, returns `nullableEntity.toBroadEither`
   static Either<Failure, ValidFullNameList?> toBroadEitherNullable(
           FullNameList? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
+  /// Similar to [mapValidity], but the "base" invalid union-case is replaced by
+  /// the "specific" invalid union-cases of this entity :
+  /// - [InvalidEntityContent]
+  /// - [InvalidEntityGeneral]
   TResult map<TResult extends Object?>({
     required TResult Function(ValidFullNameList valid) valid,
     required TResult Function(InvalidFullNameListContent invalidContent)
@@ -86,6 +98,8 @@ mixin $FullNameList {
     );
   }
 
+  /// Equivalent to [map], but only the [valid] callback is required. It also
+  /// adds an extra orElse required parameter, for fallback behavior.
   TResult maybeMap<TResult extends Object?>({
     required TResult Function(ValidFullNameList valid) valid,
     TResult Function(InvalidFullNameListContent invalidContent)? invalidContent,
@@ -95,6 +109,8 @@ mixin $FullNameList {
     throw UnimplementedError();
   }
 
+  /// Pattern matching for the two different union-cases of this entity : valid
+  /// and invalid.
   TResult mapValidity<TResult extends Object?>({
     required TResult Function(ValidFullNameList valid) valid,
     required TResult Function(InvalidFullNameList invalid) invalid,
@@ -105,6 +121,10 @@ mixin $FullNameList {
     );
   }
 
+  /// Creates a clone of this entity with the list returned from [callback].
+  ///
+  /// The resulting entity is totally independent from this entity. It is
+  /// validated upon creation, and can be either valid or invalid.
   FullNameList copyWith(
       KtList<FullName> Function(KtList<FullName> list) callback) {
     return mapValidity(
@@ -149,6 +169,10 @@ abstract class InvalidFullNameList extends FullNameList
         generalFailure: (generalFailure) => generalFailure,
       );
 
+  /// Pattern matching for the "specific" invalid union-cases of this "base"
+  /// invalid union-case, which are :
+  /// - [InvalidEntityContent]
+  /// - [InvalidEntityGeneral]
   TResult mapInvalid<TResult extends Object?>({
     required TResult Function(InvalidFullNameListContent invalidContent)
         invalidContent,
@@ -163,6 +187,8 @@ abstract class InvalidFullNameList extends FullNameList
     );
   }
 
+  /// Similar to [mapInvalid], but the union-cases are replaced by the failures
+  /// they hold.
   TResult whenInvalid<TResult extends Object?>({
     required TResult Function(Failure contentFailure) contentFailure,
     required TResult Function(FullNameListGeneralFailure generalFailure)

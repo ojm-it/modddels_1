@@ -10,43 +10,51 @@ mixin $NameList3 {
   static NameList3 _create(
     KtList<Name> list,
   ) {
+    /// 1. **Size validation**
     return _verifySize(list).match(
       (sizeFailure) =>
           InvalidNameList3Size._(sizeFailure: sizeFailure, list: list),
+
+      /// 2. **Content validation**
       (validSize) => _verifyContent(validSize).match(
         (contentFailure) => InvalidNameList3Content._(
           contentFailure: contentFailure,
           list: validSize,
         ),
+
+        /// 3. **→ Validations passed**
         (validContent) => ValidNameList3._(list: validContent),
       ),
     );
   }
 
+  /// If the size of the list is invalid, this holds the [SizeFailure] on the
+  /// Left. Otherwise, holds the list on the Right.
   static Either<NameList3SizeFailure, KtList<Name>> _verifySize(
       KtList<Name> list) {
     final sizeVerification = const NameList3._().validateSize(list.size);
     return sizeVerification.toEither(() => list).swap();
   }
 
-  ///If any of the list elements is invalid, this holds its failure on the Left (the
-  ///failure of the first invalid element encountered)
+  /// If any of the list elements is invalid, this holds its failure on the Left
+  /// (the failure of the first invalid element encountered)
   ///
-  ///Otherwise, holds all the elements as valid modddels, on the Right.
+  /// Otherwise, holds the list of all the elements as valid modddels, on the
+  /// Right.
   static Either<Failure, KtList<ValidName>> _verifyContent(KtList<Name> list) {
     final contentVerification = list
         .map((element) => element.toBroadEither)
         .fold<Either<Failure, KtList<ValidName>>>(
-          //We start with an empty list of elements on the right
+          /// We start with an empty list of elements on the right
           right(const KtList<ValidName>.empty()),
           (acc, element) => acc.fold(
             (l) => left(l),
             (r) => element.fold(
               (elementFailure) => left(elementFailure),
 
-              ///If the element is valid and the "acc" (accumulation) holds a
-              ///list of valid elements (on the right), we append this element
-              ///to the list
+              /// If the element is valid and the "acc" (accumulation) holds a
+              /// list of valid elements (on the right), we append this element
+              /// to the list
               (validElement) =>
                   right(KtList.from([...r.asList(), validElement])),
             ),
@@ -55,15 +63,22 @@ mixin $NameList3 {
     return contentVerification;
   }
 
+  /// The size of the list
   int get size => mapValidity(
         valid: (valid) => valid.list.size,
         invalid: (invalid) => invalid.list.size,
       );
 
+  /// If [nullableEntity] is null, returns `right(null)`.
+  /// Otherwise, returns `nullableEntity.toBroadEither`.
   static Either<Failure, ValidNameList3?> toBroadEitherNullable(
           NameList3? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
+  /// Similar to [mapValidity], but the "base" invalid union-case is replaced by
+  /// the "specific" invalid union-cases of this entity :
+  /// - [InvalidEntitySize]
+  /// - [InvalidEntityContent]
   TResult map<TResult extends Object?>({
     required TResult Function(ValidNameList3 valid) valid,
     required TResult Function(InvalidNameList3Size invalidSize) invalidSize,
@@ -78,6 +93,8 @@ mixin $NameList3 {
     );
   }
 
+  /// Equivalent to [map], but only the [valid] callback is required. It also
+  /// adds an extra orElse required parameter, for fallback behavior.
   TResult maybeMap<TResult extends Object?>({
     required TResult Function(ValidNameList3 valid) valid,
     TResult Function(InvalidNameList3Size invalidSize)? invalidSize,
@@ -87,6 +104,8 @@ mixin $NameList3 {
     throw UnimplementedError();
   }
 
+  /// Pattern matching for the two different union-cases of this entity : valid
+  /// and invalid.
   TResult mapValidity<TResult extends Object?>({
     required TResult Function(ValidNameList3 valid) valid,
     required TResult Function(InvalidNameList3 invalid) invalid,
@@ -97,6 +116,10 @@ mixin $NameList3 {
     );
   }
 
+  /// Creates a clone of this entity with the list returned from [callback].
+  ///
+  /// The resulting entity is totally independent from this entity. It is
+  /// validated upon creation, and can be either valid or invalid.
   NameList3 copyWith(KtList<Name> Function(KtList<Name> list) callback) {
     return mapValidity(
       valid: (valid) => _create(callback(valid.list)),
@@ -139,6 +162,10 @@ abstract class InvalidNameList3 extends NameList3 implements InvalidEntity {
         contentFailure: (contentFailure) => contentFailure,
       );
 
+  /// Pattern matching for the "specific" invalid union-cases of this "base"
+  /// invalid union-case, which are :
+  /// - [InvalidEntitySize]
+  /// - [InvalidEntityContent]
   TResult mapInvalid<TResult extends Object?>({
     required TResult Function(InvalidNameList3Size invalidSize) invalidSize,
     required TResult Function(InvalidNameList3Content invalidContent)
@@ -152,6 +179,8 @@ abstract class InvalidNameList3 extends NameList3 implements InvalidEntity {
     );
   }
 
+  /// Similar to [mapInvalid], but the union-cases are replaced by the failures
+  /// they hold.
   TResult whenInvalid<TResult extends Object?>({
     required TResult Function(NameList3SizeFailure sizeFailure) sizeFailure,
     required TResult Function(Failure contentFailure) contentFailure,
