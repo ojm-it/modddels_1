@@ -36,8 +36,10 @@ abstract class ValidValueObject<T> extends ValidModddel {
 abstract class InvalidValueObject<T, F extends ValueFailure<T>>
     extends InvalidModddel {
   /// The [ValueFailure] that made this [ValueObject] invalid.
+  F get valueFailure;
+
   @override
-  F get failure;
+  F get failure => valueFailure;
 }
 
 /// A [ValueFailure] is a [Failure] caused by an invalid value of a [ValueObject]
