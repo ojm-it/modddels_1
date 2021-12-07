@@ -40,7 +40,7 @@ class ValueObjectGenerator {
     mixin \$$className {
     ''');
 
-    ///create method
+    /// create method
     classBuffer.writeln('''
     static $className _create(${classInfo.valueType} input) {
       return _verifyValue(input).match(
@@ -51,7 +51,7 @@ class ValueObjectGenerator {
     
     ''');
 
-    ///_verifyValue method
+    /// _verifyValue method
     classBuffer.writeln('''
     static Either<${classInfo.valueFailure}, ${classInfo.valueType}> _verifyValue(${classInfo.valueType} input) {
       final valueVerification = const $className._().validateValue(input);
@@ -60,7 +60,7 @@ class ValueObjectGenerator {
 
     ''');
 
-    ///toBroadEitherNullable method
+    /// toBroadEitherNullable method
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validValueObject}?> toBroadEitherNullable(
       $className? nullableValueObject) =>
@@ -69,7 +69,7 @@ class ValueObjectGenerator {
 
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.validValueObject} valid) valid,
@@ -80,7 +80,7 @@ class ValueObjectGenerator {
     
     ''');
 
-    ///mapValidity method
+    /// mapValidity method
     classBuffer.writeln('''
     TResult mapValidity<TResult extends Object?>({
       required TResult Function(${classInfo.validValueObject} valid) valid,
@@ -94,7 +94,7 @@ class ValueObjectGenerator {
     
     ''');
 
-    //End
+    /// End
     classBuffer.writeln('}');
   }
 
@@ -104,20 +104,20 @@ class ValueObjectGenerator {
     class ${classInfo.validValueObject} extends $className implements ValidValueObject<${classInfo.valueType}> {
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.validValueObject}._({required this.value}) : super._();
     
     ''');
 
-    ///class members
+    /// class members
     classBuffer.writeln('''
     @override
     final ${classInfo.valueType} value;
 
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>(
@@ -128,14 +128,14 @@ class ValueObjectGenerator {
 
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [value];
 
     ''');
 
-    ///end
+    /// end
     classBuffer.writeln('}');
   }
 
@@ -146,20 +146,20 @@ class ValueObjectGenerator {
       implements InvalidValueObject<${classInfo.valueType}, ${classInfo.valueFailure}> {
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidValueObject}._({
       required this.failure,
     }) : super._();
     ''');
 
-    ///class members
+    /// class members
     classBuffer.writeln('''
     @override
     final ${classInfo.valueFailure} failure;
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>(
@@ -169,13 +169,13 @@ class ValueObjectGenerator {
     }
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [failure];
     ''');
 
-    ///end
+    /// end
     classBuffer.writeln('}');
   }
 }

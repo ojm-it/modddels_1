@@ -152,14 +152,14 @@ class EntityParameter {
   bool get isNullable =>
       parameter.type.nullabilitySuffix == NullabilitySuffix.question;
 
-  ///True if the parameter has the `@valid` annotation or the `@validWithGetter`
-  ///annotation
+  /// True if the parameter has the `@valid` annotation or the `@validWithGetter`
+  /// annotation
   bool get hasValidAnnotation =>
       _validChecker.hasAnnotationOfExact(parameter) ||
       _validWithGetterChecker.hasAnnotationOfExact(parameter);
 
-  ///True if the parameter has the `@withGetter` annotation or the
-  ///`@validWithGetter` annotation
+  /// True if the parameter has the `@withGetter` annotation or the
+  /// `@validWithGetter` annotation
 
   bool get hasWithGetterAnnotation =>
       _withGetterChecker.hasAnnotationOfExact(parameter) ||

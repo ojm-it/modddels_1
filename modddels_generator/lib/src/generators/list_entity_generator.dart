@@ -54,44 +54,44 @@ class ListEntityGenerator {
   void makeMixin(StringBuffer classBuffer, ListEntityClassInfo classInfo) {
     classBuffer.writeln('mixin \$$className {');
 
-    //create method
+    /// create method
     classBuffer.writeln('''
       static $className _create(
         KtList<${classInfo.ktListType}> list,
       ) {
         return _verifyContent(list).match(
-          ///The content is invalid
+          /// The content is invalid
           (contentFailure) => ${classInfo.invalidEntityContent}._(
             contentFailure: contentFailure,
             list: list,
           ),
 
-          ///The content is valid => The entity is valid
+          /// The content is valid => The entity is valid
           (validContent) => ${classInfo.validEntity}._(list: validContent),
         );
       }
       ''');
 
-    ///verifyContent function
+    /// verifyContent function
     classBuffer.writeln('''
-    ///If any of the list elements is invalid, this holds its failure on the Left (the
-    ///failure of the first invalid element encountered)
-    ///
-    ///Otherwise, holds all the elements as valid modddels, on the Right.
+    /// If any of the list elements is invalid, this holds its failure on the Left (the
+    /// failure of the first invalid element encountered)
+    /// 
+    /// Otherwise, holds all the elements as valid modddels, on the Right.
     static Either<Failure, KtList<${classInfo.ktListTypeValid}>> _verifyContent(KtList<${classInfo.ktListType}> list) {
       final contentVerification = list
           .map((element) => element.toBroadEither)
           .fold<Either<Failure, KtList<${classInfo.ktListTypeValid}>>>(
-            //We start with an empty list of elements on the right
+            /// We start with an empty list of elements on the right
             right(const KtList<${classInfo.ktListTypeValid}>.empty()),
             (acc, element) => acc.fold(
               (l) => left(l),
               (r) => element.fold(
                 (elementFailure) => left(elementFailure),
 
-                ///If the element is valid and the "acc" (accumulation) holds a
-                ///list of valid elements (on the right), we append this element
-                ///to the list
+                /// If the element is valid and the "acc" (accumulation) holds a
+                /// list of valid elements (on the right), we append this element
+                /// to the list
                 (validElement) =>
                     right(KtList.from([...r.asList(), validElement])),
               ),
@@ -102,7 +102,7 @@ class ListEntityGenerator {
     
     ''');
 
-    ///getter for the list
+    /// getter for the list
     classBuffer.writeln('''
     KtList<${classInfo.ktListType}> get list => map(
         valid: (valid) => valid.list,
@@ -111,14 +111,14 @@ class ListEntityGenerator {
     
     ''');
 
-    ///getter for the size of the list
+    /// getter for the size of the list
 
     classBuffer.writeln('''
     int get size => list.size;
     
     ''');
 
-    ///toBroadEitherNullable method
+    /// toBroadEitherNullable method
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
           $className? nullableEntity) =>
@@ -126,7 +126,7 @@ class ListEntityGenerator {
     
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
@@ -138,7 +138,7 @@ class ListEntityGenerator {
     
     ''');
 
-    ///mapValidity method
+    /// mapValidity method
     classBuffer.writeln('''
     TResult mapValidity<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
@@ -152,7 +152,7 @@ class ListEntityGenerator {
     
     ''');
 
-    ///copyWith method
+    /// copyWith method
     classBuffer.writeln('''
     $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
       return map(
@@ -163,7 +163,7 @@ class ListEntityGenerator {
     
     ''');
 
-    //End
+    /// End
     classBuffer.writeln('}');
   }
 
@@ -172,7 +172,7 @@ class ListEntityGenerator {
     classBuffer.writeln(
         'class ${classInfo.validEntity} extends $className implements ValidEntity {');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.validEntity}._({
       required this.list,
@@ -180,14 +180,14 @@ class ListEntityGenerator {
     
     ''');
 
-    ///class members
+    /// class members
     classBuffer.writeln('''
     @override
     final KtList<${classInfo.ktListTypeValid}> list;
 
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>({
@@ -200,7 +200,7 @@ class ListEntityGenerator {
 
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
@@ -209,7 +209,7 @@ class ListEntityGenerator {
 
     ''');
 
-    ///end
+    /// end
     classBuffer.writeln('}');
   }
 
@@ -221,7 +221,7 @@ class ListEntityGenerator {
     
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntityContent}._({
       required this.contentFailure,
@@ -229,7 +229,7 @@ class ListEntityGenerator {
     }) : super._();
     ''');
 
-    ///Class members
+    /// Class members
     classBuffer.writeln('''
     @override
     final Failure contentFailure;
@@ -241,7 +241,7 @@ class ListEntityGenerator {
     final KtList<${classInfo.ktListType}> list;
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>({
@@ -254,7 +254,7 @@ class ListEntityGenerator {
 
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
@@ -263,7 +263,7 @@ class ListEntityGenerator {
         ];
     ''');
 
-    ///End
+    /// End
     classBuffer.writeln('}');
   }
 }

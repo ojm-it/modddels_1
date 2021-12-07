@@ -59,19 +59,19 @@ class ListGeneralEntityGenerator {
       StringBuffer classBuffer, ListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('mixin \$$className {');
 
-    //create method
+    /// create method
     classBuffer.writeln('''
     static $className _create(
       KtList<${classInfo.ktListType}> list,
     ) {
       return _verifyContent(list).match(
-        ///The content is invalid
+        /// The content is invalid
         (contentFailure) => ${classInfo.invalidEntityContent}._(
           contentFailure: contentFailure,
           list: list,
         ),
 
-        ///The content is valid => We check if there's a general failure
+        /// The content is valid => We check if there's a general failure
         (validContent) => _verifyGeneral(validContent).match(
           (generalFailure) => ${classInfo.invalidEntityGeneral}._(
             generalFailure: generalFailure,
@@ -84,27 +84,27 @@ class ListGeneralEntityGenerator {
     
     ''');
 
-    ///verifyContent function
+    /// verifyContent function
     classBuffer.writeln('''
-    ///If any of the list elements is invalid, this holds its failure on the Left (the
-    ///failure of the first invalid element encountered)
-    ///
-    ///Otherwise, holds all the elements as valid modddels, on the Right.
+    /// If any of the list elements is invalid, this holds its failure on the Left (the
+    /// failure of the first invalid element encountered)
+    /// 
+    /// Otherwise, holds all the elements as valid modddels, on the Right.
     static Either<Failure, KtList<${classInfo.ktListTypeValid}>> _verifyContent(
         KtList<${classInfo.ktListType}> list) {
       final contentVerification = list
           .map((element) => element.toBroadEither)
           .fold<Either<Failure, KtList<${classInfo.ktListTypeValid}>>>(
-            //We start with an empty list of elements on the right
+            /// We start with an empty list of elements on the right
             right(const KtList<${classInfo.ktListTypeValid}>.empty()),
             (acc, element) => acc.fold(
               (l) => left(l),
               (r) => element.fold(
                 (elementFailure) => left(elementFailure),
 
-                ///If the element is valid and the "acc" (accumulation) holds a
-                ///list of valid elements (on the right), we append this element
-                ///to the list
+                /// If the element is valid and the "acc" (accumulation) holds a
+                /// list of valid elements (on the right), we append this element
+                /// to the list
                 (validElement) =>
                     right(KtList.from([...r.asList(), validElement])),
               ),
@@ -115,7 +115,7 @@ class ListGeneralEntityGenerator {
 
     ''');
 
-    ///verifyGeneral function
+    /// verifyGeneral function
     classBuffer.writeln('''
     static Either<${classInfo.generalFailure}, KtList<${classInfo.ktListTypeValid}>>
         _verifyGeneral(KtList<${classInfo.ktListTypeValid}> validList) {
@@ -126,7 +126,7 @@ class ListGeneralEntityGenerator {
 
     ''');
 
-    ///getter for the size of the list
+    /// getter for the size of the list
 
     classBuffer.writeln('''
     int get size => mapValidity(
@@ -136,7 +136,7 @@ class ListGeneralEntityGenerator {
     
     ''');
 
-    ///toBroadEitherNullable method
+    /// toBroadEitherNullable method
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
           $className? nullableEntity) =>
@@ -144,7 +144,7 @@ class ListGeneralEntityGenerator {
     
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
@@ -163,7 +163,7 @@ class ListGeneralEntityGenerator {
     
     ''');
 
-    ///maybeMap method
+    /// maybeMap method
     classBuffer.writeln('''
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
@@ -176,7 +176,7 @@ class ListGeneralEntityGenerator {
     
     ''');
 
-    ///mapValidity method
+    /// mapValidity method
     classBuffer.writeln('''
     TResult mapValidity<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
@@ -190,7 +190,7 @@ class ListGeneralEntityGenerator {
     
     ''');
 
-    ///copyWith method
+    /// copyWith method
     classBuffer.writeln('''
     $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
       return mapValidity(
@@ -201,7 +201,7 @@ class ListGeneralEntityGenerator {
     
     ''');
 
-    //End
+    /// End
     classBuffer.writeln('}');
   }
 
@@ -210,7 +210,7 @@ class ListGeneralEntityGenerator {
     classBuffer.writeln(
         'class ${classInfo.validEntity} extends $className implements ValidEntity {');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.validEntity}._({
       required this.list,
@@ -218,13 +218,13 @@ class ListGeneralEntityGenerator {
     
     ''');
 
-    ///class members
+    /// class members
     classBuffer.writeln('''
     final KtList<${classInfo.ktListTypeValid}> list;
 
     ''');
 
-    ///maybeMap method
+    /// maybeMap method
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
@@ -238,7 +238,7 @@ class ListGeneralEntityGenerator {
 
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
@@ -247,7 +247,7 @@ class ListGeneralEntityGenerator {
 
     ''');
 
-    ///end
+    /// end
     classBuffer.writeln('}');
   }
 
@@ -258,19 +258,19 @@ class ListGeneralEntityGenerator {
     implements InvalidEntity {
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntity}._() : super._();
     
     ''');
 
-    ///Fields getters
+    /// Fields getters
     classBuffer.writeln('''
     KtList<${classInfo.ktListType}> get list;
 
     ''');
 
-    ///Failure getter
+    /// Failure getter
     classBuffer.writeln('''
     @override
     Failure get failure => whenInvalid(
@@ -280,7 +280,7 @@ class ListGeneralEntityGenerator {
 
     ''');
 
-    ///mapInvalid method
+    /// mapInvalid method
     classBuffer.writeln('''
     TResult mapInvalid<TResult extends Object?>({
       required TResult Function(${classInfo.invalidEntityContent} invalidContent)
@@ -298,7 +298,7 @@ class ListGeneralEntityGenerator {
 
     ''');
 
-    ///whenInvalid method
+    /// whenInvalid method
     classBuffer.writeln('''
     TResult whenInvalid<TResult extends Object?>({
       required TResult Function(Failure contentFailure) contentFailure,
@@ -317,7 +317,7 @@ class ListGeneralEntityGenerator {
 
     ''');
 
-    ///end
+    /// end
     classBuffer.writeln('}');
   }
 
@@ -329,7 +329,7 @@ class ListGeneralEntityGenerator {
     
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntityContent}._({
       required this.contentFailure,
@@ -337,7 +337,7 @@ class ListGeneralEntityGenerator {
     }) : super._();
     ''');
 
-    ///Class members
+    /// Class members
     classBuffer.writeln('''
     @override
     final Failure contentFailure;
@@ -346,7 +346,7 @@ class ListGeneralEntityGenerator {
     final KtList<${classInfo.ktListType}> list;
     ''');
 
-    ///maybeMap method
+    /// maybeMap method
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
@@ -362,7 +362,7 @@ class ListGeneralEntityGenerator {
     }
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
@@ -371,7 +371,7 @@ class ListGeneralEntityGenerator {
         ];
     ''');
 
-    ///End
+    /// End
     classBuffer.writeln('}');
   }
 
@@ -382,7 +382,7 @@ class ListGeneralEntityGenerator {
       implements InvalidEntityGeneral<${classInfo.generalFailure}> {
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntityGeneral}._({
       required this.generalFailure,
@@ -390,7 +390,7 @@ class ListGeneralEntityGenerator {
     }) : super._();
     ''');
 
-    ///Getters
+    /// Getters
     classBuffer.writeln('''
     @override
     final ${classInfo.generalFailure} generalFailure;
@@ -400,7 +400,7 @@ class ListGeneralEntityGenerator {
 
     ''');
 
-    ///maybeMap method
+    /// maybeMap method
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
@@ -417,7 +417,7 @@ class ListGeneralEntityGenerator {
 
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
@@ -426,7 +426,7 @@ class ListGeneralEntityGenerator {
         ];
     ''');
 
-    ///End
+    /// End
     classBuffer.writeln('}');
   }
 }

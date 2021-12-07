@@ -19,34 +19,34 @@ abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
     extends Equatable {
   const Modddel();
 
-  ///Whether this [Modddel] is a valid or not.
+  /// Whether this [Modddel] is a valid or not.
   bool get isValid => mapValidity(
         valid: (valid) => true,
         invalid: (invalid) => false,
       );
 
-  ///Executes [valid] when this [Modddel] is valid, otherwise executes [invalid].
+  /// Executes [valid] when this [Modddel] is valid, otherwise executes [invalid].
   TResult mapValidity<TResult extends Object?>({
     required TResult Function(V valid) valid,
     required TResult Function(I invalid) invalid,
   });
 
-  ///Converts this [Modddel] to an [Either] where left is
-  ///the invalid union case, and right is the valid union case.
+  /// Converts this [Modddel] to an [Either] where left is
+  /// the invalid union case, and right is the valid union case.
   Either<I, V> get toEither => mapValidity(
         valid: (valid) => right(valid),
         invalid: (invalid) => left(invalid),
       );
 
-  ///Same as [toEither], but the left is broadened to be the [Failure] that
-  ///caused this [Modddel] to be invalid.
+  /// Same as [toEither], but the left is broadened to be the [Failure] that
+  /// caused this [Modddel] to be invalid.
   Either<Failure, V> get toBroadEither => mapValidity(
         valid: (valid) => right(valid),
         invalid: (invalid) => left(invalid.failure),
       );
 
-  ///This is the list of all the class members, used by Equatable for the
-  ///hashCode and equality functions.
+  /// This is the list of all the class members, used by Equatable for the
+  /// hashCode and equality functions.
   @override
   List<Object?> get props => mapValidity(
         valid: (valid) => valid.allProps,
@@ -56,8 +56,8 @@ abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
 
 /// This is the base class for the "Valid" union case of a modddel.
 abstract class ValidModddel {
-  ///This is the list of all the class members, used by Equatable for the
-  ///hashCode and equality functions.
+  /// This is the list of all the class members, used by Equatable for the
+  /// hashCode and equality functions.
   List<Object?> get allProps;
 }
 
@@ -65,12 +65,12 @@ abstract class ValidModddel {
 abstract class InvalidModddel {
   Failure get failure;
 
-  ///This is the list of all the class members, used by Equatable for the
-  ///hashCode and equality functions.
+  /// This is the list of all the class members, used by Equatable for the
+  /// hashCode and equality functions.
   List<Object?> get allProps;
 }
 
-///The base class for all the possible failures a [Modddel] can have.
+/// The base class for all the possible failures a [Modddel] can have.
 ///
-///For example : [ValueFailure], [GeneralFailure], [SizeFailure]...
+/// For example : [ValueFailure], [GeneralFailure], [SizeFailure]...
 abstract class Failure {}

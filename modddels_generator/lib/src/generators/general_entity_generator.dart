@@ -54,7 +54,7 @@ class GeneralEntityGenerator {
     
     ''');
 
-    ///create method
+    /// create method
     classBuffer.writeln('''
     static $className _create({
       ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
@@ -62,13 +62,13 @@ class GeneralEntityGenerator {
       return _verifyContent(
         ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
       ).match(
-        ///The content is invalid
+        /// The content is invalid
         (contentFailure) => ${classInfo.invalidEntityContent}._(
           contentFailure: contentFailure,
           ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
         ),
 
-        ///The content is valid => We check if there's a general failure
+        /// The content is valid => We check if there's a general failure
         (validContent) => _verifyGeneral(validContent).match(
           (generalFailure) => ${classInfo.invalidEntityGeneral}._(
             generalFailure: generalFailure,
@@ -81,13 +81,13 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///verifyContent function
+    /// verifyContent function
     classBuffer.writeln('''
-    ///If any of the modddels is invalid, this holds its failure on the Left (the
-    ///failure of the first invalid modddel encountered)
-    ///
-    ///Otherwise, holds all the modddels as valid modddels, wrapped inside a
-    ///ValidEntity, on the Right.
+    /// If any of the modddels is invalid, this holds its failure on the Left (the
+    /// failure of the first invalid modddel encountered)
+    /// 
+    /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
+    /// ValidEntity, on the Right.
     static Either<Failure, ${classInfo.validEntity}> _verifyContent({
       ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
     }) {
@@ -97,7 +97,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///verifyGeneral function
+    /// verifyGeneral function
     classBuffer.writeln('''
     static Either<${classInfo.generalFailure}, ${classInfo.validEntity}> _verifyGeneral(
       ${classInfo.validEntity} validEntity) {
@@ -107,7 +107,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///Getters for fields marked with '@withGetter' (or with '@validWithGetter')
+    /// Getters for fields marked with '@withGetter' (or with '@validWithGetter')
 
     final getterParameters = classInfo.namedParameters
         .where((e) => e.hasWithGetterAnnotation == true);
@@ -122,7 +122,7 @@ class GeneralEntityGenerator {
       ''');
     }
 
-    ///toBroadEitherNullable method
+    /// toBroadEitherNullable method
     classBuffer.writeln('''
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
       $className? nullableEntity) =>
@@ -130,7 +130,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
@@ -149,7 +149,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///maybe map method
+    /// maybe map method
     classBuffer.writeln('''
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
@@ -162,7 +162,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///mapValidity method
+    /// mapValidity method
     classBuffer.writeln('''
     TResult mapValidity<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
@@ -176,7 +176,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///copyWith method
+    /// copyWith method
     classBuffer.writeln('''
     $className copyWith({
       ${classInfo.namedParameters.map((param) => '${param.optionalType} ${param.name},').join()}
@@ -193,7 +193,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    //End
+    /// End
     classBuffer.writeln('}');
   }
 
@@ -240,7 +240,7 @@ class GeneralEntityGenerator {
       
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.validEntity}._({
       ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
@@ -248,7 +248,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///class members
+    /// class members
     for (final param in classInfo.namedParameters) {
       if (param.hasWithGetterAnnotation == true) {
         classBuffer.writeln('@override');
@@ -259,7 +259,7 @@ class GeneralEntityGenerator {
     }
     classBuffer.writeln('');
 
-    ///maybeMap method
+    /// maybeMap method
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
@@ -273,7 +273,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
@@ -281,7 +281,7 @@ class GeneralEntityGenerator {
       ];
     ''');
 
-    ///end
+    /// end
     classBuffer.writeln('}');
   }
 
@@ -292,13 +292,13 @@ class GeneralEntityGenerator {
       implements InvalidEntity {
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntity}._() : super._();
 
     ''');
 
-    ///Fields Getters
+    /// Fields Getters
     for (final param in classInfo.namedParameters) {
       if (param.hasWithGetterAnnotation == true) {
         classBuffer.writeln('@override');
@@ -307,7 +307,7 @@ class GeneralEntityGenerator {
     }
     classBuffer.writeln('');
 
-    ///Failure getter
+    /// Failure getter
     classBuffer.writeln('''
     @override
     Failure get failure => whenInvalid(
@@ -317,7 +317,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///mapInvalid method
+    /// mapInvalid method
     classBuffer.writeln('''
     TResult mapInvalid<TResult extends Object?>({
       required TResult Function(${classInfo.invalidEntityContent} invalidContent)
@@ -334,7 +334,7 @@ class GeneralEntityGenerator {
     }
     ''');
 
-    ///whenInvalid method
+    /// whenInvalid method
     classBuffer.writeln('''
     TResult whenInvalid<TResult extends Object?>({
       required TResult Function(Failure contentFailure) contentFailure,
@@ -352,7 +352,7 @@ class GeneralEntityGenerator {
     }
     ''');
 
-    ///end
+    /// End
     classBuffer.writeln('}');
   }
 
@@ -363,7 +363,7 @@ class GeneralEntityGenerator {
       implements InvalidEntityContent {        
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntityContent}._({
       required this.contentFailure,
@@ -371,7 +371,7 @@ class GeneralEntityGenerator {
     }) : super._();
     ''');
 
-    ///Getters
+    /// Getters
     classBuffer.writeln('''
     @override
     final Failure contentFailure;
@@ -383,7 +383,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///maybeMap method
+    /// maybeMap method
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
@@ -399,7 +399,7 @@ class GeneralEntityGenerator {
     }
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
@@ -409,7 +409,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///End
+    /// End
     classBuffer.writeln('}');
   }
 
@@ -420,7 +420,7 @@ class GeneralEntityGenerator {
       implements InvalidEntityGeneral<${classInfo.generalFailure}> {
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntityGeneral}._({
       required this.generalFailure,
@@ -429,7 +429,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///Getters
+    /// Getters
     classBuffer.writeln('''
     @override
     final ${classInfo.generalFailure} generalFailure;
@@ -441,7 +441,7 @@ class GeneralEntityGenerator {
 
     ''');
 
-    ///maybeMap method
+    /// maybeMap method
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
@@ -457,7 +457,7 @@ class GeneralEntityGenerator {
     }
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
@@ -466,7 +466,7 @@ class GeneralEntityGenerator {
     ];
     ''');
 
-    ///End
+    /// End
     classBuffer.writeln('}');
   }
 }
