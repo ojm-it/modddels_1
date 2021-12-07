@@ -64,10 +64,14 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
 
     Model modelType;
 
-    final superClassName =
+    final superClassNameFullName =
         classElement.supertype?.getDisplayString(withNullability: false);
 
-    print(superClassName);
+    final regex = RegExp(r"^([^\s<>]*)(<.*>)?$");
+
+    final superClassName = superClassNameFullName == null
+        ? null
+        : regex.firstMatch(superClassNameFullName)?.group(1);
 
     if (superClassName == null) {
       throw InvalidGenerationSourceError(
@@ -75,20 +79,19 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
         element: classElement,
       );
     }
-
-    if (superClassName.startsWith('ValueObject')) {
+    if (superClassName == 'ValueObject') {
       modelType = Model.valueObject;
-    } else if (superClassName.startsWith('ListGeneralEntity')) {
+    } else if (superClassName == 'ListGeneralEntity') {
       modelType = Model.listGeneralEntity;
-    } else if (superClassName.startsWith('SizedListGeneralEntity')) {
+    } else if (superClassName == 'SizedListGeneralEntity') {
       modelType = Model.sizedListGeneralEntity;
-    } else if (superClassName.startsWith('GeneralEntity')) {
+    } else if (superClassName == 'GeneralEntity') {
       modelType = Model.generalEntity;
-    } else if (superClassName.startsWith('ListEntity')) {
+    } else if (superClassName == 'ListEntity') {
       modelType = Model.listEntity;
-    } else if (superClassName.startsWith('SizedListEntity')) {
+    } else if (superClassName == 'SizedListEntity') {
       modelType = Model.sizedListEntity;
-    } else if (superClassName.startsWith('Entity')) {
+    } else if (superClassName == 'Entity') {
       modelType = Model.entity;
     } else {
       throw InvalidGenerationSourceError(
