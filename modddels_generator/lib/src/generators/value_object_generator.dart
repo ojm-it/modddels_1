@@ -45,7 +45,7 @@ class ValueObjectGenerator {
     static $className _create(${classInfo.valueType} input) {
       /// 1. **Value Validation**
       return _verifyValue(input).match(
-        (valueFailure) => ${classInfo.invalidValueObject}._(failure: valueFailure),
+        (valueFailure) => ${classInfo.invalidValueObject}._(valueFailure: valueFailure),
 
         /// 2. **→ Validations passed**
         (validValue) => ${classInfo.validValueObject}._(value: validValue),
@@ -159,14 +159,17 @@ class ValueObjectGenerator {
     /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidValueObject}._({
-      required this.failure,
+      required this.valueFailure,
     }) : super._();
     ''');
 
     /// class members
     classBuffer.writeln('''
     @override
-    final ${classInfo.valueFailure} failure;
+    final ${classInfo.valueFailure} valueFailure;
+
+    @override
+    ${classInfo.valueFailure} get failure => valueFailure; 
     ''');
 
     /// map method
