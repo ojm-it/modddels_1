@@ -1,5 +1,5 @@
 import 'package:modddels_annotations/modddels_annotations.dart';
-import 'package:modddels_annotations/src/common.dart';
+import 'package:modddels_annotations/src/modddel.dart';
 
 ///A [ValidEntity] is an [GeneralEntity] that is valid. It holds all the valid
 ///modddels as [ValidValueObject]s / [ValidEntity]s.

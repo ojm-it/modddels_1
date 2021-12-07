@@ -1,6 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
-import 'package:modddels_annotations/src/entity/common.dart';
+import 'package:modddels_annotations/src/entities/common.dart';
 
 ///A ListGeneralEntity is a [ListEntity] which provides an extra validation step, just like a [GeneralEntity].
 abstract class ListGeneralEntity<F extends GeneralFailure,

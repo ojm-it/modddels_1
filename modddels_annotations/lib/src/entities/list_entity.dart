@@ -1,5 +1,5 @@
 import 'package:modddels_annotations/modddels_annotations.dart';
-import 'package:modddels_annotations/src/entity/common.dart';
+import 'package:modddels_annotations/src/entities/common.dart';
 
 /// A ListEntity is similar to an Entity in a sense that it holds a List of
 /// other modddels (of the same type). Again :

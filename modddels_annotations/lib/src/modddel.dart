@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:modddels_annotations/src/entity/entity.dart';
+import 'package:modddels_annotations/src/entities/general_entity.dart';
+import 'package:modddels_annotations/src/entities/normal_entity.dart';
 
-import 'entity/general_entity.dart';
 import 'value_object/value_object.dart';
 
 ///The base class for [Entity], [GeneralEntity] and [ValueObject]

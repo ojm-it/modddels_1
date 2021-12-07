@@ -1,6 +1,6 @@
-import 'package:modddels_annotations/src/entity/common.dart';
+import 'package:modddels_annotations/src/entities/common.dart';
 
-import '../common.dart';
+import '../modddel.dart';
 import '../value_object/value_object.dart';
 
 ///An [Entity] is a [Modddel] that holds multiple modddels : [ValueObject]s or

@@ -1,6 +1,6 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:modddels_annotations/src/common.dart';
-import 'package:modddels_annotations/src/entity/common.dart';
+import 'package:modddels_annotations/src/modddel.dart';
+import 'package:modddels_annotations/src/entities/common.dart';
 
 abstract class SizedListGeneralEntity<
     FS extends SizeFailure,
