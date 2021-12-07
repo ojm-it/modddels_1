@@ -10,7 +10,7 @@ mixin $Name {
   static Name _create(String input) {
     /// 1. **Value Validation**
     return _verifyValue(input).match(
-      (valueFailure) => InvalidName._(failure: valueFailure),
+      (valueFailure) => InvalidName._(valueFailure: valueFailure),
 
       /// 2. **→ Validations passed**
       (validValue) => ValidName._(value: validValue),
@@ -72,11 +72,14 @@ class ValidName extends Name implements ValidValueObject<String> {
 class InvalidName extends Name
     implements InvalidValueObject<String, NameValueFailure> {
   const InvalidName._({
-    required this.failure,
+    required this.valueFailure,
   }) : super._();
 
   @override
-  final NameValueFailure failure;
+  final NameValueFailure valueFailure;
+
+  @override
+  NameValueFailure get failure => valueFailure;
 
   @override
   TResult map<TResult extends Object?>(
