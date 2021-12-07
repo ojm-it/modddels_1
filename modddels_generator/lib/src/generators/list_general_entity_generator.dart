@@ -64,19 +64,21 @@ class ListGeneralEntityGenerator {
     static $className _create(
       KtList<${classInfo.ktListType}> list,
     ) {
+      /// 1. **Content validation**
       return _verifyContent(list).match(
-        /// The content is invalid
         (contentFailure) => ${classInfo.invalidEntityContent}._(
           contentFailure: contentFailure,
           list: list,
         ),
 
-        /// The content is valid => We check if there's a general failure
+        /// 2. **General validation**
         (validContent) => _verifyGeneral(validContent).match(
           (generalFailure) => ${classInfo.invalidEntityGeneral}._(
             generalFailure: generalFailure,
             list: validContent,
           ),
+
+          /// 3. **→ Validations passed**
           (validGeneral) => ${classInfo.validEntity}._(list: validGeneral),
         ),
       );
@@ -86,10 +88,11 @@ class ListGeneralEntityGenerator {
 
     /// verifyContent function
     classBuffer.writeln('''
-    /// If any of the list elements is invalid, this holds its failure on the Left (the
-    /// failure of the first invalid element encountered)
-    /// 
-    /// Otherwise, holds all the elements as valid modddels, on the Right.
+    /// If any of the list elements is invalid, this holds its failure on the Left
+    /// (the failure of the first invalid element encountered)
+    ///
+    /// Otherwise, holds the list of all the elements as valid modddels, on the
+    /// Right.
     static Either<Failure, KtList<${classInfo.ktListTypeValid}>> _verifyContent(
         KtList<${classInfo.ktListType}> list) {
       final contentVerification = list
@@ -117,6 +120,8 @@ class ListGeneralEntityGenerator {
 
     /// verifyGeneral function
     classBuffer.writeln('''
+    /// If the entity is invalid as a whole, this holds the [GeneralFailure] on
+    /// the Left. Otherwise, holds the ValidEntity on the Right.
     static Either<${classInfo.generalFailure}, KtList<${classInfo.ktListTypeValid}>>
         _verifyGeneral(KtList<${classInfo.ktListTypeValid}> validList) {
       final generalVerification = const $className._()
@@ -129,6 +134,7 @@ class ListGeneralEntityGenerator {
     /// getter for the size of the list
 
     classBuffer.writeln('''
+    /// The size of the list
     int get size => mapValidity(
         valid: (valid) => valid.list.size,
         invalid: (invalid)=> invalid.list.size,
@@ -138,6 +144,8 @@ class ListGeneralEntityGenerator {
 
     /// toBroadEitherNullable method
     classBuffer.writeln('''
+    /// If [nullableEntity] is null, returns `right(null)`.
+    /// Otherwise, returns `nullableEntity.toBroadEither`
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
           $className? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
@@ -146,6 +154,10 @@ class ListGeneralEntityGenerator {
 
     /// map method
     classBuffer.writeln('''
+    /// Similar to [mapValidity], but the "base" invalid union-case is replaced by
+    /// the "specific" invalid union-cases of this entity :
+    /// - [InvalidEntityContent]
+    /// - [InvalidEntityGeneral]
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
       required TResult Function(${classInfo.invalidEntityContent} invalidContent)
@@ -165,6 +177,8 @@ class ListGeneralEntityGenerator {
 
     /// maybeMap method
     classBuffer.writeln('''
+    /// Equivalent to [map], but only the [valid] callback is required. It also
+    /// adds an extra orElse required parameter, for fallback behavior.
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
       TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
@@ -178,6 +192,8 @@ class ListGeneralEntityGenerator {
 
     /// mapValidity method
     classBuffer.writeln('''
+    /// Pattern matching for the two different union-cases of this entity : valid
+    /// and invalid.
     TResult mapValidity<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
       required TResult Function(${classInfo.invalidEntity} invalid) invalid,
@@ -192,6 +208,10 @@ class ListGeneralEntityGenerator {
 
     /// copyWith method
     classBuffer.writeln('''
+    /// Creates a clone of this entity with the list returned from [callback].
+    ///
+    /// The resulting entity is totally independent from this entity. It is
+    /// validated upon creation, and can be either valid or invalid.
     $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
       return mapValidity(
         valid: (valid) => _create(callback(valid.list)),
@@ -282,6 +302,10 @@ class ListGeneralEntityGenerator {
 
     /// mapInvalid method
     classBuffer.writeln('''
+    /// Pattern matching for the "specific" invalid union-cases of this "base"
+    /// invalid union-case, which are :
+    /// - [InvalidEntityContent]
+    /// - [InvalidEntityGeneral]
     TResult mapInvalid<TResult extends Object?>({
       required TResult Function(${classInfo.invalidEntityContent} invalidContent)
           invalidContent,
@@ -300,6 +324,8 @@ class ListGeneralEntityGenerator {
 
     /// whenInvalid method
     classBuffer.writeln('''
+    /// Similar to [mapInvalid], but the union-cases are replaced by the failures
+    /// they hold.
     TResult whenInvalid<TResult extends Object?>({
       required TResult Function(Failure contentFailure) contentFailure,
       required TResult Function(${classInfo.generalFailure} generalFailure)

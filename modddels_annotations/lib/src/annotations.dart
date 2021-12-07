@@ -45,7 +45,7 @@ const valid = ValidAnnotation();
 /// the unvalidated [GeneralEntity].
 ///
 /// Unlike a [SimpleEntity], the [GeneralEntity] hides its modddels inside the
-/// [ValidEntity] and [InvalidEntity] union cases, so you can only access them
+/// [ValidEntity] and [InvalidEntity] union-cases, so you can only access them
 /// after calling the "mapValidity" method (or other map methods).
 ///
 /// For example :

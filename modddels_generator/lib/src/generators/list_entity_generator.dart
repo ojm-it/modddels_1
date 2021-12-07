@@ -59,14 +59,14 @@ class ListEntityGenerator {
       static $className _create(
         KtList<${classInfo.ktListType}> list,
       ) {
+        /// 1. **Content validation**
         return _verifyContent(list).match(
-          /// The content is invalid
           (contentFailure) => ${classInfo.invalidEntityContent}._(
             contentFailure: contentFailure,
             list: list,
           ),
 
-          /// The content is valid => The entity is valid
+          /// 2. **→ Validations passed**
           (validContent) => ${classInfo.validEntity}._(list: validContent),
         );
       }
@@ -74,10 +74,11 @@ class ListEntityGenerator {
 
     /// verifyContent function
     classBuffer.writeln('''
-    /// If any of the list elements is invalid, this holds its failure on the Left (the
-    /// failure of the first invalid element encountered)
-    /// 
-    /// Otherwise, holds all the elements as valid modddels, on the Right.
+    /// If any of the list elements is invalid, this holds its failure on the Left
+    /// (the failure of the first invalid element encountered)
+    ///
+    /// Otherwise, holds the list of all the elements as valid modddels, on the
+    /// Right.
     static Either<Failure, KtList<${classInfo.ktListTypeValid}>> _verifyContent(KtList<${classInfo.ktListType}> list) {
       final contentVerification = list
           .map((element) => element.toBroadEither)
@@ -114,12 +115,15 @@ class ListEntityGenerator {
     /// getter for the size of the list
 
     classBuffer.writeln('''
+    /// The size of the list
     int get size => list.size;
     
     ''');
 
     /// toBroadEitherNullable method
     classBuffer.writeln('''
+    /// If [nullableEntity] is null, returns `right(null)`.
+    /// Otherwise, returns `nullableEntity.toBroadEither`.
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
           $className? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
@@ -128,6 +132,7 @@ class ListEntityGenerator {
 
     /// map method
     classBuffer.writeln('''
+    /// Same as [mapValidity] (because there is only one invalid union-case)
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
       required TResult Function(${classInfo.invalidEntityContent} invalidContent)
@@ -140,6 +145,8 @@ class ListEntityGenerator {
 
     /// mapValidity method
     classBuffer.writeln('''
+    /// Pattern matching for the two different union-cases of this entity : valid
+    /// and invalid.
     TResult mapValidity<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
       required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalid,
@@ -154,11 +161,12 @@ class ListEntityGenerator {
 
     /// copyWith method
     classBuffer.writeln('''
+    /// Creates a clone of this entity with the list returned from [callback].
+    ///
+    /// The resulting entity is totally independent from this entity. It is
+    /// validated upon creation, and can be either valid or invalid.
     $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
-      return map(
-        valid: (valid) => _create(callback(valid.list)),
-        invalidContent: (invalidContent) => _create(callback(invalidContent.list)),
-      );
+       return _create(callback(list));
     }
     
     ''');

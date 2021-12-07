@@ -43,9 +43,12 @@ class ValueObjectGenerator {
     /// create method
     classBuffer.writeln('''
     static $className _create(${classInfo.valueType} input) {
+      /// 1. **Value Validation**
       return _verifyValue(input).match(
-        (l) => ${classInfo.invalidValueObject}._(failure: l),
-        (r) => ${classInfo.validValueObject}._(value: r),
+        (valueFailure) => ${classInfo.invalidValueObject}._(failure: valueFailure),
+
+        /// 2. **→ Validations passed**
+        (validValue) => ${classInfo.validValueObject}._(value: validValue),
       );
     }
     
@@ -53,6 +56,8 @@ class ValueObjectGenerator {
 
     /// _verifyValue method
     classBuffer.writeln('''
+    /// If the value is invalid, this holds the [ValueFailure] on the Left.
+    /// Otherwise, holds the value on the Right.
     static Either<${classInfo.valueFailure}, ${classInfo.valueType}> _verifyValue(${classInfo.valueType} input) {
       final valueVerification = const $className._().validateValue(input);
       return valueVerification.toEither(() => input).swap();
@@ -62,6 +67,8 @@ class ValueObjectGenerator {
 
     /// toBroadEitherNullable method
     classBuffer.writeln('''
+    /// If [nullableValueObject] is null, returns `right(null)`.
+    /// Otherwise, returns `nullableValueObject.toBroadEither`.
     static Either<Failure, ${classInfo.validValueObject}?> toBroadEitherNullable(
       $className? nullableValueObject) =>
         optionOf(nullableValueObject)
@@ -71,6 +78,7 @@ class ValueObjectGenerator {
 
     /// map method
     classBuffer.writeln('''
+    /// Same as [mapValidity] (because there is only one invalid union-case)
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.validValueObject} valid) valid,
       required TResult Function(${classInfo.invalidValueObject} invalid) invalid,
@@ -82,6 +90,8 @@ class ValueObjectGenerator {
 
     /// mapValidity method
     classBuffer.writeln('''
+    /// Pattern matching for the two different union-cases of this ValueObject :
+    /// valid and invalid.
     TResult mapValidity<TResult extends Object?>({
       required TResult Function(${classInfo.validValueObject} valid) valid,
       required TResult Function(${classInfo.invalidValueObject} invalid) invalid,

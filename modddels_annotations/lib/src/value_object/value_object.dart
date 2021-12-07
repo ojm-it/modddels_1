@@ -24,14 +24,14 @@ abstract class ValueObject<
   Option<F> validateValue(T input);
 }
 
-/// A [ValidValueObject] is the "valid" union case of a [ValueObject]. It holds
+/// A [ValidValueObject] is the "valid" union-case of a [ValueObject]. It holds
 /// the validated [value].
 abstract class ValidValueObject<T> extends ValidModddel {
   /// The validated value.
   T get value;
 }
 
-/// An [InvalidValueObject] is is the "invalid" union case of a [ValueObject]. It
+/// An [InvalidValueObject] is is the "invalid" union-case of a [ValueObject]. It
 /// holds the [ValueFailure] that made it invalid.
 abstract class InvalidValueObject<T, F extends ValueFailure<T>>
     extends InvalidModddel {
@@ -44,7 +44,7 @@ abstract class InvalidValueObject<T, F extends ValueFailure<T>>
 abstract class ValueFailure<T> extends Failure {
   /// The invalid value of the [ValueObject].
   ///
-  /// NB : All the freezed subclasses union cases should have in their constructor the
+  /// NB : All the freezed subclasses union-cases should have in their constructor the
   /// proprety [failedValue], so that it becomes a class member.
   /// See https://pub.dev/packages/freezed#unionssealed-classes
   T get failedValue;

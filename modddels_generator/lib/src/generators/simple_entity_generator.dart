@@ -64,16 +64,16 @@ class SimpleEntityGenerator {
     static $className _create({
       ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
     }) {
+      /// 1. **Content Validation**
       return _verifyContent(
         ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
       ).match(
-        /// The content is invalid
         (contentFailure) => ${classInfo.invalidEntityContent}._(
           contentFailure: contentFailure,
            ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
         ),
 
-        /// The content is valid => The entity is valid
+        /// 2. **→ Validations passed**
         (validContent) => validContent,
       );
     }
@@ -83,7 +83,7 @@ class SimpleEntityGenerator {
     classBuffer.writeln('''
     /// If any of the modddels is invalid, this holds its failure on the Left (the
     /// failure of the first invalid modddel encountered)
-    /// 
+    ///
     /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
     /// ValidEntity, on the Right.
     static Either<Failure, ${classInfo.validEntity}> _verifyContent({
@@ -108,6 +108,8 @@ class SimpleEntityGenerator {
 
     /// toBroadEitherNullable method
     classBuffer.writeln('''
+    /// If [nullableEntity] is null, returns `right(null)`.
+    /// Otherwise, returns `nullableEntity.toBroadEither`
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
       $className? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
@@ -116,6 +118,7 @@ class SimpleEntityGenerator {
 
     /// map method
     classBuffer.writeln('''
+    /// Same as [mapValidity] (because there is only one invalid union-case)
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
       required TResult Function(${classInfo.invalidEntityContent} invalidContent)
@@ -128,6 +131,8 @@ class SimpleEntityGenerator {
 
     /// map validity method
     classBuffer.writeln('''
+    /// Pattern matching for the two different union-cases of this entity : valid
+    /// and invalid.
     TResult mapValidity<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
       required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalid,
@@ -142,6 +147,10 @@ class SimpleEntityGenerator {
 
     /// copyWith method
     classBuffer.writeln('''
+    /// Creates a clone of this entity with the new specified values.
+    ///
+    /// The resulting entity is totally independent from this entity. It is
+    /// validated upon creation, and can be either valid or invalid.
     $className copyWith({
       ${classInfo.namedParameters.map((param) => '${param.optionalType} ${param.name},').join()}
     }) {

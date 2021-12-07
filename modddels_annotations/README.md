@@ -46,6 +46,7 @@ The different states a Modddel can have are represented with **Union Cases Class
 	- [Additionnal remarks](#additionnal-remarks)
 		- [Optional and Nullable types](#optional-and-nullable-types)
 		- [Modddels that are always valid](#modddels-that-are-always-valid)
+		- [List getter](#list-getter)
 - [VsCode snippets](#vscode-snippets)
 - [Additional information](#additional-information)
 
@@ -355,7 +356,7 @@ When creating a GeneralEntity, the validation is made in this order :
 
 ### Fields getters
 
-Unlike a SimpleEntity, the GeneralEntity hides its modddels inside `ValidEntity` and `InvalidEntity`, so you can only access them after calling the "mapValidity" method (or other map methods).
+Unlike a SimpleEntity, the GeneralEntity hides its modddels inside `ValidEntity` and `InvalidEntity`, so you can only access them after calling the "mapValidity" method (or other pattern matching methods).
 
 For example :
 
@@ -551,6 +552,24 @@ When creating a SizedListGeneralEntity, the validation is made in this order :
 You can create a ValidValueObject or a ValidEntity by directly extending respectively the class `ValidValueObject` or `ValidEntity`.
 
 When using them as parameters inside a `SimpleEntity` or `GeneralEntity`, don't forget to annotate them with `@valid`.
+
+### List getter
+
+Unlike a ListEntity, ListGeneralEntity, SizedListEntity, and SizedListGeneralEntity hide the list inside `ValidEntity` and `InvalidEntity`, so you can only access it after calling the "mapValidity" method (or other pattern matching methods).
+
+For example :
+
+```dart
+  final names = nameList.list;
+  //ERROR : The getter 'list' isn't defined for the type 'NameList'.
+
+  final names = nameList.mapValidity(
+      valid: (valid) => valid.list,
+      invalid: (invalid) => invalid.list);
+  //No error.
+```
+
+That's because the entity may have a `GeneralFailure` or a `SizeFailure`, which otherwise may be unnoticed by you the developer.
 
 # VsCode snippets
 

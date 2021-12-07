@@ -1,12 +1,12 @@
 import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:modddels_annotations/src/modddel.dart';
 
-/// A [ValidEntity] is the valid union case of an entity. It holds all the valid
+/// A [ValidEntity] is the valid union-case of an entity. It holds all the valid
 /// versions of the modddels contained inside the entity.
 abstract class ValidEntity extends ValidModddel {}
 
-/// A [InvalidEntity] is the invalid union case of an entity. It can be further
-/// subdivided into other specific invalid union cases, depending on the failured
+/// A [InvalidEntity] is the invalid union-case of an entity. It can be further
+/// subdivided into other specific invalid union-cases, depending on the failured
 /// (the failed validation).
 abstract class InvalidEntity extends InvalidModddel {}
 

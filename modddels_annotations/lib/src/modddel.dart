@@ -32,14 +32,14 @@ abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
   });
 
   /// Converts this [Modddel] to an [Either] where left is
-  /// the invalid union case, and right is the valid union case.
+  /// the invalid union-case, and right is the valid union-case.
   Either<I, V> get toEither => mapValidity(
         valid: (valid) => right(valid),
         invalid: (invalid) => left(invalid),
       );
 
-  /// Same as [toEither], but the left is broadened to be the [Failure] that
-  /// caused this [Modddel] to be invalid.
+  /// Converts this [Modddel] to an [Either] where left is the [Failure] of the
+  /// invalid union-case, and right is the valid union-case.
   Either<Failure, V> get toBroadEither => mapValidity(
         valid: (valid) => right(valid),
         invalid: (invalid) => left(invalid.failure),
@@ -54,14 +54,14 @@ abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
       );
 }
 
-/// This is the base class for the "Valid" union case of a modddel.
+/// This is the base class for the "Valid" union-case of a modddel.
 abstract class ValidModddel {
   /// This is the list of all the class members, used by Equatable for the
   /// hashCode and equality functions.
   List<Object?> get allProps;
 }
 
-/// This is the base class for the "Invalid" union case of a modddel.
+/// This is the base class for the "Invalid" union-case of a modddel.
 abstract class InvalidModddel {
   Failure get failure;
 
