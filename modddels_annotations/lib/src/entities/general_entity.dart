@@ -3,29 +3,29 @@ import 'package:modddels_annotations/src/entities/common.dart';
 
 import '../modddel.dart';
 
-///A GeneralEntity is an Entity that provides an extra validation step, that
-///validates the whole entity as a whole.
+/// A [GeneralEntity] is similar to an [Entity], but it provides an extra
+/// validation step at the end that validates the entity as a whole, via the
+/// `validateGeneral` method. This method returns `some` [GeneralFailure] if the
+/// entity isn't valid as a whole, otherwise returns `none`.
 ///
-///### Detailed explanation :
+/// When creating a [GeneralEntity], the validation is made in this order :
 ///
-///When instantiated, it first verifies that all its modddels are valid.
-/// - If one of its modddels is invalid, then this [GeneralEntity] will be an
-///   [InvalidEntity] of type [I], more precisely an [InvalidEntityContent] of
-///   type [C].
-/// - If all the modddels are valid, then this [GeneralEntity] is validated with the
-///   [validateGeneral] method.
-///   - If it's invalid, then this [GeneralEntity] will be an [InvalidEntity] of type
-///     [I], more precisely, an [InvalidEntityGeneral] of type [G]
-///   - If it's valid, then this [GeneralEntity] will be a [ValidEntity] of type [V]
+/// 1. **Content validation** : If any of the modddels is invalid, then this
+///    [GeneralEntity] becomes an [InvalidEntityContent] that holds the
+///    `contentFailure` (which is the failure of the first encountered invalid
+///    modddel).
+/// 2. **General validation** : If this [GeneralEntity] is invalid as a whole,
+///    then it becomes an [InvalidEntityGeneral] that holds the
+///    [GeneralFailure].
+/// 3. **→ Validations passed** : This [GeneralEntity] is valid, and becomes a
+///    [ValidEntity] that holds the valid version of its modddels.
 abstract class GeneralEntity<F extends GeneralFailure, I extends InvalidEntity,
     V extends ValidEntity> extends Modddel<I, V> {
   const GeneralEntity();
 
-  ///After this [GeneralEntity]'s modddels have been validated and are valid, this
-  ///validates the entity as a whole.
-  /// - If it returns some() [GeneralFailure], then this [GeneralEntity] will be
-  ///   an [InvalidEntityContent]
-  /// - If it returns none() [GeneralFailure], then this [GeneralEntity] will be
-  ///   a [ValidEntity]
+  /// Validates this [GeneralEntity] as a whole, after all its modddels have
+  /// been validated. This method should return `some` [GeneralFailure] if this
+  /// [GeneralEntity] is invalid as a whole, otherwise it should
+  /// return `none`.
   Option<F> validateGeneral(V valid);
 }

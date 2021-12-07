@@ -17,7 +17,7 @@ Modddels are "validated" objects that can have two states : *Valid* or *Invalid*
 
 Depending on the modddel, there are different types of validations, which are run in a specific order. If all the validations pass, then the modddel is *Valid*. Otherwise, it is *Invalid* and holds a failure. The *Invalid* state is further subdivided into multiple states, each one corresponding to a failed validation.
 
-The different states a Modddel can have are represented with **Sealed Classes**. This allows to deal with the different states of the Modddel in a compile-safe way, making impossible states impossible.
+The different states a Modddel can have are represented with **Union Cases Classes**. This allows to deal with the different states of the Modddel in a compile-safe way, making impossible states impossible.
 
 # Table of contents
 
@@ -26,19 +26,23 @@ The different states a Modddel can have are represented with **Sealed Classes**.
 - [Features](#features)
 - [Getting started](#getting-started)
 - [Usage](#usage)
-	- [Value object](#value-object)
+	- [ValueObject](#valueobject)
 		- [Usage](#usage-1)
 	- [Entity](#entity)
 		- [Usage](#usage-2)
 		- [The valid annotation](#the-valid-annotation)
 	- [ListEntity](#listentity)
-	- [SizedListEntity](#sizedlistentity)
-	- [General Entity](#general-entity)
 		- [Usage](#usage-3)
+	- [SizedListEntity](#sizedlistentity)
+		- [Usage](#usage-4)
+	- [General Entity](#general-entity)
+		- [Usage](#usage-5)
 		- [Fields getters](#fields-getters)
 		- [The valid annotation](#the-valid-annotation-1)
 	- [ListGeneralEntity](#listgeneralentity)
+		- [Usage](#usage-6)
 	- [SizedListGeneralEntity](#sizedlistgeneralentity)
+		- [Usage](#usage-7)
 	- [Additionnal remarks](#additionnal-remarks)
 		- [Optional and Nullable types](#optional-and-nullable-types)
 		- [Modddels that are always valid](#modddels-that-are-always-valid)
@@ -66,13 +70,13 @@ You should have these packages installed :
 
 # Usage
 
-## Value object
+## ValueObject
 
-A Value Object is a Modddel that holds a single value, which is validated via the `validate` method. This method returns `some` `ValueFailure` if the value is invalid, otherwise returns `none`.
+A ValueObject is a Modddel that holds a single value, which is validated via the `validateValue` method. This method returns `some` `ValueFailure` if the value is invalid, otherwise returns `none`.
 
-When creating the SizedListEntity, the validation is made in this order :
+When creating the ValueObject, the validation is made in this order :
 
-1. **Value Validation** : If the value is valid, this ValueObject becomes an `InvalidValueObject` that holds the `ValueFailure`.
+1. **Value Validation** : If the value is invalid, this ValueObject becomes an `InvalidValueObject` that holds the `ValueFailure`.
 2. **→ Validations passed** : This ValueObject is valid, and becomes a `ValidValueObject`.
   
 ### Usage
@@ -90,8 +94,8 @@ When creating the SizedListEntity, the validation is made in this order :
 	const Name._();
 
 	@override
-	Option<NameValueFailure> validate(String input) {
-		// TODO: implement validate
+	Option<NameValueFailure> validateValue(String input) {
+		// TODO: implement validateValue
 		return none();
 	}
 	}
@@ -115,11 +119,11 @@ When creating the SizedListEntity, the validation is made in this order :
 	part 'name.freezed.dart';
 	```
 
-4. Implement the `validate` method :
+4. Implement the `validateValue` method :
 
 	```dart
 	@override
-	Option<NameValueFailure> validate(String input) {
+	Option<NameValueFailure> validateValue(String input) {
 		if (input.isEmpty) {
 			return some(NameValueFailure.empty(failedValue: input));
 		}
@@ -135,7 +139,7 @@ When creating the SizedListEntity, the validation is made in this order :
 
 An `Entity` is a modddel that holds multiple modddels (ValueObjects, Entities...).
 
-After creating the Entity, the validation is made in this order :
+When creating an Entity, the validation is made in this order :
 
 1. **Content Validation** : If any of its modddels is invalid, then this Entity becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
 2. **→ Validations passed** : The entity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
@@ -194,15 +198,89 @@ When creating a ListEntity, the validation is made in this order :
 
 NB: When empty, the ListEntity is considered valid. If you want a different behaviour, consider using a `SizedListEntity` and providing your own size validation.
 
+### Usage
+
+1. Create a ListEntity, and annotate it with `@modddel`
+
+	```dart
+	@modddel
+	class NameList extends ListEntity<InvalidNameListContent, ValidNameList> with $NameList {
+		factory NameList(KtList<Name> list) {
+			return $NameList._create(list);
+		}
+
+		const NameList._();
+	}
+	```
+
+2. Add the part statement
+
+	```dart
+	part 'namelist.g.dart';
+	```
+
+3. Run the generator
+
 ## SizedListEntity
 
 A SizedListEntity is similar to a `ListEntity`, but its size is validated via the `validateSize` method. This method returns `some` `SizeFailure` if the size is invalid, otherwise returns `none`.
 
 When creating a SizedListEntity, the validation is made in this order :
 
-1. **Size validation** : If the size is invalid, then this SizedListEntity becomes an `InvalidEntitySize`.
+1. **Size validation** : If the size is invalid, then this SizedListEntity becomes an `InvalidEntitySize` that holds the `sizeFailure`.
 2. **Content validation** : If any of the modddels is invalid, then this SizedListEntity becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
 3. **→ Validations passed** : This SizedListEntity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
+
+### Usage
+
+1. Create a SizedListEntity, and annotate it with `@modddel`
+
+	```dart
+	@modddel
+	class NameList extends SizedListEntity<NameListSizeFailure,InvalidNameList, ValidNameList> with $NameList {
+		factory NameList(KtList<Name> list) {
+			return $NameList._create(list);
+		}
+
+		const NameList._();
+
+		@override
+		Option<NameListSizeFailure> validateSize(int listSize) {
+			//TODO Implement validateSize
+			return none();
+		}
+	}
+	```
+
+2. Create a Freezed SizeFailure for your Entity
+
+	```dart
+	@freezed
+	class NameListSizeFailure extends SizeFailure with _$NameListSizeFailure {
+		const factory NameListSizeFailure.empty() = _Empty;
+	}
+	```
+
+3. Add the part statements
+
+	```dart
+	part 'namelist.g.dart';
+	part 'namelist.freezed.dart';
+	```
+
+4. Implement the `validateSize` method :
+
+	```dart
+	@override
+	Option<NameListSizeFailure> validateSize(int listSize) {
+		if (listSize == 0) {
+		return some(const NameListSizeFailure.empty());
+		}
+		return none();
+	}
+	```
+
+5. Run the generator
 
 ---
 
@@ -238,7 +316,7 @@ When creating a GeneralEntity, the validation is made in this order :
 
 	@override
 	Option<FullNameGeneralFailure> validateGeneral(ValidFullName valid) {
-		// TODO: implement validate
+		// TODO: implement validateGeneral
 		return none();
 	}
 	}
@@ -260,7 +338,7 @@ When creating a GeneralEntity, the validation is made in this order :
 	part 'fullname.freezed.dart';
 	```
 
-4. Implement the `validate` method :
+4. Implement the `validateGeneral` method :
 
 	```dart
 	@override
@@ -290,7 +368,7 @@ For example :
   //No error.
 ```
 
-That's because the GeneralEntity may have a `GeneralFailure`, which may be unnoticed by you the developer.
+That's because the GeneralEntity may have a `GeneralFailure`, which otherwise may be unnoticed by you the developer.
 
 Nonetheless, if you want to have a direct getter for a field from the unvalidated GeneralEntity, you can use the @withGetter annotation.
 A good usecase for this would be for an "id" field.
@@ -311,6 +389,59 @@ When creating a ListGeneralEntity, the validation is made in this order :
 2. **General validation** : If this ListGeneralEntity is invalid as a whole, then it becomes an `InvalidEntityGeneral` that holds the `GeneralFailure`.
 3. **→ Validations passed** : This ListGeneralEntity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
 
+### Usage
+
+1. Create a ListGeneralEntity, and annotate it with `@modddel`
+
+	```dart
+	@modddel
+	class NameList extends ListGeneralEntity<NameListGeneralFailure,
+		InvalidNameList, ValidNameList> with $NameList {
+		factory NameList(KtList<Name> list) {
+			return $NameList._create(list);
+		}
+
+		const NameList._();
+
+		@override
+		Option<NameListGeneralFailure> validateGeneral(ValidNameList valid) {
+			//TODO Implement validateGeneral
+			return none();
+		}
+	}
+	```
+
+2. Create a Freezed GeneralFailure for your Entity
+
+	```dart
+	@freezed
+	class NameListGeneralFailure extends GeneralFailure
+		with _$NameListGeneralFailure {
+	const factory NameListGeneralFailure.duplicateName() = _DuplicateName;
+	}
+	```
+
+3. Add the part statements
+
+	```dart
+	part 'namelist.g.dart';
+	part 'namelist.freezed.dart';
+	```
+
+4. Implement the `validateGeneral` method :
+
+	```dart
+	@override
+	Option<NameListGeneralFailure> validateGeneral(ValidNameList valid) {
+		if (valid.list.distinct().size != valid.size) {
+			return some(const NameListGeneralFailure.duplicateName());
+		}
+		return none();
+	}
+	```
+
+5. Run the generator
+
 ## SizedListGeneralEntity
 
 A SizedListGeneralEntity is similar to a `ListGeneralEntity`, but its size is validated via the `validateSize` method. This method returns `some` `SizeFailure` if the size is invalid, otherwise returns `none`.
@@ -325,6 +456,86 @@ When creating a SizedListGeneralEntity, the validation is made in this order :
 > **NB :** You may notice that the **Size validation** occurs first, before the **Content validation**. This is so that no matter if this modddel's content is valid or not, if its size is invalid, it becomes an `InvalidEntitySize` holding a `SizeFailure`.
 >
 > If you want the size to be validated only if all the modddels are valid, you can do so in the **General validation** step, so that the size is validated last. In that case, if the size is invalid, then this modddel becomes an `InvalidEntityGeneral` holding a `GeneralFailure`.
+
+### Usage
+
+1. Create a SizedListGeneralEntity, and annotate it with `@modddel`
+
+	```dart
+	@modddel
+	class NameList extends SizedListGeneralEntity<NameListSizeFailure, NameListGeneralFailure,
+	InvalidNameList, ValidNameList> with $NameList {
+		factory NameList(KtList<> list) {
+			return $NameList._create(list);
+		}
+
+		const NameList._();
+
+		@override
+		Option<NameListSizeFailure> validateSize(int listSize) {
+			//TODO Implement validateSize
+			return none();
+		}
+
+		@override
+		Option<NameListGeneralFailure> validateGeneral(ValidNameList valid) {
+			//TODO Implement validateGeneral
+			return none();
+		}
+	}
+	```
+
+2. Create a Freezed SizeFailure for your Entity
+
+	```dart
+	@freezed
+	class NameListSizeFailure extends SizeFailure with _$NameListSizeFailure {
+		const factory NameListSizeFailure.empty() = _Empty;
+	}
+	```
+
+3. Create a Freezed GeneralFailure for your Entity
+
+	```dart
+	@freezed
+	class NameListGeneralFailure extends GeneralFailure
+		with _$NameListGeneralFailure {
+	const factory NameListGeneralFailure.duplicateName() = _DuplicateName;
+	}
+	```
+
+4. Add the part statements
+
+	```dart
+	part 'namelist.g.dart';
+	part 'namelist.freezed.dart';
+	```
+
+5. Implement the `validateSize` method :
+
+	```dart
+	@override
+	Option<NameListSizeFailure> validateSize(int listSize) {
+		if (listSize == 0) {
+			return some(const NameListSizeFailure.empty());
+		}
+		return none();
+	}
+	```
+
+6. Implement the `validateGeneral` method :
+
+	```dart
+	@override
+	Option<NameListGeneralFailure> validateGeneral(ValidNameList valid) {
+		if (valid.list.distinct().size != valid.size) {
+			return some(const NameListGeneralFailure.duplicateName());
+		}
+		return none();
+	}
+	```
+
+7. Run the generator
 
 ---
 
@@ -357,8 +568,8 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 			"  const ${1}._();",
 			"",
 			"  @override",
-			"  Option<${1}ValueFailure> validate(${2} input) {",
-			"    //TODO Implement validate",
+			"  Option<${1}ValueFailure> validateValue(${2} input) {",
+			"    //TODO Implement validateValue",
 			"    return none();",
 			"  }",
 			"}"

@@ -1,39 +1,45 @@
 import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:modddels_annotations/src/entities/general_entity.dart';
-import 'package:modddels_annotations/src/entities/normal_entity.dart';
+import 'package:modddels_annotations/modddels_annotations.dart';
 
-import 'value_object/value_object.dart';
+/// This is the base class for all the Modddels.
+///
+/// Modddels are "validated" objects that can have two states : Valid or
+/// Invalid.
+///
+/// Depending on the modddel, there are different types of validations, which
+/// are run in a specific order. If all the validations pass, then the modddel
+/// is Valid. Otherwise, it is Invalid and holds a failure. The Invalid state is
+/// further subdivided into multiple states, each one corresponding to a failed
+/// validation.
+///
+/// Each state is represented by a Union case class.
 
-///The base class for [Entity], [GeneralEntity] and [ValueObject]
 abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
     extends Equatable {
   const Modddel();
 
-  ///Whether this [ValueObject] is a [ValidValueObject]
+  ///Whether this [Modddel] is a valid or not.
   bool get isValid => mapValidity(
         valid: (valid) => true,
         invalid: (invalid) => false,
       );
 
-  ///Executes [valid] when this [ValueObject] is valid, otherwise executes [invalid].
+  ///Executes [valid] when this [Modddel] is valid, otherwise executes [invalid].
   TResult mapValidity<TResult extends Object?>({
     required TResult Function(V valid) valid,
     required TResult Function(I invalid) invalid,
   });
 
-  ///Converts this [ValueObject] to an [Either] where left is
-  ///[InvalidValueObject], and right is [ValidValueObject].
+  ///Converts this [Modddel] to an [Either] where left is
+  ///the invalid union case, and right is the valid union case.
   Either<I, V> get toEither => mapValidity(
         valid: (valid) => right(valid),
         invalid: (invalid) => left(invalid),
       );
 
   ///Same as [toEither], but the left is broadened to be the [Failure] that
-  ///caused this [ValueObject] to be invalid.
-  ///
-  ///NB: The [Failure] is always a [ValueFailure], but the type is broaded to
-  ///[Failure] on purpose.
+  ///caused this [Modddel] to be invalid.
   Either<Failure, V> get toBroadEither => mapValidity(
         valid: (valid) => right(valid),
         invalid: (invalid) => left(invalid.failure),
@@ -48,12 +54,14 @@ abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
       );
 }
 
+/// This is the base class for the "Valid" union case of a modddel.
 abstract class ValidModddel {
   ///This is the list of all the class members, used by Equatable for the
   ///hashCode and equality functions.
   List<Object?> get allProps;
 }
 
+/// This is the base class for the "Invalid" union case of a modddel.
 abstract class InvalidModddel {
   Failure get failure;
 
@@ -62,5 +70,7 @@ abstract class InvalidModddel {
   List<Object?> get allProps;
 }
 
-///The base class for [GeneralFailure] and [ValueFailure]
+///The base class for all the possible failures a [Modddel] can have.
+///
+///For example : [ValueFailure], [GeneralFailure], [SizeFailure]...
 abstract class Failure {}
