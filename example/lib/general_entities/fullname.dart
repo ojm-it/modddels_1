@@ -7,11 +7,7 @@ part 'fullname.g.dart';
 part 'fullname.freezed.dart';
 
 @modddel
-class FullName extends GeneralEntity<
-    FullNameEntityFailure,
-    InvalidFullNameGeneral,
-    InvalidFullNameContent,
-    InvalidFullName,
+class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
     ValidFullName> with $FullName {
   factory FullName({
     required Name firstName,
@@ -28,16 +24,16 @@ class FullName extends GeneralEntity<
   const FullName._();
 
   @override
-  Option<FullNameEntityFailure> validateGeneral(ValidFullName valid) {
+  Option<FullNameGeneralFailure> validateGeneral(ValidFullName valid) {
     if (valid.firstName.value.length + valid.lastName.value.length > 30) {
-      return some(const FullNameEntityFailure.tooLong());
+      return some(const FullNameGeneralFailure.tooLong());
     }
     return none();
   }
 }
 
 @freezed
-class FullNameEntityFailure extends GeneralEntityFailure
-    with _$FullNameEntityFailure {
-  const factory FullNameEntityFailure.tooLong() = _TooLong;
+class FullNameGeneralFailure extends GeneralFailure
+    with _$FullNameGeneralFailure {
+  const factory FullNameGeneralFailure.tooLong() = _TooLong;
 }

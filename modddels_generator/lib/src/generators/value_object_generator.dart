@@ -40,18 +40,35 @@ class ValueObjectGenerator {
     mixin \$$className {
     ''');
 
-    ///create method
+    /// create method
     classBuffer.writeln('''
     static $className _create(${classInfo.valueType} input) {
-      return const $className._().validateWithResult(input).match(
-        (l) => ${classInfo.invalidValueObject}._(failure: l),
-        (r) => ${classInfo.validValueObject}._(value: r),
+      /// 1. **Value Validation**
+      return _verifyValue(input).match(
+        (valueFailure) => ${classInfo.invalidValueObject}._(valueFailure: valueFailure),
+
+        /// 2. **→ Validations passed**
+        (validValue) => ${classInfo.validValueObject}._(value: validValue),
       );
     }
+    
     ''');
 
-    ///toBroadEitherNullable method
+    /// _verifyValue method
     classBuffer.writeln('''
+    /// If the value is invalid, this holds the [ValueFailure] on the Left.
+    /// Otherwise, holds the value on the Right.
+    static Either<${classInfo.valueFailure}, ${classInfo.valueType}> _verifyValue(${classInfo.valueType} input) {
+      final valueVerification = const $className._().validateValue(input);
+      return valueVerification.toEither(() => input).swap();
+    }
+
+    ''');
+
+    /// toBroadEitherNullable method
+    classBuffer.writeln('''
+    /// If [nullableValueObject] is null, returns `right(null)`.
+    /// Otherwise, returns `nullableValueObject.toBroadEither`.
     static Either<Failure, ${classInfo.validValueObject}?> toBroadEitherNullable(
       $className? nullableValueObject) =>
         optionOf(nullableValueObject)
@@ -59,16 +76,35 @@ class ValueObjectGenerator {
 
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
-    TResult map<TResult extends Object?>(
-      {required TResult Function(${classInfo.validValueObject} valid) valid,
-      required TResult Function(${classInfo.invalidValueObject} invalid) invalid}) {
-        throw UnimplementedError();
+    /// Same as [mapValidity] (because there is only one invalid union-case)
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validValueObject} valid) valid,
+      required TResult Function(${classInfo.invalidValueObject} invalid) invalid,
+    }) {
+      throw UnimplementedError();
     }
+    
     ''');
 
-    //End
+    /// mapValidity method
+    classBuffer.writeln('''
+    /// Pattern matching for the two different union-cases of this ValueObject :
+    /// valid and invalid.
+    TResult mapValidity<TResult extends Object?>({
+      required TResult Function(${classInfo.validValueObject} valid) valid,
+      required TResult Function(${classInfo.invalidValueObject} invalid) invalid,
+    }) {
+      return map(
+        valid: valid,
+        invalid: invalid,
+      );
+    }
+    
+    ''');
+
+    /// End
     classBuffer.writeln('}');
   }
 
@@ -78,20 +114,20 @@ class ValueObjectGenerator {
     class ${classInfo.validValueObject} extends $className implements ValidValueObject<${classInfo.valueType}> {
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.validValueObject}._({required this.value}) : super._();
     
     ''');
 
-    ///class members
+    /// class members
     classBuffer.writeln('''
     @override
     final ${classInfo.valueType} value;
 
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>(
@@ -102,14 +138,14 @@ class ValueObjectGenerator {
 
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [value];
 
     ''');
 
-    ///end
+    /// end
     classBuffer.writeln('}');
   }
 
@@ -120,20 +156,23 @@ class ValueObjectGenerator {
       implements InvalidValueObject<${classInfo.valueType}, ${classInfo.valueFailure}> {
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidValueObject}._({
-      required this.failure,
+      required this.valueFailure,
     }) : super._();
     ''');
 
-    ///class members
+    /// class members
     classBuffer.writeln('''
     @override
-    final ${classInfo.valueFailure} failure;
+    final ${classInfo.valueFailure} valueFailure;
+
+    @override
+    ${classInfo.valueFailure} get failure => valueFailure; 
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>(
@@ -143,13 +182,13 @@ class ValueObjectGenerator {
     }
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [failure];
     ''');
 
-    ///end
+    /// end
     classBuffer.writeln('}');
   }
 }

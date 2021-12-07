@@ -2,8 +2,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
-class GeneralEntityGenerator {
-  GeneralEntityGenerator(
+class SizedListGeneralEntityGenerator {
+  SizedListGeneralEntityGenerator(
       {required this.className, required this.factoryConstructor});
 
   final String className;
@@ -12,26 +12,33 @@ class GeneralEntityGenerator {
   String generate() {
     final parameters = factoryConstructor.parameters;
 
-    final namedParameters =
-        parameters.where((element) => element.isNamed).toList();
-
-    if (namedParameters.isEmpty) {
-      throw InvalidGenerationSourceError(
-        'The factory constructor should contain at least one name parameter',
+    final listParameter = parameters.firstWhere(
+      (element) => element.isPositional && element.name == 'list',
+      orElse: () => throw InvalidGenerationSourceError(
+        'The factory constructor should have a positional argument named "list"',
         element: factoryConstructor,
+      ),
+    );
+
+    final listParameterType = listParameter.type.toString();
+    final regex = RegExp(r"^KtList<(.*)>$");
+    final ktListType = regex.firstMatch(listParameterType)?.group(1);
+
+    if (ktListType == null || ktListType.isEmpty || ktListType == 'dynamic') {
+      throw InvalidGenerationSourceError(
+        'The list argument should be of type KtList<_modeltype_>, where "model_type" is the type of your model',
+        element: listParameter,
       );
     }
 
-    for (final param in namedParameters) {
-      if (param.type.toString() == 'dynamic') {
-        throw InvalidGenerationSourceError(
-          'The named parameters of the factory constructor should have valid types, and should not be dynamic',
-          element: param,
-        );
-      }
+    if (ktListType.endsWith('?')) {
+      throw InvalidGenerationSourceError(
+        'The generic type of the KtList should not be nullable',
+        element: listParameter,
+      );
     }
 
-    final classInfo = GeneralEntityClassInfo(className, namedParameters);
+    final classInfo = SizedListGeneralEntityClassInfo(className, ktListType);
 
     final classBuffer = StringBuffer();
 
@@ -41,6 +48,8 @@ class GeneralEntityGenerator {
 
     makeInvalidEntity(classBuffer, classInfo);
 
+    makeInvalidEntitySize(classBuffer, classInfo);
+
     makeInvalidEntityContent(classBuffer, classInfo);
 
     makeInvalidEntityGeneral(classBuffer, classInfo);
@@ -48,130 +57,159 @@ class GeneralEntityGenerator {
     return classBuffer.toString();
   }
 
-  void makeMixin(StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
-    classBuffer.writeln('''
-    mixin \$$className {
-    
-    ''');
+  void makeMixin(
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
+    classBuffer.writeln('mixin \$$className {');
 
     /// create method
     classBuffer.writeln('''
-    static $className _create({
-      ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
-    }) {
-      /// 1. **Content validation**
-      return _verifyContent(
-        ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
-      ).match(
-        (contentFailure) => ${classInfo.invalidEntityContent}._(
-          contentFailure: contentFailure,
-          ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
-        ),
-        
-        /// 2. **General validation**
-        (validContent) => _verifyGeneral(validContent).match(
-          (generalFailure) => ${classInfo.invalidEntityGeneral}._(
-            generalFailure: generalFailure,
-            ${classInfo.namedParameters.map((param) => '${param.name} : validContent.${param.name},').join()}
+    static $className _create(
+      KtList<${classInfo.ktListType}> list,
+    ) {
+      /// 1. **Size validation**
+      return _verifySize(list).match(
+        (sizeFailure) =>
+            ${classInfo.invalidEntitySize}._(sizeFailure: sizeFailure, list: list),
+
+        /// 2. **Content validation**
+        (validSize) => _verifyContent(validSize).match(
+          (contentFailure) => ${classInfo.invalidEntityContent}._(
+            contentFailure: contentFailure,
+            list: validSize,
           ),
 
-          /// 3. **→ Validations passed**
-          (validGeneral) => validGeneral,
+          /// 3. **General validation**
+          (validContent) => _verifyGeneral(validContent).match(
+            (generalFailure) => ${classInfo.invalidEntityGeneral}._(
+                  generalFailure: generalFailure,
+                  list: validContent,
+                ),
+
+            /// 4. **→ Validations passed**
+            (validGeneral) => ${classInfo.validEntity}._(list: validGeneral)),
         ),
       );
     }
+      ''');
 
+    /// _verifySize function
+    classBuffer.writeln('''
+    /// If the size of the list is invalid, this holds the [SizeFailure] on the
+    /// Left. Otherwise, holds the list on the Right.
+    static Either<${classInfo.sizeFailure}, KtList<${classInfo.ktListType}>> _verifySize(
+        KtList<${classInfo.ktListType}> list) {
+      final sizeVerification = const $className._().validateSize(list.size);
+      return sizeVerification.toEither(() => list).swap();
+    }
+    
     ''');
 
-    /// verifyContent function
+    /// _verifyContent function
     classBuffer.writeln('''
-    /// If any of the modddels is invalid, this holds its failure on the Left (the
-    /// failure of the first invalid modddel encountered)
+    /// If any of the list elements is invalid, this holds its failure on the Left
+    /// (the failure of the first invalid element encountered)
     ///
-    /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
-    /// ValidEntity, on the Right.
-    static Either<Failure, ${classInfo.validEntity}> _verifyContent({
-      ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
-    }) {
-      ${generateContentVerification(classInfo.namedParameters, classInfo)}
+    /// Otherwise, holds the list of all the elements as valid modddels, on the
+    /// Right.
+    static Either<Failure, KtList<${classInfo.ktListTypeValid}>> _verifyContent(KtList<${classInfo.ktListType}> list) {
+      final contentVerification = list
+          .map((element) => element.toBroadEither)
+          .fold<Either<Failure, KtList<${classInfo.ktListTypeValid}>>>(
+            /// We start with an empty list of elements on the right
+            right(const KtList<${classInfo.ktListTypeValid}>.empty()),
+            (acc, element) => acc.fold(
+              (l) => left(l),
+              (r) => element.fold(
+                (elementFailure) => left(elementFailure),
+
+                /// If the element is valid and the "acc" (accumulation) holds a
+                /// list of valid elements (on the right), we append this element
+                /// to the list
+                (validElement) =>
+                    right(KtList.from([...r.asList(), validElement])),
+              ),
+            ),
+          );
       return contentVerification;
     }
-
+    
     ''');
 
-    /// verifyGeneral function
+    /// _verifyGeneral function
     classBuffer.writeln('''
     /// If the entity is invalid as a whole, this holds the [GeneralFailure] on
     /// the Left. Otherwise, holds the ValidEntity on the Right.
-    static Either<${classInfo.generalFailure}, ${classInfo.validEntity}> _verifyGeneral(
-      ${classInfo.validEntity} validEntity) {
-      final generalVerification = const $className._().validateGeneral(validEntity);
-      return generalVerification.toEither(() => validEntity).swap();
+    static Either<${classInfo.generalFailure}, KtList<${classInfo.ktListTypeValid}>> _verifyGeneral(
+        KtList<${classInfo.ktListTypeValid}> validList) {
+      final generalVerification =
+          const $className._().validateGeneral(${classInfo.validEntity}._(list: validList));
+      return generalVerification.toEither(() => validList).swap();
     }
-
+      
     ''');
 
-    /// Getters for fields marked with '@withGetter' (or with '@validWithGetter')
+    /// getter for the size of the list
 
-    final getterParameters = classInfo.namedParameters
-        .where((e) => e.hasWithGetterAnnotation == true);
-
-    for (final param in getterParameters) {
-      classBuffer.writeln('''
-      ${param.type} get ${param.name} => mapValidity(
-        valid: (valid) => valid.${param.name},
-        invalid: (invalid) => invalid.${param.name},
+    classBuffer.writeln('''
+    /// The size of the list
+    int get size => mapValidity(
+        valid: (valid) => valid.list.size,
+        invalid: (invalid)=> invalid.list.size,
       );
     
-      ''');
-    }
+    ''');
 
     /// toBroadEitherNullable method
     classBuffer.writeln('''
     /// If [nullableEntity] is null, returns `right(null)`.
-    /// Otherwise, returns `nullableEntity.toBroadEither`.
+    /// Otherwise, returns `nullableEntity.toBroadEither`
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
-      $className? nullableEntity) =>
+          $className? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
-
+    
     ''');
 
     /// map method
     classBuffer.writeln('''
     /// Similar to [mapValidity], but the "base" invalid union-case is replaced by
     /// the "specific" invalid union-cases of this entity :
+    /// - [InvalidEntitySize]
     /// - [InvalidEntityContent]
     /// - [InvalidEntityGeneral]
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntitySize} invalidSize)
+          invalidSize,
       required TResult Function(${classInfo.invalidEntityContent} invalidContent)
-          invalidContent,
+          invalidContent,      
       required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
           invalidGeneral,
     }) {
       return maybeMap(
         valid: valid,
-        invalidContent: invalidContent,
-        invalidGeneral: invalidGeneral,
+        invalidSize: invalidSize,
+        invalidContent: invalidContent,   
+        invalidGeneral: invalidGeneral,     
         orElse: (invalid) => throw UnreachableError(),
       );
     }
-
+    
     ''');
 
-    /// maybe map method
+    /// maybeMap method
     classBuffer.writeln('''
     /// Equivalent to [map], but only the [valid] callback is required. It also
     /// adds an extra orElse required parameter, for fallback behavior.
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
       TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
       TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
       required TResult Function(${classInfo.invalidEntity} invalid) orElse,
     }) {
       throw UnimplementedError();
     }
-
+    
     ''');
 
     /// mapValidity method
@@ -187,101 +225,53 @@ class GeneralEntityGenerator {
         orElse: invalid,
       );
     }
-
+    
     ''');
 
     /// copyWith method
     classBuffer.writeln('''
-    /// Creates a clone of this entity with the new specified values.
+    /// Creates a clone of this entity with the list returned from [callback].
     ///
     /// The resulting entity is totally independent from this entity. It is
     /// validated upon creation, and can be either valid or invalid.
-    $className copyWith({
-      ${classInfo.namedParameters.map((param) => '${param.optionalType} ${param.name},').join()}
-    }) {
+    $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
       return mapValidity(
-        valid: (valid) => _create(
-          ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? valid.${param.name},').join()}
-        ),
-        invalid: (invalid) => _create(
-          ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? invalid.${param.name},').join()}
-        ),
+        valid: (valid) => _create(callback(valid.list)),
+        invalid: (invalid) => _create(callback(invalid.list)),
       );
     }
-
+    
     ''');
 
     /// End
     classBuffer.writeln('}');
   }
 
-  String generateContentVerification(
-      List<EntityParameter> params, GeneralEntityClassInfo classInfo) {
-    final paramsToVerify = params.where((p) => !p.hasValidAnnotation).toList();
-    return '''final contentVerification = 
-      ${_makeContentVerificationRecursive(paramsToVerify.length, paramsToVerify, classInfo)}
-    ''';
-  }
-
-  String _makeContentVerificationRecursive(int totalParamsToVerify,
-      List<EntityParameter> paramsToVerify, GeneralEntityClassInfo classInfo) {
-    final comma = paramsToVerify.length == totalParamsToVerify ? ';' : ',';
-
-    if (paramsToVerify.isNotEmpty) {
-      final param = paramsToVerify.first;
-
-      final toBroadEither = param.isNullable
-          ? '\$${param.typeWithoutNullabilitySuffix}.toBroadEitherNullable(${param.name})'
-          : '${param.name}.toBroadEither';
-
-      return '''$toBroadEither.flatMap(
-      (${param.validName}) => ${_makeContentVerificationRecursive(totalParamsToVerify, [
-                ...paramsToVerify
-              ]..removeAt(0), classInfo)}
-      )$comma
-      ''';
-    }
-
-    final constructorParams = classInfo.namedParameters.map(
-        (p) => '${p.name}: ${p.hasValidAnnotation ? p.name : p.validName},');
-
-    return '''right(${classInfo.validEntity}._(
-        ${constructorParams.join('')}
-      ))$comma
-      ''';
-  }
-
   void makeValidEntity(
-      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
-    classBuffer.writeln('''
-    class ${classInfo.validEntity} extends $className implements ValidEntity {
-      
-    ''');
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
+    classBuffer.writeln(
+        'class ${classInfo.validEntity} extends $className implements ValidEntity {');
 
     /// private constructor
     classBuffer.writeln('''
     const ${classInfo.validEntity}._({
-      ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
-      }) : super._();
-
+      required this.list,
+    }) : super._();    
+    
     ''');
 
     /// class members
-    for (final param in classInfo.namedParameters) {
-      if (param.hasWithGetterAnnotation == true) {
-        classBuffer.writeln('@override');
-      }
-      final paramType =
-          param.hasValidAnnotation ? param.type : 'Valid${param.type}';
-      classBuffer.writeln('final $paramType ${param.name};');
-    }
-    classBuffer.writeln('');
+    classBuffer.writeln('''
+    final KtList<${classInfo.ktListTypeValid}> list;
+
+    ''');
 
     /// maybeMap method
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
       TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
       TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
       required TResult Function(${classInfo.invalidEntity} invalid) orElse,
@@ -295,8 +285,9 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
-        ${classInfo.namedParameters.map((param) => '${param.name},').join()}
-      ];
+          list,
+        ];
+
     ''');
 
     /// end
@@ -304,31 +295,29 @@ class GeneralEntityGenerator {
   }
 
   void makeInvalidEntity(
-      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     abstract class ${classInfo.invalidEntity} extends $className
-      implements InvalidEntity {
+    implements InvalidEntity {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntity}._() : super._();
-
+    
     ''');
 
-    /// Fields Getters
-    for (final param in classInfo.namedParameters) {
-      if (param.hasWithGetterAnnotation == true) {
-        classBuffer.writeln('@override');
-      }
-      classBuffer.writeln('${param.type} get ${param.name};');
-    }
-    classBuffer.writeln('');
+    /// Fields getters
+    classBuffer.writeln('''
+    KtList<${classInfo.ktListType}> get list;
+
+    ''');
 
     /// Failure getter
     classBuffer.writeln('''
     @override
     Failure get failure => whenInvalid(
+          sizeFailure: (sizeFailure) => sizeFailure,
           contentFailure: (contentFailure) => contentFailure,
           generalFailure: (generalFailure) => generalFailure,
         );
@@ -339,9 +328,12 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     /// Pattern matching for the "specific" invalid union-cases of this "base"
     /// invalid union-case, which are :
+    /// - [InvalidEntitySize]
     /// - [InvalidEntityContent]
     /// - [InvalidEntityGeneral]
     TResult mapInvalid<TResult extends Object?>({
+      required TResult Function(${classInfo.invalidEntitySize} invalidSize)
+          invalidSize,
       required TResult Function(${classInfo.invalidEntityContent} invalidContent)
           invalidContent,
       required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
@@ -349,11 +341,13 @@ class GeneralEntityGenerator {
     }) {
       return maybeMap(
         valid: (valid) => throw UnreachableError(),
+        invalidSize: invalidSize,
         invalidContent: invalidContent,
         invalidGeneral: invalidGeneral,
         orElse: (invalid) => throw UnreachableError(),
       );
     }
+
     ''');
 
     /// whenInvalid method
@@ -361,49 +355,52 @@ class GeneralEntityGenerator {
     /// Similar to [mapInvalid], but the union-cases are replaced by the failures
     /// they hold.
     TResult whenInvalid<TResult extends Object?>({
+      required TResult Function(${classInfo.sizeFailure} sizeFailure)
+          sizeFailure,
       required TResult Function(Failure contentFailure) contentFailure,
       required TResult Function(${classInfo.generalFailure} generalFailure)
-          generalFailure,
+        generalFailure,
     }) {
       return maybeMap(
         valid: (valid) => throw UnreachableError(),
+        invalidSize: (invalidSize) =>
+            sizeFailure(invalidSize.sizeFailure),
         invalidContent: (invalidContent) =>
             contentFailure(invalidContent.contentFailure),
         invalidGeneral: (invalidGeneral) =>
-            generalFailure(invalidGeneral.generalFailure),
+          generalFailure(invalidGeneral.generalFailure),
         orElse: (invalid) => throw UnreachableError(),
       );
     }
+
     ''');
 
-    /// End
+    /// end
     classBuffer.writeln('}');
   }
 
-  void makeInvalidEntityContent(
-      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
+  void makeInvalidEntitySize(
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.invalidEntityContent} extends ${classInfo.invalidEntity}
-      implements InvalidEntityContent {        
+    class ${classInfo.invalidEntitySize} extends ${classInfo.invalidEntity}
+      implements InvalidEntitySize<${classInfo.sizeFailure}> {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntityContent}._({
-      required this.contentFailure,
-      ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
+    const ${classInfo.invalidEntitySize}._({
+      required this.sizeFailure,
+      required this.list,
     }) : super._();
     ''');
 
     /// Getters
     classBuffer.writeln('''
     @override
-    final Failure contentFailure;
+    final ${classInfo.sizeFailure} sizeFailure;
 
-    ${classInfo.namedParameters.map((param) => '''
     @override
-    final ${param.type} ${param.name};
-    ''').join()}
+    final KtList<${classInfo.ktListType}> list;
 
     ''');
 
@@ -412,6 +409,63 @@ class GeneralEntityGenerator {
     @override
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
+      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+    }) {
+      if (invalidSize != null) {
+        return invalidSize(this);
+      }
+      return orElse(this);
+    }
+
+    ''');
+
+    /// allProps method
+    classBuffer.writeln('''
+    @override
+    List<Object?> get allProps => [
+          sizeFailure,
+          list,
+        ];
+    ''');
+
+    /// End
+    classBuffer.writeln('}');
+  }
+
+  void makeInvalidEntityContent(
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${classInfo.invalidEntityContent} extends ${classInfo.invalidEntity}
+      implements InvalidEntityContent {
+    
+    ''');
+
+    /// private constructor
+    classBuffer.writeln('''
+    const ${classInfo.invalidEntityContent}._({
+      required this.contentFailure,
+      required this.list,
+    }) : super._();
+    ''');
+
+    /// Class members
+    classBuffer.writeln('''
+    @override
+    final Failure contentFailure;
+
+    @override
+    final KtList<${classInfo.ktListType}> list;
+    ''');
+
+    /// maybeMap method
+    classBuffer.writeln('''
+    @override
+    TResult maybeMap<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
       TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
       TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
       required TResult Function(${classInfo.invalidEntity} invalid) orElse,
@@ -427,10 +481,9 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
-      contentFailure,
-      ${classInfo.namedParameters.map((param) => '${param.name},').join()}
-    ];
-
+          contentFailure,
+          list,
+        ];
     ''');
 
     /// End
@@ -438,7 +491,7 @@ class GeneralEntityGenerator {
   }
 
   void makeInvalidEntityGeneral(
-      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityGeneral} extends ${classInfo.invalidEntity}
       implements InvalidEntityGeneral<${classInfo.generalFailure}> {
@@ -448,9 +501,8 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     const ${classInfo.invalidEntityGeneral}._({
       required this.generalFailure,
-      ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
+      required this.list,
     }) : super._();
-
     ''');
 
     /// Getters
@@ -458,10 +510,8 @@ class GeneralEntityGenerator {
     @override
     final ${classInfo.generalFailure} generalFailure;
 
-    ${classInfo.namedParameters.map((param) => '''
     @override
-    final ${param.hasValidAnnotation ? param.type : 'Valid${param.type}'} ${param.name};
-    ''').join()}
+    final KtList<${classInfo.ktListTypeValid}> list;
 
     ''');
 
@@ -470,6 +520,7 @@ class GeneralEntityGenerator {
     @override
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.validEntity} valid) valid,
+      TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
       TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
       TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
       required TResult Function(${classInfo.invalidEntity} invalid) orElse,
@@ -479,15 +530,16 @@ class GeneralEntityGenerator {
       }
       return orElse(this);
     }
+
     ''');
 
     /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
-      generalFailure,
-      ${classInfo.namedParameters.map((param) => '${param.name},').join()}
-    ];
+          generalFailure,
+          list,
+        ];
     ''');
 
     /// End

@@ -2,8 +2,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
-class KtListEntityGenerator {
-  KtListEntityGenerator(
+class ListEntityGenerator {
+  ListEntityGenerator(
       {required this.className, required this.factoryConstructor});
 
   final String className;
@@ -38,7 +38,7 @@ class KtListEntityGenerator {
       );
     }
 
-    final classInfo = KtListEntityClassInfo(className, ktListType);
+    final classInfo = ListEntityClassInfo(className, ktListType);
 
     final classBuffer = StringBuffer();
 
@@ -51,51 +51,59 @@ class KtListEntityGenerator {
     return classBuffer.toString();
   }
 
-  void makeMixin(StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+  void makeMixin(StringBuffer classBuffer, ListEntityClassInfo classInfo) {
     classBuffer.writeln('mixin \$$className {');
 
-    //create method
+    /// create method
     classBuffer.writeln('''
       static $className _create(
         KtList<${classInfo.ktListType}> list,
       ) {
-        ///If any of the list elements is invalid, this holds its failure on the Left (the
-        ///failure of the first invalid element encountered)
-        ///
-        ///Otherwise, holds all the elements as valid modddels, on the Right.
-        final contentVerification = list
-            .map((element) => element.toBroadEither)
-            .fold<Either<Failure, KtList<${classInfo.ktListTypeValid}>>>(
-              //We start with an empty list of elements on the right
-              right(const KtList<${classInfo.ktListTypeValid}>.empty()),
-              (acc, element) => acc.fold(
-                (l) => left(l),
-                (r) => element.fold(
-                  (elementFailure) => left(elementFailure),
-
-                  ///If the element is valid and the "acc" (accumulation) holds a
-                  ///list of valid elements (on the right), we append this element
-                  ///to the list
-                  (validElement) =>
-                      right(KtList.from([...r.asList(), validElement])),
-                ),
-              ),
-            );
-        
-        return contentVerification.match(
-          ///The content is invalid
+        /// 1. **Content validation**
+        return _verifyContent(list).match(
           (contentFailure) => ${classInfo.invalidEntityContent}._(
             contentFailure: contentFailure,
             list: list,
           ),
 
-          ///The content is valid => The entity is valid
+          /// 2. **→ Validations passed**
           (validContent) => ${classInfo.validEntity}._(list: validContent),
         );
       }
       ''');
 
-    ///getter for the list
+    /// verifyContent function
+    classBuffer.writeln('''
+    /// If any of the list elements is invalid, this holds its failure on the Left
+    /// (the failure of the first invalid element encountered)
+    ///
+    /// Otherwise, holds the list of all the elements as valid modddels, on the
+    /// Right.
+    static Either<Failure, KtList<${classInfo.ktListTypeValid}>> _verifyContent(KtList<${classInfo.ktListType}> list) {
+      final contentVerification = list
+          .map((element) => element.toBroadEither)
+          .fold<Either<Failure, KtList<${classInfo.ktListTypeValid}>>>(
+            /// We start with an empty list of elements on the right
+            right(const KtList<${classInfo.ktListTypeValid}>.empty()),
+            (acc, element) => acc.fold(
+              (l) => left(l),
+              (r) => element.fold(
+                (elementFailure) => left(elementFailure),
+
+                /// If the element is valid and the "acc" (accumulation) holds a
+                /// list of valid elements (on the right), we append this element
+                /// to the list
+                (validElement) =>
+                    right(KtList.from([...r.asList(), validElement])),
+              ),
+            ),
+          );
+      return contentVerification;
+    }
+    
+    ''');
+
+    /// getter for the list
     classBuffer.writeln('''
     KtList<${classInfo.ktListType}> get list => map(
         valid: (valid) => valid.list,
@@ -104,52 +112,75 @@ class KtListEntityGenerator {
     
     ''');
 
-    ///getter for the size of the list
+    /// getter for the size of the list
 
     classBuffer.writeln('''
+    /// The size of the list
     int get size => list.size;
     
     ''');
 
-    ///toBroadEitherNullable method
+    /// toBroadEitherNullable method
     classBuffer.writeln('''
+    /// If [nullableEntity] is null, returns `right(null)`.
+    /// Otherwise, returns `nullableEntity.toBroadEither`.
     static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
           $className? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
     
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
-    TResult map<TResult extends Object?>(
-        {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
+    /// Same as [mapValidity] (because there is only one invalid union-case)
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+    }) {
       throw UnimplementedError();
-    } 
+    }
     
     ''');
 
-    ///copyWith method
+    /// mapValidity method
     classBuffer.writeln('''
-    $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
+    /// Pattern matching for the two different union-cases of this entity : valid
+    /// and invalid.
+    TResult mapValidity<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalid,
+    }) {
       return map(
-        valid: (valid) => _create(callback(valid.list)),
-        invalidContent: (invalidContent) => _create(callback(invalidContent.list)),
+        valid: valid,
+        invalidContent: invalid,
       );
     }
     
     ''');
 
-    //End
+    /// copyWith method
+    classBuffer.writeln('''
+    /// Creates a clone of this entity with the list returned from [callback].
+    ///
+    /// The resulting entity is totally independent from this entity. It is
+    /// validated upon creation, and can be either valid or invalid.
+    $className copyWith(KtList<${classInfo.ktListType}> Function(KtList<${classInfo.ktListType}> list) callback) {
+       return _create(callback(list));
+    }
+    
+    ''');
+
+    /// End
     classBuffer.writeln('}');
   }
 
   void makeValidEntity(
-      StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, ListEntityClassInfo classInfo) {
     classBuffer.writeln(
         'class ${classInfo.validEntity} extends $className implements ValidEntity {');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.validEntity}._({
       required this.list,
@@ -157,25 +188,27 @@ class KtListEntityGenerator {
     
     ''');
 
-    ///class members
+    /// class members
     classBuffer.writeln('''
     @override
     final KtList<${classInfo.ktListTypeValid}> list;
 
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     @override
-    TResult map<TResult extends Object?>(
-        {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+    }) {
       return valid(this);
     }
 
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
@@ -184,19 +217,19 @@ class KtListEntityGenerator {
 
     ''');
 
-    ///end
+    /// end
     classBuffer.writeln('}');
   }
 
   void makeInvalidEntityContent(
-      StringBuffer classBuffer, KtListEntityClassInfo classInfo) {
+      StringBuffer classBuffer, ListEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityContent} extends $className
       implements InvalidEntityContent {
     
     ''');
 
-    ///private constructor
+    /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidEntityContent}._({
       required this.contentFailure,
@@ -204,27 +237,32 @@ class KtListEntityGenerator {
     }) : super._();
     ''');
 
-    ///Class members
+    /// Class members
     classBuffer.writeln('''
     @override
     final Failure contentFailure;
 
     @override
+    Failure get failure => contentFailure;
+
+    @override
     final KtList<${classInfo.ktListType}> list;
     ''');
 
-    ///map method
+    /// map method
     classBuffer.writeln('''
     @override
-    TResult map<TResult extends Object?>(
-        {required TResult Function(${classInfo.validEntity} valid) valid,
-        required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalidContent}) {
+    TResult map<TResult extends Object?>({
+      required TResult Function(${classInfo.validEntity} valid) valid,
+      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+          invalidContent,
+    }) {
       return invalidContent(this);
-    }
+    }  
 
     ''');
 
-    ///allProps method
+    /// allProps method
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [
@@ -233,7 +271,7 @@ class KtListEntityGenerator {
         ];
     ''');
 
-    ///End
+    /// End
     classBuffer.writeln('}');
   }
 }

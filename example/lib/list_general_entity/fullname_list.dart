@@ -8,12 +8,8 @@ part 'fullname_list.g.dart';
 part 'fullname_list.freezed.dart';
 
 @modddel
-class FullNameList extends KtListGeneralEntity<
-    FullNameListEntityFailure,
-    InvalidFullNameListGeneral,
-    InvalidFullNameListContent,
-    InvalidFullNameList,
-    ValidFullNameList> with $FullNameList {
+class FullNameList extends ListGeneralEntity<FullNameListGeneralFailure,
+    InvalidFullNameList, ValidFullNameList> with $FullNameList {
   factory FullNameList(KtList<FullName> list) {
     return $FullNameList._create(list);
   }
@@ -21,14 +17,14 @@ class FullNameList extends KtListGeneralEntity<
   const FullNameList._();
 
   @override
-  Option<FullNameListEntityFailure> validateGeneral(ValidFullNameList valid) {
+  Option<FullNameListGeneralFailure> validateGeneral(ValidFullNameList valid) {
     //TODO Implement validate
     return none();
   }
 }
 
 @freezed
-class FullNameListEntityFailure extends GeneralEntityFailure
-    with _$FullNameListEntityFailure {
-  const factory FullNameListEntityFailure.empty() = _Empty;
+class FullNameListGeneralFailure extends GeneralFailure
+    with _$FullNameListGeneralFailure {
+  const factory FullNameListGeneralFailure.empty() = _Empty;
 }

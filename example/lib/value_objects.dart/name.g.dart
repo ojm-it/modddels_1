@@ -8,21 +8,47 @@ part of 'name.dart';
 
 mixin $Name {
   static Name _create(String input) {
-    return const Name._().validateWithResult(input).match(
-          (l) => InvalidName._(failure: l),
-          (r) => ValidName._(value: r),
-        );
+    /// 1. **Value Validation**
+    return _verifyValue(input).match(
+      (valueFailure) => InvalidName._(valueFailure: valueFailure),
+
+      /// 2. **→ Validations passed**
+      (validValue) => ValidName._(value: validValue),
+    );
   }
 
+  /// If the value is invalid, this holds the [ValueFailure] on the Left.
+  /// Otherwise, holds the value on the Right.
+  static Either<NameValueFailure, String> _verifyValue(String input) {
+    final valueVerification = const Name._().validateValue(input);
+    return valueVerification.toEither(() => input).swap();
+  }
+
+  /// If [nullableValueObject] is null, returns `right(null)`.
+  /// Otherwise, returns `nullableValueObject.toBroadEither`.
   static Either<Failure, ValidName?> toBroadEitherNullable(
           Name? nullableValueObject) =>
       optionOf(nullableValueObject)
           .match((t) => t.toBroadEither, () => right(null));
 
-  TResult match<TResult extends Object?>(
-      {required TResult Function(ValidName valid) valid,
-      required TResult Function(InvalidName invalid) invalid}) {
+  /// Same as [mapValidity] (because there is only one invalid union-case)
+  TResult map<TResult extends Object?>({
+    required TResult Function(ValidName valid) valid,
+    required TResult Function(InvalidName invalid) invalid,
+  }) {
     throw UnimplementedError();
+  }
+
+  /// Pattern matching for the two different union-cases of this ValueObject :
+  /// valid and invalid.
+  TResult mapValidity<TResult extends Object?>({
+    required TResult Function(ValidName valid) valid,
+    required TResult Function(InvalidName invalid) invalid,
+  }) {
+    return map(
+      valid: valid,
+      invalid: invalid,
+    );
   }
 }
 
@@ -33,7 +59,7 @@ class ValidName extends Name implements ValidValueObject<String> {
   final String value;
 
   @override
-  TResult match<TResult extends Object?>(
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidName valid) valid,
       required TResult Function(InvalidName invalid) invalid}) {
     return valid(this);
@@ -46,14 +72,17 @@ class ValidName extends Name implements ValidValueObject<String> {
 class InvalidName extends Name
     implements InvalidValueObject<String, NameValueFailure> {
   const InvalidName._({
-    required this.failure,
+    required this.valueFailure,
   }) : super._();
 
   @override
-  final NameValueFailure failure;
+  final NameValueFailure valueFailure;
 
   @override
-  TResult match<TResult extends Object?>(
+  NameValueFailure get failure => valueFailure;
+
+  @override
+  TResult map<TResult extends Object?>(
       {required TResult Function(ValidName valid) valid,
       required TResult Function(InvalidName invalid) invalid}) {
     return invalid(this);

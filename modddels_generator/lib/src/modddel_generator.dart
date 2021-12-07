@@ -1,19 +1,24 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
-import 'package:modddels_generator/src/generators/entity_generator.dart';
+import 'package:modddels_generator/src/generators/simple_entity_generator.dart';
 import 'package:modddels_generator/src/generators/general_entity_generator.dart';
-import 'package:modddels_generator/src/generators/ktlist_entity_generator.dart';
-import 'package:modddels_generator/src/generators/ktlist_general_entity_generator.dart';
+import 'package:modddels_generator/src/generators/list_entity_generator.dart';
+import 'package:modddels_generator/src/generators/list_general_entity_generator.dart';
+import 'package:modddels_generator/src/generators/sized_list_general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
 
+import 'generators/sized_list_entity_generator.dart';
+
 enum Model {
   valueObject,
-  entity,
-  ktListEntity,
+  simpleEntity,
+  listEntity,
+  sizedListEntity,
   generalEntity,
-  ktListGeneralEntity,
+  listGeneralEntity,
+  sizedListGeneralEntity,
 }
 
 class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
@@ -59,31 +64,38 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
 
     Model modelType;
 
-    final superClass = classElement.allSupertypes;
+    final superClassNameFullName =
+        classElement.supertype?.getDisplayString(withNullability: false);
 
-    if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('ValueObject'))) {
+    final regex = RegExp(r"^([^\s<>]*)(<.*>)?$");
+
+    final superClassName = superClassNameFullName == null
+        ? null
+        : regex.firstMatch(superClassNameFullName)?.group(1);
+
+    if (superClassName == null) {
+      throw InvalidGenerationSourceError(
+        'Should extend a Modddel',
+        element: classElement,
+      );
+    }
+    if (superClassName == 'ValueObject') {
       modelType = Model.valueObject;
-    } else if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('KtListGeneralEntity'))) {
-      modelType = Model.ktListGeneralEntity;
-    } else if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('GeneralEntity'))) {
+    } else if (superClassName == 'ListGeneralEntity') {
+      modelType = Model.listGeneralEntity;
+    } else if (superClassName == 'SizedListGeneralEntity') {
+      modelType = Model.sizedListGeneralEntity;
+    } else if (superClassName == 'GeneralEntity') {
       modelType = Model.generalEntity;
-    } else if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('KtListEntity'))) {
-      modelType = Model.ktListEntity;
-    } else if (superClass.any((element) => element
-        .getDisplayString(withNullability: false)
-        .startsWith('Entity'))) {
-      modelType = Model.entity;
+    } else if (superClassName == 'ListEntity') {
+      modelType = Model.listEntity;
+    } else if (superClassName == 'SizedListEntity') {
+      modelType = Model.sizedListEntity;
+    } else if (superClassName == 'SimpleEntity') {
+      modelType = Model.simpleEntity;
     } else {
       throw InvalidGenerationSourceError(
-        'Should either extend GeneralEntity, KtListGeneralEntity, or ValueObject',
+        'Should extend a Modddel',
         element: classElement,
       );
     }
@@ -93,20 +105,28 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
         return ValueObjectGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
-      case Model.ktListGeneralEntity:
-        return KtListGeneralEntityGenerator(
+      case Model.listGeneralEntity:
+        return ListGeneralEntityGenerator(
+                className: className, factoryConstructor: factoryConstructor)
+            .generate();
+      case Model.sizedListGeneralEntity:
+        return SizedListGeneralEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
       case Model.generalEntity:
         return GeneralEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
-      case Model.entity:
-        return EntityGenerator(
+      case Model.simpleEntity:
+        return SimpleEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
-      case Model.ktListEntity:
-        return KtListEntityGenerator(
+      case Model.listEntity:
+        return ListEntityGenerator(
+                className: className, factoryConstructor: factoryConstructor)
+            .generate();
+      case Model.sizedListEntity:
+        return SizedListEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
     }

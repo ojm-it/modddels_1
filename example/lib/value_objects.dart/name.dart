@@ -15,7 +15,7 @@ class Name extends ValueObject<String, NameValueFailure, InvalidName, ValidName>
   const Name._();
 
   @override
-  Option<NameValueFailure> validate(String input) {
+  Option<NameValueFailure> validateValue(String input) {
     if (input.isEmpty) {
       return some(NameValueFailure.empty(failedValue: input));
     }

@@ -14,8 +14,8 @@ final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more informations: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 /// @nodoc
-class _$NameListEntityFailureTearOff {
-  const _$NameListEntityFailureTearOff();
+class _$NameListGeneralFailureTearOff {
+  const _$NameListGeneralFailureTearOff();
 
   _Empty empty() {
     return const _Empty();
@@ -23,10 +23,10 @@ class _$NameListEntityFailureTearOff {
 }
 
 /// @nodoc
-const $NameListEntityFailure = _$NameListEntityFailureTearOff();
+const $NameListGeneralFailure = _$NameListGeneralFailureTearOff();
 
 /// @nodoc
-mixin _$NameListEntityFailure {
+mixin _$NameListGeneralFailure {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function() empty,
@@ -62,20 +62,20 @@ mixin _$NameListEntityFailure {
 }
 
 /// @nodoc
-abstract class $NameListEntityFailureCopyWith<$Res> {
-  factory $NameListEntityFailureCopyWith(NameListEntityFailure value,
-          $Res Function(NameListEntityFailure) then) =
-      _$NameListEntityFailureCopyWithImpl<$Res>;
+abstract class $NameListGeneralFailureCopyWith<$Res> {
+  factory $NameListGeneralFailureCopyWith(NameListGeneralFailure value,
+          $Res Function(NameListGeneralFailure) then) =
+      _$NameListGeneralFailureCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class _$NameListEntityFailureCopyWithImpl<$Res>
-    implements $NameListEntityFailureCopyWith<$Res> {
-  _$NameListEntityFailureCopyWithImpl(this._value, this._then);
+class _$NameListGeneralFailureCopyWithImpl<$Res>
+    implements $NameListGeneralFailureCopyWith<$Res> {
+  _$NameListGeneralFailureCopyWithImpl(this._value, this._then);
 
-  final NameListEntityFailure _value;
+  final NameListGeneralFailure _value;
   // ignore: unused_field
-  final $Res Function(NameListEntityFailure) _then;
+  final $Res Function(NameListGeneralFailure) _then;
 }
 
 /// @nodoc
@@ -86,7 +86,7 @@ abstract class _$EmptyCopyWith<$Res> {
 
 /// @nodoc
 class __$EmptyCopyWithImpl<$Res>
-    extends _$NameListEntityFailureCopyWithImpl<$Res>
+    extends _$NameListGeneralFailureCopyWithImpl<$Res>
     implements _$EmptyCopyWith<$Res> {
   __$EmptyCopyWithImpl(_Empty _value, $Res Function(_Empty) _then)
       : super(_value, (v) => _then(v as _Empty));
@@ -102,7 +102,7 @@ class _$_Empty implements _Empty {
 
   @override
   String toString() {
-    return 'NameListEntityFailure.empty()';
+    return 'NameListGeneralFailure.empty()';
   }
 
   @override
@@ -171,6 +171,6 @@ class _$_Empty implements _Empty {
   }
 }
 
-abstract class _Empty implements NameListEntityFailure {
+abstract class _Empty implements NameListGeneralFailure {
   const factory _Empty() = _$_Empty;
 }
