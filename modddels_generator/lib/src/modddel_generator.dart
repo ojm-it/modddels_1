@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
-import 'package:modddels_generator/src/generators/entity_generator.dart';
+import 'package:modddels_generator/src/generators/simple_entity_generator.dart';
 import 'package:modddels_generator/src/generators/general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/list_entity_generator.dart';
 import 'package:modddels_generator/src/generators/list_general_entity_generator.dart';
@@ -13,7 +13,7 @@ import 'generators/sized_list_entity_generator.dart';
 
 enum Model {
   valueObject,
-  entity,
+  simpleEntity,
   listEntity,
   sizedListEntity,
   generalEntity,
@@ -91,8 +91,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       modelType = Model.listEntity;
     } else if (superClassName == 'SizedListEntity') {
       modelType = Model.sizedListEntity;
-    } else if (superClassName == 'Entity') {
-      modelType = Model.entity;
+    } else if (superClassName == 'SimpleEntity') {
+      modelType = Model.simpleEntity;
     } else {
       throw InvalidGenerationSourceError(
         'Should extend a Modddel',
@@ -117,8 +117,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
         return GeneralEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
-      case Model.entity:
-        return EntityGenerator(
+      case Model.simpleEntity:
+        return SimpleEntityGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
       case Model.listEntity:

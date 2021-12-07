@@ -28,14 +28,14 @@ The different states a Modddel can have are represented with **Union Cases Class
 - [Usage](#usage)
 	- [ValueObject](#valueobject)
 		- [Usage](#usage-1)
-	- [Entity](#entity)
+	- [SimpleEntity](#simpleentity)
 		- [Usage](#usage-2)
 		- [The valid annotation](#the-valid-annotation)
 	- [ListEntity](#listentity)
 		- [Usage](#usage-3)
 	- [SizedListEntity](#sizedlistentity)
 		- [Usage](#usage-4)
-	- [General Entity](#general-entity)
+	- [GeneralEntity](#generalentity)
 		- [Usage](#usage-5)
 		- [Fields getters](#fields-getters)
 		- [The valid annotation](#the-valid-annotation-1)
@@ -54,12 +54,13 @@ The different states a Modddel can have are represented with **Union Cases Class
 Available modddels :
 
 - ValueObject
-- Entity
-- ListEntity
-- SizedListEntity
-- GeneralEntity
-- ListGeneralEntity
-- SizedListGeneralEntity
+- Entities
+  - SimpleEntity
+  - ListEntity
+  - SizedListEntity
+  - GeneralEntity
+  - ListGeneralEntity
+  - SizedListGeneralEntity
 
 # Getting started
 
@@ -135,22 +136,22 @@ When creating the ValueObject, the validation is made in this order :
 
 ---
 
-## Entity
+## SimpleEntity
 
-An `Entity` is a modddel that holds multiple modddels (ValueObjects, Entities...).
+A `SimpleEntity` is a modddel that holds multiple modddels (ValueObjects, Entities...).
 
-When creating an Entity, the validation is made in this order :
+When creating a SimpleEntity, the validation is made in this order :
 
-1. **Content Validation** : If any of its modddels is invalid, then this Entity becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
+1. **Content Validation** : If any of its modddels is invalid, then this `SimpleEntity` becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
 2. **→ Validations passed** : The entity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
 
 ### Usage
 
-1. Create an Entity, and annotate it with `@modddel`
+1. Create a SimpleEntity, and annotate it with `@modddel`
 
 	```dart
 	@modddel
-	class FullName extends Entity<InvalidFullNameContent, ValidFullName> with $FullName {
+	class FullName extends SimpleEntity<InvalidFullNameContent, ValidFullName> with $FullName {
 	factory FullName({
 		required Name firstName,
 		required Name lastName,
@@ -175,7 +176,7 @@ When creating an Entity, the validation is made in this order :
 
 ### The valid annotation
 
-Sometimes, you want an entity to contain a modddel that is always valid, or a parameter that isn't a modddel and that should considered as being valid. For example : a ValidValueObject, a ValidEntity, a boolean...
+Sometimes, you want a `SimpleEntity` to contain a modddel that is always valid, or a parameter that isn't a modddel and that should considered as being valid. For example : a ValidValueObject, a ValidEntity, a boolean...
 
 In that case, you can annotate it with `@valid`. Example :
 
@@ -189,7 +190,7 @@ factory FullName({
 
 ## ListEntity
 
-A ListEntity is similar to an `Entity` in a sense that it holds a List of other modddels (of the same type).
+A ListEntity is similar to a `SimpleEntity` in a sense that it holds a List of other modddels (of the same type).
 
 When creating a ListEntity, the validation is made in this order :
 
@@ -252,7 +253,7 @@ When creating a SizedListEntity, the validation is made in this order :
 	}
 	```
 
-2. Create a Freezed SizeFailure for your Entity
+2. Create a Freezed SizeFailure for your entity
 
 	```dart
 	@freezed
@@ -284,9 +285,9 @@ When creating a SizedListEntity, the validation is made in this order :
 
 ---
 
-## General Entity
+## GeneralEntity
 
-A GeneralEntity is similar to an Entity, but it provides an extra validation step at the end that validates the entity as a whole, via the `validateGeneral` method. This method returns `some` `GeneralFailure` if the entity isn't valid as a whole, otherwise returns `none`.
+A GeneralEntity is similar to an `SimpleEntity`, but it provides an extra validation step at the end that validates the entity as a whole, via the `validateGeneral` method. This method returns `some` `GeneralFailure` if the entity isn't valid as a whole, otherwise returns `none`.
 
 When creating a GeneralEntity, the validation is made in this order :
 
@@ -322,7 +323,7 @@ When creating a GeneralEntity, the validation is made in this order :
 	}
 	```
 
-2. Create a Freezed GeneralFailure for your Entity
+2. Create a Freezed GeneralFailure for your entity
 
 	```dart
 	@freezed
@@ -354,7 +355,7 @@ When creating a GeneralEntity, the validation is made in this order :
 
 ### Fields getters
 
-Unlike a normal Entity, the GeneralEntity hides its modddels inside `ValidEntity` and `InvalidEntity`, so you can only access them after calling the "mapValidity" method (or other map methods).
+Unlike a SimpleEntity, the GeneralEntity hides its modddels inside `ValidEntity` and `InvalidEntity`, so you can only access them after calling the "mapValidity" method (or other map methods).
 
 For example :
 
@@ -375,7 +376,7 @@ A good usecase for this would be for an "id" field.
 
 ### The valid annotation
 
-You can use the `@valid` annotation as you would with a normal Entity.
+You can use the `@valid` annotation as you would with a `SimpleEntity`.
 
 If you want to use both `@valid` and `@withGetter` annotation, you can use the shorthand `@validWithGetter` annotation.
 
@@ -411,7 +412,7 @@ When creating a ListGeneralEntity, the validation is made in this order :
 	}
 	```
 
-2. Create a Freezed GeneralFailure for your Entity
+2. Create a Freezed GeneralFailure for your entity
 
 	```dart
 	@freezed
@@ -485,7 +486,7 @@ When creating a SizedListGeneralEntity, the validation is made in this order :
 	}
 	```
 
-2. Create a Freezed SizeFailure for your Entity
+2. Create a Freezed SizeFailure for your entity
 
 	```dart
 	@freezed
@@ -494,7 +495,7 @@ When creating a SizedListGeneralEntity, the validation is made in this order :
 	}
 	```
 
-3. Create a Freezed GeneralFailure for your Entity
+3. Create a Freezed GeneralFailure for your entity
 
 	```dart
 	@freezed
@@ -543,13 +544,13 @@ When creating a SizedListGeneralEntity, the validation is made in this order :
 
 ### Optional and Nullable types
 
-`Entity` and `GeneralEntity` both support containing optional and nullable parameters, as well as default values.
+`SimpleEntity` and `GeneralEntity` both support containing optional and nullable parameters, as well as default values.
 
 ### Modddels that are always valid
 
 You can create a ValidValueObject or a ValidEntity by directly extending respectively the class `ValidValueObject` or `ValidEntity`.
 
-When using them as parameters inside another Entity (or GeneralEntity), don't forget to annotate them with `@valid`.
+When using them as parameters inside a `SimpleEntity` or `GeneralEntity`, don't forget to annotate them with `@valid`.
 
 # VsCode snippets
 
@@ -597,11 +598,11 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 		],
 		"description": "Value Failure Union Case"
 	},
-	"Entity": {
-		"prefix": "entity",
+	"Simple Entity": {
+		"prefix": "simpleentity",
 		"body": [
 			"@modddel",
-			"class ${1} extends Entity<Invalid${1}Content, Valid${1}> with $${1} {",
+			"class ${1} extends SimpleEntity<Invalid${1}Content, Valid${1}> with $${1} {",
 			"  factory ${1}({",
 			"    ${2}",
 			"  }) {",
@@ -614,7 +615,7 @@ When using them as parameters inside another Entity (or GeneralEntity), don't fo
 			"",
 			"}",
 		],
-		"description": "Entity"
+		"description": "Simple Entity"
 	},
 	"List Entity": {
 		"prefix": "listentity",

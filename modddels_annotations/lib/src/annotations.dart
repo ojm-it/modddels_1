@@ -18,11 +18,11 @@ class ValidWithGetterAnnotation {
   const ValidWithGetterAnnotation();
 }
 
-/// This annotation can only be used inside an [Entity] or a [GeneralEntity], in
+/// This annotation can only be used inside a [SimpleEntity] or a [GeneralEntity], in
 /// front of a factory parameter.
 ///
 /// Use this annotation :
-/// - When you want an entity to contain a modddel that should be considered as
+/// - When you want a a [SimpleEntity] or a [GeneralEntity] to contain a modddel that should be considered as
 ///   being valid (so it shouldn't be validated)
 /// - When a parameter isn't a modddel and should be considered as being valid.
 ///   For example : a [ValidValueObject], a [ValidEntity], a boolean...
@@ -44,7 +44,7 @@ const valid = ValidAnnotation();
 /// Use this annotation if you want to have a direct getter for a modddel from
 /// the unvalidated [GeneralEntity].
 ///
-/// Unlike a normal Entity, the [GeneralEntity] hides its modddels inside the
+/// Unlike a [SimpleEntity], the [GeneralEntity] hides its modddels inside the
 /// [ValidEntity] and [InvalidEntity] union cases, so you can only access them
 /// after calling the "mapValidity" method (or other map methods).
 ///

@@ -1,9 +1,10 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/src/entities/common.dart';
+import 'package:modddels_annotations/src/entities/simple_entity.dart';
 
 import '../modddel.dart';
 
-/// A [GeneralEntity] is similar to an [Entity], but it provides an extra
+/// A [GeneralEntity] is similar to a [SimpleEntity], but it provides an extra
 /// validation step at the end that validates the entity as a whole, via the
 /// `validateGeneral` method. This method returns `some` [GeneralFailure] if the
 /// entity isn't valid as a whole, otherwise returns `none`.

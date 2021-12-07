@@ -5,7 +5,7 @@ import 'package:fpdart/fpdart.dart';
 part 'fullname2.g.dart';
 
 @modddel
-class FullName2 extends Entity<InvalidFullName2Content, ValidFullName2>
+class FullName2 extends SimpleEntity<InvalidFullName2Content, ValidFullName2>
     with $FullName2 {
   factory FullName2({
     required Name firstName,

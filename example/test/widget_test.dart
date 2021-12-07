@@ -6,7 +6,7 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:example/list_entity/namelist2.dart';
-import 'package:example/normal_entities/fullname2.dart';
+import 'package:example/simple_entities/fullname2.dart';
 import 'package:example/value_objects.dart/name.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

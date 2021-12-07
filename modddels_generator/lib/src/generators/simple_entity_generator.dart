@@ -2,8 +2,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
-class EntityGenerator {
-  EntityGenerator({required this.className, required this.factoryConstructor});
+class SimpleEntityGenerator {
+  SimpleEntityGenerator(
+      {required this.className, required this.factoryConstructor});
 
   final String className;
   final ConstructorElement factoryConstructor;
@@ -30,12 +31,12 @@ class EntityGenerator {
       }
     }
 
-    final classInfo = EntityClassInfo(className, namedParameters);
+    final classInfo = SimpleEntityClassInfo(className, namedParameters);
 
     for (final param in classInfo.namedParameters) {
       if (param.hasWithGetterAnnotation) {
         throw InvalidGenerationSourceError(
-          'The @withGetter annotation is reserved for General Entities, and is useless for normal Entities.',
+          'The @withGetter annotation is reserved for General Entities, and is useless for Simple Entities.',
           element: param.parameter,
         );
       }
@@ -52,7 +53,7 @@ class EntityGenerator {
     return classBuffer.toString();
   }
 
-  void makeMixin(StringBuffer classBuffer, EntityClassInfo classInfo) {
+  void makeMixin(StringBuffer classBuffer, SimpleEntityClassInfo classInfo) {
     classBuffer.writeln('''
     mixin \$$className {
     
@@ -161,7 +162,7 @@ class EntityGenerator {
   }
 
   String generateContentVerification(
-      List<EntityParameter> params, EntityClassInfo classInfo) {
+      List<EntityParameter> params, SimpleEntityClassInfo classInfo) {
     final paramsToVerify = params.where((p) => !p.hasValidAnnotation).toList();
     return '''final contentVerification = 
       ${_makeContentVerificationRecursive(paramsToVerify.length, paramsToVerify, classInfo)}
@@ -169,7 +170,7 @@ class EntityGenerator {
   }
 
   String _makeContentVerificationRecursive(int totalParamsToVerify,
-      List<EntityParameter> paramsToVerify, EntityClassInfo classInfo) {
+      List<EntityParameter> paramsToVerify, SimpleEntityClassInfo classInfo) {
     final comma = paramsToVerify.length == totalParamsToVerify ? ';' : ',';
 
     if (paramsToVerify.isNotEmpty) {
@@ -196,7 +197,8 @@ class EntityGenerator {
       ''';
   }
 
-  void makeValidEntity(StringBuffer classBuffer, EntityClassInfo classInfo) {
+  void makeValidEntity(
+      StringBuffer classBuffer, SimpleEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.validEntity} extends $className implements ValidEntity {
       
@@ -245,7 +247,7 @@ class EntityGenerator {
   }
 
   void makeInvalidEntityContent(
-      StringBuffer classBuffer, EntityClassInfo classInfo) {
+      StringBuffer classBuffer, SimpleEntityClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidEntityContent} extends $className
       implements InvalidEntityContent {        

@@ -1,7 +1,7 @@
 import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:modddels_annotations/src/entities/common.dart';
 
-/// A [ListEntity] is similar to an [Entity] in a sense that it holds a List of
+/// A [ListEntity] is similar to a [SimpleEntity] in a sense that it holds a List of
 /// other modddels (of the same type).
 ///
 /// When creating a [ListEntity], the validation is made in this order :

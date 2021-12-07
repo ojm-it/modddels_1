@@ -18,7 +18,7 @@ class ValueObjectClassInfo {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                              Entity Class Info                             */
+/*                         Simple Entities Class Info                         */
 /* -------------------------------------------------------------------------- */
 
 abstract class BaseEntityClassInfo {
@@ -32,8 +32,9 @@ abstract class BaseEntityClassInfo {
   late final String validEntity;
 }
 
-class EntityClassInfo extends BaseEntityClassInfo {
-  EntityClassInfo(String className, List<ParameterElement> namedParameters)
+class SimpleEntityClassInfo extends BaseEntityClassInfo {
+  SimpleEntityClassInfo(
+      String className, List<ParameterElement> namedParameters)
       : super(className) {
     this.namedParameters =
         namedParameters.map((p) => EntityParameter(p)).toList();
@@ -65,7 +66,7 @@ class SizedListEntityClassInfo extends ListEntityClassInfo {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                          General Entity class info                         */
+/*                         General Entities class info                        */
 /* -------------------------------------------------------------------------- */
 
 abstract class BaseGeneralEntityClassInfo {
