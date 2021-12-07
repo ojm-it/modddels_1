@@ -43,11 +43,21 @@ class ValueObjectGenerator {
     ///create method
     classBuffer.writeln('''
     static $className _create(${classInfo.valueType} input) {
-      return const $className._().validateWithResult(input).match(
+      return _verifyValue(input).match(
         (l) => ${classInfo.invalidValueObject}._(failure: l),
         (r) => ${classInfo.validValueObject}._(value: r),
       );
     }
+    
+    ''');
+
+    ///_verifyValue method
+    classBuffer.writeln('''
+    static Either<${classInfo.valueFailure}, ${classInfo.valueType}> _verifyValue(${classInfo.valueType} input) {
+      final valueVerification = const $className._().validateValue(input);
+      return valueVerification.toEither(() => input).swap();
+    }
+
     ''');
 
     ///toBroadEitherNullable method
