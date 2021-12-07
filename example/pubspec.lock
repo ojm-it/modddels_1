@@ -338,7 +338,7 @@ packages:
     description:
       path: modddels_annotations
       ref: dev
-      resolved-ref: fc0916d388738c2318cad52910bb8eb0dba1f753
+      resolved-ref: aeb86e2c0d661919ddc3aa9b1118991a18279746
       url: "git://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"
@@ -347,7 +347,7 @@ packages:
     description:
       path: modddels_generator
       ref: dev
-      resolved-ref: fc0916d388738c2318cad52910bb8eb0dba1f753
+      resolved-ref: aeb86e2c0d661919ddc3aa9b1118991a18279746
       url: "git://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"
@@ -385,7 +385,7 @@ packages:
       name: pubspec_parse
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.2.0"
   shelf:
     dependency: transitive
     description:

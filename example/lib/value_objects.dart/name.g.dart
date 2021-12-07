@@ -8,10 +8,15 @@ part of 'name.dart';
 
 mixin $Name {
   static Name _create(String input) {
-    return const Name._().validateWithResult(input).match(
-          (l) => InvalidName._(failure: l),
-          (r) => ValidName._(value: r),
-        );
+    return _verifyValue(input).match(
+      (l) => InvalidName._(failure: l),
+      (r) => ValidName._(value: r),
+    );
+  }
+
+  static Either<NameValueFailure, String> _verifyValue(String input) {
+    final valueVerification = const Name._().validateValue(input);
+    return valueVerification.toEither(() => input).swap();
   }
 
   static Either<Failure, ValidName?> toBroadEitherNullable(
