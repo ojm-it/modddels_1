@@ -200,7 +200,7 @@ class SimpleEntityGenerator {
     final constructorParams = classInfo.namedParameters.map(
         (p) => '${p.name}: ${p.hasValidAnnotation ? p.name : p.validName},');
 
-    return '''right(${classInfo.validEntity}._(
+    return '''right<Failure, ${classInfo.validEntity}>(${classInfo.validEntity}._(
         ${constructorParams.join('')}
       ))$comma
       ''';
