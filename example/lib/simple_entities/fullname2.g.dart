@@ -42,7 +42,7 @@ mixin $FullName2 {
   }) {
     final contentVerification = firstName.toBroadEither.flatMap(
       (validFirstName) => lastName.toBroadEither.flatMap(
-        (validLastName) => right(ValidFullName2._(
+        (validLastName) => right<Failure, ValidFullName2>(ValidFullName2._(
           firstName: validFirstName,
           lastName: validLastName,
           hasMiddleName: hasMiddleName,
