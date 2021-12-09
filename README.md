@@ -1,1 +1,1 @@
-A dart generator for models, still in developement.
+A dart package, still in developement.
