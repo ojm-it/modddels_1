@@ -11,7 +11,9 @@ class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
     ValidFullName> with $FullName {
   factory FullName({
     required Name firstName,
-    @withGetter required Name lastName,
+    @InvalidNull('const FullNameGeneralFailure.incomplete()')
+    @withGetter
+        required Name? lastName,
     @validWithGetter bool hasMiddleName = false,
   }) {
     return $FullName._create(
@@ -36,4 +38,5 @@ class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
 class FullNameGeneralFailure extends GeneralFailure
     with _$FullNameGeneralFailure {
   const factory FullNameGeneralFailure.tooLong() = _TooLong;
+  const factory FullNameGeneralFailure.incomplete() = _Incomplete;
 }
