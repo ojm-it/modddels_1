@@ -169,11 +169,9 @@ class EntityParameter {
       _invalidNullChecker.hasAnnotationOfExact(parameter);
 
   InvalidNull get invalidNullAnnotation {
-    final annotation = _invalidNullChecker
-        .annotationsOfExact(parameter)
-        .first
-        .toTypeValue() as InvalidNull;
-    return annotation;
+    final annotation = _invalidNullChecker.annotationsOfExact(parameter).single;
+    print(annotation.runtimeType);
+    return annotation as InvalidNull;
   }
 }
 
