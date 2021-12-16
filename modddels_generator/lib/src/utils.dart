@@ -164,6 +164,15 @@ class EntityParameter {
   bool get hasWithGetterAnnotation =>
       _withGetterChecker.hasAnnotationOfExact(parameter) ||
       _validWithGetterChecker.hasAnnotationOfExact(parameter);
+
+  bool get hasInvalidNullAnnotation =>
+      _invalidNullChecker.hasAnnotationOfExact(parameter);
+
+  InvalidNull get invalidNullAnnotation {
+    final annotation =
+        _invalidNullChecker.annotationsOfExact(parameter).first as InvalidNull;
+    return annotation;
+  }
 }
 
 const _validChecker = TypeChecker.fromRuntime(ValidAnnotation);
@@ -172,6 +181,8 @@ const _withGetterChecker = TypeChecker.fromRuntime(WithGetterAnnotation);
 
 const _validWithGetterChecker =
     TypeChecker.fromRuntime(ValidWithGetterAnnotation);
+
+const _invalidNullChecker = TypeChecker.fromRuntime(InvalidNull);
 
 extension StringExtension on String {
   String capitalize() {

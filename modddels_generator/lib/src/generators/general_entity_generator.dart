@@ -33,6 +33,15 @@ class GeneralEntityGenerator {
 
     final classInfo = GeneralEntityClassInfo(className, namedParameters);
 
+    //test
+    for (final param in classInfo.namedParameters) {
+      if (param.hasInvalidNullAnnotation) {
+        print(param.invalidNullAnnotation);
+      }
+    }
+
+    //ent test
+
     final classBuffer = StringBuffer();
 
     makeMixin(classBuffer, classInfo);
