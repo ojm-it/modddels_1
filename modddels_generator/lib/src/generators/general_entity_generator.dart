@@ -48,6 +48,8 @@ class GeneralEntityGenerator {
 
     makeMixin(classBuffer, classInfo);
 
+    makeValidEntityContent(classBuffer, classInfo);
+
     makeValidEntity(classBuffer, classInfo);
 
     makeInvalidEntity(classBuffer, classInfo);
