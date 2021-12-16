@@ -319,7 +319,7 @@ packages:
     description:
       path: modddels_annotations
       ref: master
-      resolved-ref: "081fc95f99279395a7b084875652e688b45fa00a"
+      resolved-ref: "98289dcb7bd5b3576264892ae91c1968eb3af952"
       url: "git://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"

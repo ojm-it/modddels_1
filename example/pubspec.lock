@@ -168,7 +168,7 @@ packages:
       name: dart_style
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.1"
+    version: "2.2.0"
   equatable:
     dependency: transitive
     description:
@@ -227,14 +227,14 @@ packages:
       name: freezed
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.0.2"
   freezed_annotation:
     dependency: "direct main"
     description:
       name: freezed_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.0.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -338,7 +338,7 @@ packages:
     description:
       path: modddels_annotations
       ref: master
-      resolved-ref: "081fc95f99279395a7b084875652e688b45fa00a"
+      resolved-ref: "98289dcb7bd5b3576264892ae91c1968eb3af952"
       url: "git://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"
@@ -347,7 +347,7 @@ packages:
     description:
       path: modddels_generator
       ref: master
-      resolved-ref: "081fc95f99279395a7b084875652e688b45fa00a"
+      resolved-ref: "98289dcb7bd5b3576264892ae91c1968eb3af952"
       url: "git://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"
