@@ -9,7 +9,7 @@ part of 'fullname.dart';
 mixin $FullName {
   static FullName _create({
     required Name firstName,
-    required Name lastName,
+    required Name? lastName,
     required bool hasMiddleName,
   }) {
     /// 1. **Content validation**
@@ -47,17 +47,17 @@ mixin $FullName {
   /// ValidEntity, on the Right.
   static Either<Failure, ValidFullName> _verifyContent({
     required Name firstName,
-    required Name lastName,
+    required Name? lastName,
     required bool hasMiddleName,
   }) {
     final contentVerification = firstName.toBroadEither.flatMap(
-      (validFirstName) => lastName.toBroadEither.flatMap(
-        (validLastName) => right<Failure, ValidFullName>(ValidFullName._(
-          firstName: validFirstName,
-          lastName: validLastName,
-          hasMiddleName: hasMiddleName,
-        )),
-      ),
+      (validFirstName) => $Name.toBroadEitherNullable(lastName).flatMap(
+            (validLastName) => right(ValidFullName._(
+              firstName: validFirstName,
+              lastName: validLastName,
+              hasMiddleName: hasMiddleName,
+            )),
+          ),
     );
 
     return contentVerification;
@@ -71,7 +71,7 @@ mixin $FullName {
     return generalVerification.toEither(() => validEntity).swap();
   }
 
-  Name get lastName => mapValidity(
+  Name? get lastName => mapValidity(
         valid: (valid) => valid.lastName,
         invalid: (invalid) => invalid.lastName,
       );
@@ -162,7 +162,7 @@ class ValidFullName extends FullName implements ValidEntity {
 
   final ValidName firstName;
   @override
-  final ValidName lastName;
+  final ValidName? lastName;
   @override
   final bool hasMiddleName;
 
@@ -189,7 +189,7 @@ abstract class InvalidFullName extends FullName implements InvalidEntity {
 
   Name get firstName;
   @override
-  Name get lastName;
+  Name? get lastName;
   @override
   bool get hasMiddleName;
 
@@ -250,7 +250,7 @@ class InvalidFullNameContent extends InvalidFullName
   @override
   final Name firstName;
   @override
-  final Name lastName;
+  final Name? lastName;
   @override
   final bool hasMiddleName;
 
@@ -291,7 +291,7 @@ class InvalidFullNameGeneral extends InvalidFullName
   @override
   final ValidName firstName;
   @override
-  final ValidName lastName;
+  final ValidName? lastName;
   @override
   final bool hasMiddleName;
 
