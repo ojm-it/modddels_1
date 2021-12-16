@@ -92,8 +92,11 @@ class GeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
       : super(className) {
     this.namedParameters =
         namedParameters.map((p) => EntityParameter(p)).toList();
+
+    validEntityContent = '_Valid${className}Content';
   }
   late final List<EntityParameter> namedParameters;
+  late final String validEntityContent;
 }
 
 class ListGeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
@@ -168,11 +171,10 @@ class EntityParameter {
   bool get hasInvalidNullAnnotation =>
       _invalidNullChecker.hasAnnotationOfExact(parameter);
 
-  InvalidNull get invalidNullAnnotation {
+  String get invalidNullGeneralFailure {
     final annotation = _invalidNullChecker.annotationsOfExact(parameter).single;
-    print(annotation.runtimeType);
-    print(annotation.getField('generalFailure'));
-    return annotation as InvalidNull;
+
+    return annotation.getField('generalFailure') as String;
   }
 }
 

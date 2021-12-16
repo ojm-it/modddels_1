@@ -33,14 +33,16 @@ class GeneralEntityGenerator {
 
     final classInfo = GeneralEntityClassInfo(className, namedParameters);
 
-    //test
     for (final param in classInfo.namedParameters) {
       if (param.hasInvalidNullAnnotation) {
-        print(param.invalidNullAnnotation);
+        if (!param.isNullable) {
+          throw InvalidGenerationSourceError(
+            'The InvalidNull annotation can only be used with nullable types.',
+            element: param.parameter,
+          );
+        }
       }
     }
-
-    //ent test
 
     final classBuffer = StringBuffer();
 
@@ -99,7 +101,7 @@ class GeneralEntityGenerator {
     ///
     /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
     /// ValidEntity, on the Right.
-    static Either<Failure, ${classInfo.validEntity}> _verifyContent({
+    static Either<Failure, ${classInfo.validEntityContent}> _verifyContent({
       ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
     }) {
       ${generateContentVerification(classInfo.namedParameters, classInfo)}
@@ -113,9 +115,16 @@ class GeneralEntityGenerator {
     /// If the entity is invalid as a whole, this holds the [GeneralFailure] on
     /// the Left. Otherwise, holds the ValidEntity on the Right.
     static Either<${classInfo.generalFailure}, ${classInfo.validEntity}> _verifyGeneral(
-      ${classInfo.validEntity} validEntity) {
-      final generalVerification = const $className._().validateGeneral(validEntity);
-      return generalVerification.toEither(() => validEntity).swap();
+      ${classInfo.validEntityContent} validEntityContent) {
+      final nullablesVerification = validEntityContent.verifyNullables();
+
+      final generalVerification = nullablesVerification.flatMap((validEntity) =>
+        const $className._()
+            .validateGeneral(validEntity)
+            .toEither(() => validEntity)
+            .swap());
+
+      return generalVerification;
     }
 
     ''');
@@ -254,10 +263,55 @@ class GeneralEntityGenerator {
     final constructorParams = classInfo.namedParameters.map(
         (p) => '${p.name}: ${p.hasValidAnnotation ? p.name : p.validName},');
 
-    return '''right<Failure, ${classInfo.validEntity}>(${classInfo.validEntity}._(
+    return '''right<Failure, ${classInfo.validEntityContent}>(${classInfo.validEntity}._(
         ${constructorParams.join('')}
       ))$comma
       ''';
+  }
+
+  void makeValidEntityContent(
+      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${classInfo.validEntityContent} {
+      
+    ''');
+
+    /// private constructor
+    classBuffer.writeln('''
+    const ${classInfo.validEntityContent}._({
+      ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
+      }) : super._();
+
+    ''');
+
+    /// class members
+    for (final param in classInfo.namedParameters) {
+      final paramType =
+          param.hasValidAnnotation ? param.type : 'Valid${param.type}';
+      classBuffer.writeln('final $paramType ${param.name};');
+    }
+    classBuffer.writeln('');
+
+    /// verifyNullables method
+    classBuffer.writeln('''
+    Either<${classInfo.generalFailure}, ${classInfo.validEntity}> verifyNullables() {
+
+      ${classInfo.namedParameters.where((p) => p.hasInvalidNullAnnotation).map((param) => '''
+      final ${param.name} = this.${param.name};
+      if(${param.name} == null) {
+        return left(${param.invalidNullGeneralFailure});
+      }
+      
+      ''').join()}
+
+      return right(${classInfo.validEntity}._(
+        ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
+      ));
+    }
+    ''');
+
+    /// end
+    classBuffer.writeln('}');
   }
 
   void makeValidEntity(
@@ -280,9 +334,13 @@ class GeneralEntityGenerator {
       if (param.hasWithGetterAnnotation == true) {
         classBuffer.writeln('@override');
       }
-      final paramType =
-          param.hasValidAnnotation ? param.type : 'Valid${param.type}';
-      classBuffer.writeln('final $paramType ${param.name};');
+      final paramType = param.hasInvalidNullAnnotation
+          ? param.typeWithoutNullabilitySuffix
+          : param.type;
+
+      final validParamType =
+          param.hasValidAnnotation ? paramType : 'Valid$paramType';
+      classBuffer.writeln('final $validParamType ${param.name};');
     }
     classBuffer.writeln('');
 
