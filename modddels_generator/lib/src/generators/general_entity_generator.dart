@@ -265,7 +265,7 @@ class GeneralEntityGenerator {
     final constructorParams = classInfo.namedParameters.map(
         (p) => '${p.name}: ${p.hasValidAnnotation ? p.name : p.validName},');
 
-    return '''right<Failure, ${classInfo.validEntityContent}>(${classInfo.validEntity}._(
+    return '''right<Failure, ${classInfo.validEntityContent}>(${classInfo.validEntityContent}._(
         ${constructorParams.join('')}
       ))$comma
       ''';
@@ -282,7 +282,7 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     const ${classInfo.validEntityContent}._({
       ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
-      }) : super._();
+      });
 
     ''');
 
