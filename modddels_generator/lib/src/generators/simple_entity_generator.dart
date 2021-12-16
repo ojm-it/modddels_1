@@ -42,6 +42,15 @@ class SimpleEntityGenerator {
       }
     }
 
+    for (final param in classInfo.namedParameters) {
+      if (param.hasInvalidNullAnnotation) {
+        throw InvalidGenerationSourceError(
+          'The InvalidNull annotation can only be used with a GeneralEntity.',
+          element: param.parameter,
+        );
+      }
+    }
+
     final classBuffer = StringBuffer();
 
     makeMixin(classBuffer, classInfo);
