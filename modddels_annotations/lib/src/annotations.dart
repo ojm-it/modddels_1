@@ -87,3 +87,18 @@ const withGetter = WithGetterAnnotation();
 ///  }) { ...
 /// ```
 const validWithGetter = ValidWithGetterAnnotation();
+
+class InvalidNull<G extends GeneralFailure> {
+  const InvalidNull(this.generalFailure);
+
+  final G generalFailure;
+}
+
+// @InvalidNull(TestGeneralFailure())
+// final int t = 0;
+
+
+
+// class TestGeneralFailure extends GeneralFailure {
+//   const TestGeneralFailure();
+// }
