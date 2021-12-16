@@ -174,7 +174,7 @@ class EntityParameter {
   String get invalidNullGeneralFailure {
     final annotation = _invalidNullChecker.annotationsOfExact(parameter).single;
 
-    return annotation.getField('generalFailure') as String;
+    return annotation.getField('generalFailure')!.toStringValue()!;
   }
 }
 
