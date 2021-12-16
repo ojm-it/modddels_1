@@ -13,7 +13,7 @@ dependencies:
   modddels_annotations:
       git:
           url: git://github.com/ojm-it/modddels.git
-          ref: dev
+          ref: master
           path: modddels_annotations
 
 dev_dependencies:

@@ -18,7 +18,7 @@ dependencies:
   modddels_annotations:
     git:
       url: git://github.com/ojm-it/modddels.git
-      ref: dev
+      ref: master
       path: modddels_annotations
 
 dev_dependencies:
@@ -30,7 +30,7 @@ dev_dependencies:
   modddels_generator:
     git:
       url: git://github.com/ojm-it/modddels.git
-      ref: dev
+      ref: master
       path: modddels_generator
 
 flutter:

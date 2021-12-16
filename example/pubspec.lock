@@ -337,8 +337,8 @@ packages:
     dependency: "direct main"
     description:
       path: modddels_annotations
-      ref: dev
-      resolved-ref: fa95189a433c8dbd5b2e1a7f5313636cbb137592
+      ref: master
+      resolved-ref: "081fc95f99279395a7b084875652e688b45fa00a"
       url: "git://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"
@@ -346,8 +346,8 @@ packages:
     dependency: "direct dev"
     description:
       path: modddels_generator
-      ref: dev
-      resolved-ref: fa95189a433c8dbd5b2e1a7f5313636cbb137592
+      ref: master
+      resolved-ref: "081fc95f99279395a7b084875652e688b45fa00a"
       url: "git://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"
