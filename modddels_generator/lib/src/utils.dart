@@ -174,12 +174,17 @@ class EntityParameter {
   String get invalidNullGeneralFailure {
     final annotation = _invalidNullChecker.annotationsOfExact(parameter).single;
 
-    final generalFailure = annotation.getField('generalFailure');
+    final generalFailure =
+        annotation.getField('generalFailure')?.toStringValue();
 
-    print(generalFailure?.toStringValue());
-    print(generalFailure?.toTypeValue());
+    if (generalFailure == null) {
+      throw InvalidGenerationSourceError(
+        "The InvalidAnnotation should contain a String value.",
+        element: parameter,
+      );
+    }
 
-    return annotation.getField('generalFailure').toString();
+    return generalFailure;
   }
 }
 
