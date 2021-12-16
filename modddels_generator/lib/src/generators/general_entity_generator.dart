@@ -37,7 +37,7 @@ class GeneralEntityGenerator {
       if (param.hasInvalidNullAnnotation) {
         if (!param.isNullable) {
           throw InvalidGenerationSourceError(
-            'The InvalidNull annotation can only be used with nullable types.',
+            'The InvalidNull annotation can only be used with nullable parameters.',
             element: param.parameter,
           );
         }
