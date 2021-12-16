@@ -92,8 +92,11 @@ class GeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
       : super(className) {
     this.namedParameters =
         namedParameters.map((p) => EntityParameter(p)).toList();
+
+    validEntityContent = '_Valid${className}Content';
   }
   late final List<EntityParameter> namedParameters;
+  late final String validEntityContent;
 }
 
 class ListGeneralEntityClassInfo extends BaseGeneralEntityClassInfo {
@@ -164,6 +167,25 @@ class EntityParameter {
   bool get hasWithGetterAnnotation =>
       _withGetterChecker.hasAnnotationOfExact(parameter) ||
       _validWithGetterChecker.hasAnnotationOfExact(parameter);
+
+  bool get hasInvalidNullAnnotation =>
+      _invalidNullChecker.hasAnnotationOfExact(parameter);
+
+  String get invalidNullGeneralFailure {
+    final annotation = _invalidNullChecker.annotationsOfExact(parameter).single;
+
+    final generalFailure =
+        annotation.getField('generalFailure')?.toStringValue();
+
+    if (generalFailure == null) {
+      throw InvalidGenerationSourceError(
+        "The InvalidAnnotation should contain a String value.",
+        element: parameter,
+      );
+    }
+
+    return generalFailure;
+  }
 }
 
 const _validChecker = TypeChecker.fromRuntime(ValidAnnotation);
@@ -172,6 +194,8 @@ const _withGetterChecker = TypeChecker.fromRuntime(WithGetterAnnotation);
 
 const _validWithGetterChecker =
     TypeChecker.fromRuntime(ValidWithGetterAnnotation);
+
+const _invalidNullChecker = TypeChecker.fromRuntime(InvalidNull);
 
 extension StringExtension on String {
   String capitalize() {

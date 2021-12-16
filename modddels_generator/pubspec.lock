@@ -105,7 +105,7 @@ packages:
       name: characters
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.2.0"
   charcode:
     dependency: transitive
     description:
@@ -319,7 +319,7 @@ packages:
     description:
       path: modddels_annotations
       ref: master
-      resolved-ref: eba518869ef7fcee9cf40c8d8f80c6b8e9d6a1fb
+      resolved-ref: "081fc95f99279395a7b084875652e688b45fa00a"
       url: "git://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"
@@ -502,7 +502,7 @@ packages:
       name: vector_math
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0"
+    version: "2.1.1"
   vm_service:
     dependency: transitive
     description:

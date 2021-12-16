@@ -9,7 +9,7 @@ part of 'fullname.dart';
 mixin $FullName {
   static FullName _create({
     required Name firstName,
-    required Name lastName,
+    required Name? lastName,
     required bool hasMiddleName,
   }) {
     /// 1. **Content validation**
@@ -44,34 +44,44 @@ mixin $FullName {
   /// failure of the first invalid modddel encountered)
   ///
   /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
-  /// ValidEntity, on the Right.
-  static Either<Failure, ValidFullName> _verifyContent({
+  /// _ValidEntityContent, on the Right.
+  static Either<Failure, _ValidFullNameContent> _verifyContent({
     required Name firstName,
-    required Name lastName,
+    required Name? lastName,
     required bool hasMiddleName,
   }) {
     final contentVerification = firstName.toBroadEither.flatMap(
-      (validFirstName) => lastName.toBroadEither.flatMap(
-        (validLastName) => right<Failure, ValidFullName>(ValidFullName._(
-          firstName: validFirstName,
-          lastName: validLastName,
-          hasMiddleName: hasMiddleName,
-        )),
-      ),
+      (validFirstName) => $Name.toBroadEitherNullable(lastName).flatMap(
+            (validLastName) =>
+                right<Failure, _ValidFullNameContent>(_ValidFullNameContent._(
+              firstName: validFirstName,
+              lastName: validLastName,
+              hasMiddleName: hasMiddleName,
+            )),
+          ),
     );
 
     return contentVerification;
   }
 
-  /// If the entity is invalid as a whole, this holds the [GeneralFailure] on
-  /// the Left. Otherwise, holds the ValidEntity on the Right.
+  /// This holds a [GeneralFailure] on the Left if :
+  ///  - One of the nullable fields marked with `@InvalidNull` is null
+  ///  - The validateGeneral method returns a [GeneralFailure]
+  /// Otherwise, holds the ValidEntity on the Right.
   static Either<FullNameGeneralFailure, ValidFullName> _verifyGeneral(
-      ValidFullName validEntity) {
-    final generalVerification = const FullName._().validateGeneral(validEntity);
-    return generalVerification.toEither(() => validEntity).swap();
+      _ValidFullNameContent validEntityContent) {
+    final nullablesVerification = validEntityContent.verifyNullables();
+
+    final generalVerification = nullablesVerification.flatMap((validEntity) =>
+        const FullName._()
+            .validateGeneral(validEntity)
+            .toEither(() => validEntity)
+            .swap());
+
+    return generalVerification;
   }
 
-  Name get lastName => mapValidity(
+  Name? get lastName => mapValidity(
         valid: (valid) => valid.lastName,
         invalid: (invalid) => invalid.lastName,
       );
@@ -153,6 +163,34 @@ mixin $FullName {
   }
 }
 
+class _ValidFullNameContent {
+  const _ValidFullNameContent._({
+    required this.firstName,
+    required this.lastName,
+    required this.hasMiddleName,
+  });
+
+  final ValidName firstName;
+  final ValidName? lastName;
+  final bool hasMiddleName;
+
+  /// If one of the nullable fields marked with `@InvalidNull` is null, this
+  /// holds a [GeneralFailure] on the Left. Otherwise, holds the ValidEntity on
+  /// the Right.
+  Either<FullNameGeneralFailure, ValidFullName> verifyNullables() {
+    final lastName = this.lastName;
+    if (lastName == null) {
+      return left(const FullNameGeneralFailure.incomplete());
+    }
+
+    return right(ValidFullName._(
+      firstName: firstName,
+      lastName: lastName,
+      hasMiddleName: hasMiddleName,
+    ));
+  }
+}
+
 class ValidFullName extends FullName implements ValidEntity {
   const ValidFullName._({
     required this.firstName,
@@ -189,7 +227,7 @@ abstract class InvalidFullName extends FullName implements InvalidEntity {
 
   Name get firstName;
   @override
-  Name get lastName;
+  Name? get lastName;
   @override
   bool get hasMiddleName;
 
@@ -250,7 +288,7 @@ class InvalidFullNameContent extends InvalidFullName
   @override
   final Name firstName;
   @override
-  final Name lastName;
+  final Name? lastName;
   @override
   final bool hasMiddleName;
 
@@ -291,7 +329,7 @@ class InvalidFullNameGeneral extends InvalidFullName
   @override
   final ValidName firstName;
   @override
-  final ValidName lastName;
+  final ValidName? lastName;
   @override
   final bool hasMiddleName;
 
