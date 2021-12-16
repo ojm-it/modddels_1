@@ -171,6 +171,7 @@ class EntityParameter {
   InvalidNull get invalidNullAnnotation {
     final annotation = _invalidNullChecker.annotationsOfExact(parameter).single;
     print(annotation.runtimeType);
+    print(annotation.getField('generalFailure'));
     return annotation as InvalidNull;
   }
 }
