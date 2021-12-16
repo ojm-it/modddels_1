@@ -102,7 +102,7 @@ class GeneralEntityGenerator {
     /// failure of the first invalid modddel encountered)
     ///
     /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
-    /// ValidEntity, on the Right.
+    /// _ValidEntityContent, on the Right.
     static Either<Failure, ${classInfo.validEntityContent}> _verifyContent({
       ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
     }) {
@@ -114,8 +114,10 @@ class GeneralEntityGenerator {
 
     /// verifyGeneral function
     classBuffer.writeln('''
-    /// If the entity is invalid as a whole, this holds the [GeneralFailure] on
-    /// the Left. Otherwise, holds the ValidEntity on the Right.
+    /// This holds a [GeneralFailure] on the Left if :
+    ///  - One of the nullable fields marked with `@InvalidNull` is null
+    ///  - The validateGeneral method returns a [GeneralFailure]
+    /// Otherwise, holds the ValidEntity on the Right.
     static Either<${classInfo.generalFailure}, ${classInfo.validEntity}> _verifyGeneral(
       ${classInfo.validEntityContent} validEntityContent) {
       final nullablesVerification = validEntityContent.verifyNullables();
@@ -296,6 +298,9 @@ class GeneralEntityGenerator {
 
     /// verifyNullables method
     classBuffer.writeln('''
+    /// If one of the nullable fields marked with `@InvalidNull` is null, this
+    /// holds a [GeneralFailure] on the Left. Otherwise, holds the ValidEntity on
+    /// the Right.
     Either<${classInfo.generalFailure}, ${classInfo.validEntity}> verifyNullables() {
 
       ${classInfo.namedParameters.where((p) => p.hasInvalidNullAnnotation).map((param) => '''
