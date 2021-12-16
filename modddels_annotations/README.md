@@ -38,7 +38,8 @@ The different states a Modddel can have are represented with **Union Cases Class
 	- [GeneralEntity](#generalentity)
 		- [Usage](#usage-5)
 		- [Fields getters](#fields-getters)
-		- [The valid annotation](#the-valid-annotation-1)
+		- [The `valid` annotation](#the-valid-annotation-1)
+		- [The `InvalidNull` annotation](#the-invalidnull-annotation)
 	- [ListGeneralEntity](#listgeneralentity)
 		- [Usage](#usage-6)
 	- [SizedListGeneralEntity](#sizedlistgeneralentity)
@@ -198,7 +199,7 @@ When creating a ListEntity, the validation is made in this order :
 1. **Content validation** : If any of the modddels is invalid, then this ListEntity becomes an `InvalidEntityContent` that holds the `contentFailure` (which is the failure of the first encountered invalid modddel).
 2. **→ Validations passed** : This ListEntity is valid, and becomes a `ValidEntity` that holds the valid version of its modddels.
 
-NB: When empty, the ListEntity is considered valid. If you want a different behaviour, consider using a `SizedListEntity` and providing your own size validation.
+> **NB:** When empty, the ListEntity is considered valid. If you want a different behaviour, consider using a `SizedListEntity` and providing your own size validation.
 
 ### Usage
 
@@ -375,11 +376,35 @@ That's because the GeneralEntity may have a `GeneralFailure`, which otherwise ma
 Nonetheless, if you want to have a direct getter for a field from the unvalidated GeneralEntity, you can use the @withGetter annotation.
 A good usecase for this would be for an "id" field.
 
-### The valid annotation
+### The `valid` annotation
 
 You can use the `@valid` annotation as you would with a `SimpleEntity`.
 
 If you want to use both `@valid` and `@withGetter` annotation, you can use the shorthand `@validWithGetter` annotation.
+
+### The `InvalidNull` annotation
+
+If your entity contains a nullable modddel that you want to be non-nullable in the `ValidEntity`, then you should use the `@InvalidNull` annotation.
+
+Example :
+
+```dart
+class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
+    ValidFullName> with $FullName {
+  factory FullName({
+    @InvalidNull('const FullNameGeneralFailure.incomplete()')
+        required Name? lastName,
+    ...
+  }) {
+    ...
+
+```
+
+Here, if the field `lastName` is null, then the FullName entity will be an `InvalidEntityGeneral`, with as a general failure `FullNameGeneralFailure.incomplete()`.
+
+>**NB :** This validation step of nullable fields marked with the `@InvalidNull` annotation occurs just before the `validateGeneral` method is called. So the entity passed in the `validateGeneral` method will have those fields non-nullable.
+>
+>**NB :** You can use the `@InvalidNull` annotation with any other annotation.
 
 ## ListGeneralEntity
 
