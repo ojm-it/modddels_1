@@ -5,14 +5,14 @@ import '../modddel.dart';
 /// via the `validateValue` method. This method returns `some` [ValueFailure] if the
 /// value is invalid, otherwise returns `none`.
 ///
-/// When creating the SizedListEntity, the validation is made in this order :
+/// When creating the ValueObject, the validation is made in this order :
 ///
 /// 1. **Value Validation** : If the value is invalid, this [ValueObject] becomes an
 ///    [InvalidValueObject] that holds the [ValueFailure].
 /// 2. **→ Validations passed** : This [ValueObject] is valid, and becomes a
 ///    [ValidValueObject], from which you can access the valid value.
 abstract class ValueObject<
-    T,
+    T extends Object?,
     F extends ValueFailure<T>,
     I extends InvalidValueObject<T, F>,
     V extends ValidValueObject<T>> extends Modddel<I, V> {

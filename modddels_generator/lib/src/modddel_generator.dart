@@ -9,10 +9,12 @@ import 'package:modddels_generator/src/generators/sized_list_general_entity_gene
 import 'package:modddels_generator/src/generators/value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
 
+import 'generators/nullable_value_object_generator.dart';
 import 'generators/sized_list_entity_generator.dart';
 
 enum Model {
   valueObject,
+  nullableValueObject,
   simpleEntity,
   listEntity,
   sizedListEntity,
@@ -81,6 +83,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
     }
     if (superClassName == 'ValueObject') {
       modelType = Model.valueObject;
+    } else if (superClassName == 'NullableValueObject') {
+      modelType = Model.nullableValueObject;
     } else if (superClassName == 'ListGeneralEntity') {
       modelType = Model.listGeneralEntity;
     } else if (superClassName == 'SizedListGeneralEntity') {
@@ -103,6 +107,10 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
     switch (modelType) {
       case Model.valueObject:
         return ValueObjectGenerator(
+                className: className, factoryConstructor: factoryConstructor)
+            .generate();
+      case Model.nullableValueObject:
+        return NullableValueObjectGenerator(
                 className: className, factoryConstructor: factoryConstructor)
             .generate();
       case Model.listGeneralEntity:
