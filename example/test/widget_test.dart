@@ -8,6 +8,7 @@
 import 'package:example/list_entity/namelist2.dart';
 import 'package:example/simple_entities/fullname2.dart';
 import 'package:example/value_objects.dart/name.dart';
+import 'package:example/value_objects.dart/name2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -69,4 +70,14 @@ void main() {
   print(fullName1);
 
   print(fullName2);
+
+  print('------------------');
+
+  final name = Name2(null);
+
+  print(name);
+
+  print(Name2(''));
+
+  print(Name2('e'));
 }
