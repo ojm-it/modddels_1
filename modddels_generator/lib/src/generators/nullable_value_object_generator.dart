@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -20,9 +21,18 @@ class NullableValueObjectGenerator {
       ),
     );
 
-    final valueTypeName = inputParameter.type.toString();
+    if (inputParameter.type.nullabilitySuffix != NullabilitySuffix.question) {
+      throw InvalidGenerationSourceError(
+        'The positional argument "input" should be nullable',
+        element: inputParameter,
+      );
+    }
 
-    final classInfo = ValueObjectClassInfo(valueTypeName, className);
+    final valueTypeName = inputParameter.type.toString();
+    final nonNullValueTypeName =
+        valueTypeName.substring(0, valueTypeName.length - 1);
+
+    final classInfo = ValueObjectClassInfo(nonNullValueTypeName, className);
 
     final classBuffer = StringBuffer();
 
