@@ -17,8 +17,8 @@ final _privateConstructorUsedError = UnsupportedError(
 class _$Name2ValueFailureTearOff {
   const _$Name2ValueFailureTearOff();
 
-  _Empty empty({required String? failedValue}) {
-    return _Empty(
+  _None none({required String? failedValue}) {
+    return _None(
       failedValue: failedValue,
     );
   }
@@ -33,33 +33,33 @@ mixin _$Name2ValueFailure {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String? failedValue) empty,
+    required TResult Function(String? failedValue) none,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult Function(String? failedValue)? empty,
+    TResult Function(String? failedValue)? none,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String? failedValue)? empty,
+    TResult Function(String? failedValue)? none,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_Empty value) empty,
+    required TResult Function(_None value) none,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(_Empty value)? empty,
+    TResult Function(_None value)? none,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_Empty value)? empty,
+    TResult Function(_None value)? none,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -100,28 +100,28 @@ class _$Name2ValueFailureCopyWithImpl<$Res>
 }
 
 /// @nodoc
-abstract class _$EmptyCopyWith<$Res>
+abstract class _$NoneCopyWith<$Res>
     implements $Name2ValueFailureCopyWith<$Res> {
-  factory _$EmptyCopyWith(_Empty value, $Res Function(_Empty) then) =
-      __$EmptyCopyWithImpl<$Res>;
+  factory _$NoneCopyWith(_None value, $Res Function(_None) then) =
+      __$NoneCopyWithImpl<$Res>;
   @override
   $Res call({String? failedValue});
 }
 
 /// @nodoc
-class __$EmptyCopyWithImpl<$Res> extends _$Name2ValueFailureCopyWithImpl<$Res>
-    implements _$EmptyCopyWith<$Res> {
-  __$EmptyCopyWithImpl(_Empty _value, $Res Function(_Empty) _then)
-      : super(_value, (v) => _then(v as _Empty));
+class __$NoneCopyWithImpl<$Res> extends _$Name2ValueFailureCopyWithImpl<$Res>
+    implements _$NoneCopyWith<$Res> {
+  __$NoneCopyWithImpl(_None _value, $Res Function(_None) _then)
+      : super(_value, (v) => _then(v as _None));
 
   @override
-  _Empty get _value => super._value as _Empty;
+  _None get _value => super._value as _None;
 
   @override
   $Res call({
     Object? failedValue = freezed,
   }) {
-    return _then(_Empty(
+    return _then(_None(
       failedValue: failedValue == freezed
           ? _value.failedValue
           : failedValue // ignore: cast_nullable_to_non_nullable
@@ -132,22 +132,22 @@ class __$EmptyCopyWithImpl<$Res> extends _$Name2ValueFailureCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_Empty implements _Empty {
-  const _$_Empty({required this.failedValue});
+class _$_None implements _None {
+  const _$_None({required this.failedValue});
 
   @override
   final String? failedValue;
 
   @override
   String toString() {
-    return 'Name2ValueFailure.empty(failedValue: $failedValue)';
+    return 'Name2ValueFailure.none(failedValue: $failedValue)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _Empty &&
+            other is _None &&
             const DeepCollectionEquality()
                 .equals(other.failedValue, failedValue));
   }
@@ -158,33 +158,33 @@ class _$_Empty implements _Empty {
 
   @JsonKey(ignore: true)
   @override
-  _$EmptyCopyWith<_Empty> get copyWith =>
-      __$EmptyCopyWithImpl<_Empty>(this, _$identity);
+  _$NoneCopyWith<_None> get copyWith =>
+      __$NoneCopyWithImpl<_None>(this, _$identity);
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String? failedValue) empty,
+    required TResult Function(String? failedValue) none,
   }) {
-    return empty(failedValue);
+    return none(failedValue);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult Function(String? failedValue)? empty,
+    TResult Function(String? failedValue)? none,
   }) {
-    return empty?.call(failedValue);
+    return none?.call(failedValue);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String? failedValue)? empty,
+    TResult Function(String? failedValue)? none,
     required TResult orElse(),
   }) {
-    if (empty != null) {
-      return empty(failedValue);
+    if (none != null) {
+      return none(failedValue);
     }
     return orElse();
   }
@@ -192,38 +192,38 @@ class _$_Empty implements _Empty {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_Empty value) empty,
+    required TResult Function(_None value) none,
   }) {
-    return empty(this);
+    return none(this);
   }
 
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult Function(_Empty value)? empty,
+    TResult Function(_None value)? none,
   }) {
-    return empty?.call(this);
+    return none?.call(this);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_Empty value)? empty,
+    TResult Function(_None value)? none,
     required TResult orElse(),
   }) {
-    if (empty != null) {
-      return empty(this);
+    if (none != null) {
+      return none(this);
     }
     return orElse();
   }
 }
 
-abstract class _Empty implements Name2ValueFailure {
-  const factory _Empty({required String? failedValue}) = _$_Empty;
+abstract class _None implements Name2ValueFailure {
+  const factory _None({required String? failedValue}) = _$_None;
 
   @override
   String? get failedValue;
   @override
   @JsonKey(ignore: true)
-  _$EmptyCopyWith<_Empty> get copyWith => throw _privateConstructorUsedError;
+  _$NoneCopyWith<_None> get copyWith => throw _privateConstructorUsedError;
 }

@@ -22,13 +22,13 @@ class Name2 extends NullableValueObject<String, Name2ValueFailure, InvalidName2,
 
   @override
   Name2ValueFailure nullFailure() {
-    return const Name2ValueFailure.empty(failedValue: null);
+    return const Name2ValueFailure.none(failedValue: null);
   }
 }
 
 @freezed
 class Name2ValueFailure extends ValueFailure<String?> with _$Name2ValueFailure {
-  const factory Name2ValueFailure.empty({
+  const factory Name2ValueFailure.none({
     required String? failedValue,
-  }) = _Empty;
+  }) = _None;
 }
