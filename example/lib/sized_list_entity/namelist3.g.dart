@@ -260,3 +260,25 @@ class InvalidNameList3Content extends InvalidNameList3
         list,
       ];
 }
+
+class NameList3Tester extends SizedListEntityTester<
+    NameList3SizeFailure,
+    InvalidNameList3Size,
+    InvalidNameList3Content,
+    InvalidNameList3,
+    ValidNameList3,
+    NameList3> {
+  const NameList3Tester({
+    int maxSutDescriptionLength = 100,
+    String isValidGroupDescription = 'Should be a ValidNameList3',
+    String isInvalidSizeGroupDescription =
+        'Should be an InvalidNameList3Size and hold the NameList3SizeFailure',
+    String isInvalidContentGroupDescription =
+        'Should be an InvalidNameList3Content and hold the proper contentFailure',
+  }) : super(
+          maxSutDescriptionLength: maxSutDescriptionLength,
+          isValidGroupDescription: isValidGroupDescription,
+          isInvalidSizeGroupDescription: isInvalidSizeGroupDescription,
+          isInvalidContentGroupDescription: isInvalidContentGroupDescription,
+        );
+}

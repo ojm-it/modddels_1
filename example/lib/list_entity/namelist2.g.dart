@@ -147,3 +147,17 @@ class InvalidNameList2Content extends NameList2
         list,
       ];
 }
+
+class NameList2Tester extends ListEntityTester<InvalidNameList2Content,
+    ValidNameList2, NameList2> {
+  const NameList2Tester({
+    int maxSutDescriptionLength = 100,
+    String isValidGroupDescription = 'Should be a ValidNameList2',
+    String isInvalidContentGroupDescription =
+        'Should be an InvalidNameList2Content and hold the proper contentFailure',
+  }) : super(
+          maxSutDescriptionLength: maxSutDescriptionLength,
+          isValidGroupDescription: isValidGroupDescription,
+          isInvalidContentGroupDescription: isInvalidContentGroupDescription,
+        );
+}

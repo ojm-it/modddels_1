@@ -267,3 +267,25 @@ class InvalidNameListGeneral extends InvalidNameList
         list,
       ];
 }
+
+class NameListTester extends ListGeneralEntityTester<
+    NameListGeneralFailure,
+    InvalidNameListContent,
+    InvalidNameListGeneral,
+    InvalidNameList,
+    ValidNameList,
+    NameList> {
+  const NameListTester({
+    int maxSutDescriptionLength = 100,
+    String isValidGroupDescription = 'Should be a ValidNameList',
+    String isInvalidContentGroupDescription =
+        'Should be an InvalidNameListContent and hold the proper contentFailure',
+    String isInvalidGeneralGroupDescription =
+        'Should be an InvalidNameListGeneral and hold the NameListGeneralFailure',
+  }) : super(
+          maxSutDescriptionLength: maxSutDescriptionLength,
+          isValidGroupDescription: isValidGroupDescription,
+          isInvalidContentGroupDescription: isInvalidContentGroupDescription,
+          isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
+        );
+}

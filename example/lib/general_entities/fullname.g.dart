@@ -354,3 +354,25 @@ class InvalidFullNameGeneral extends InvalidFullName
         hasMiddleName,
       ];
 }
+
+class FullNameTester extends GeneralEntityTester<
+    FullNameGeneralFailure,
+    InvalidFullNameContent,
+    InvalidFullNameGeneral,
+    InvalidFullName,
+    ValidFullName,
+    FullName> {
+  const FullNameTester({
+    int maxSutDescriptionLength = 100,
+    String isValidGroupDescription = 'Should be a ValidFullName',
+    String isInvalidContentGroupDescription =
+        'Should be an InvalidFullNameContent and hold the proper contentFailure',
+    String isInvalidGeneralGroupDescription =
+        'Should be an InvalidFullNameGeneral and hold the FullNameGeneralFailure',
+  }) : super(
+          maxSutDescriptionLength: maxSutDescriptionLength,
+          isValidGroupDescription: isValidGroupDescription,
+          isInvalidContentGroupDescription: isInvalidContentGroupDescription,
+          isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
+        );
+}
