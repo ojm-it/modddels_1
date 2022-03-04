@@ -1,6 +1,6 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:modddels_annotations/src/entities/common.dart';
-import 'package:modddels_annotations/src/entities/simple_entity.dart';
+import 'package:modddels_annotations/src/modddels/entities/common.dart';
+import 'package:modddels_annotations/src/modddels/entities/simple_entity.dart';
 
 import '../modddel.dart';
 

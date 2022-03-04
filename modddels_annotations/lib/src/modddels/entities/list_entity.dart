@@ -1,5 +1,7 @@
-import 'package:modddels_annotations/modddels_annotations.dart';
-import 'package:modddels_annotations/src/entities/common.dart';
+import 'package:modddels_annotations/src/modddels/entities/common.dart';
+import 'package:modddels_annotations/src/modddels/entities/simple_entity.dart';
+import 'package:modddels_annotations/src/modddels/entities/sized_list_entity.dart';
+import 'package:modddels_annotations/src/modddels/modddel.dart';
 
 /// A [ListEntity] is similar to a [SimpleEntity] in a sense that it holds a List of
 /// other modddels (of the same type).

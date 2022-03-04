@@ -1,6 +1,5 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:modddels_annotations/src/modddel.dart';
-import 'package:modddels_annotations/src/value_object/value_object.dart';
+import 'package:modddels_annotations/modddels.dart';
 
 /// If your ValueObject holds a nullable value that you want to be non-nullable
 /// in the `ValidValueObject`, then you should use instead a

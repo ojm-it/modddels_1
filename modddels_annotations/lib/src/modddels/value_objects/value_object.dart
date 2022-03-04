@@ -1,5 +1,5 @@
 import 'package:fpdart/fpdart.dart';
-import '../modddel.dart';
+import 'package:modddels_annotations/src/modddels/modddel.dart';
 
 /// A [ValueObject] is a [Modddel] that holds a single value, which is validated
 /// via the `validateValue` method. This method returns `some` [ValueFailure] if the

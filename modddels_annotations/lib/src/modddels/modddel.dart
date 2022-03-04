@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:modddels_annotations/modddels_annotations.dart';
+import 'package:modddels_annotations/src/modddels/entities/common.dart';
+import 'package:modddels_annotations/src/modddels/value_objects/value_object.dart';
 
 /// This is the base class for all the Modddels.
 ///
