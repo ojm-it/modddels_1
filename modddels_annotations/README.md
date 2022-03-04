@@ -25,30 +25,31 @@ The different states a Modddel can have are represented with **Union Cases Class
 - [Table of contents](#table-of-contents)
 - [Features](#features)
 - [Getting started](#getting-started)
-- [Usage](#usage)
+- [Modddels](#modddels)
 	- [ValueObject](#valueobject)
-		- [Usage](#usage-1)
+		- [Usage](#usage)
 		- [NullableValueObject](#nullablevalueobject)
 	- [SimpleEntity](#simpleentity)
-		- [Usage](#usage-2)
+		- [Usage](#usage-1)
 		- [The valid annotation](#the-valid-annotation)
 	- [ListEntity](#listentity)
-		- [Usage](#usage-3)
+		- [Usage](#usage-2)
 	- [SizedListEntity](#sizedlistentity)
-		- [Usage](#usage-4)
+		- [Usage](#usage-3)
 	- [GeneralEntity](#generalentity)
-		- [Usage](#usage-5)
+		- [Usage](#usage-4)
 		- [Fields getters](#fields-getters)
 		- [The `valid` annotation](#the-valid-annotation-1)
 		- [The `InvalidNull` annotation](#the-invalidnull-annotation)
 	- [ListGeneralEntity](#listgeneralentity)
-		- [Usage](#usage-6)
+		- [Usage](#usage-5)
 	- [SizedListGeneralEntity](#sizedlistgeneralentity)
-		- [Usage](#usage-7)
+		- [Usage](#usage-6)
 	- [Additionnal remarks](#additionnal-remarks)
 		- [Optional and Nullable types](#optional-and-nullable-types)
 		- [Modddels that are always valid](#modddels-that-are-always-valid)
 		- [List getter](#list-getter)
+- [Testers](#testers)
 - [VsCode snippets](#vscode-snippets)
 - [Additional information](#additional-information)
 
@@ -65,6 +66,8 @@ Available modddels :
   - ListGeneralEntity
   - SizedListGeneralEntity
 
+Each of these modddels has a dedicated `Tester` that makes unit tests easy and straight-forward.
+
 # Getting started
 
 You should have these packages installed :
@@ -72,7 +75,7 @@ You should have these packages installed :
 - fpdart
 - freezed
 
-# Usage
+# Modddels
 
 ## ValueObject
 
@@ -636,6 +639,114 @@ For example :
 ```
 
 That's because the entity may have a `GeneralFailure` or a `SizeFailure`, which otherwise may be unnoticed by you the developer.
+
+---
+
+# Testers
+
+Every modddel mentioned above has a dedicated `Tester`, that makes unit testing easy and straight-forward.
+
+For example, for a 'Name' ValueObject :
+
+```dart
+void main() {
+  // (1)
+  final nameTester = NameTester();
+  
+  // (2)
+  nameTester.makeIsValidTestGroup(tests: [
+    TestIsValidValue('Josh'),
+    TestIsValidValue('Avi'),
+  ]);
+  
+  // (3)
+  nameTester.makeIsInvalidTestGroup(tests: [
+    TestIsInvalidValue('', const NameValueFailure.empty(failedValue: '')),
+  ]);
+}
+```
+
+The Tester **(1)** is automatically generated when using the `@modddel` annotation. You can disable its generation by using instead `@ModddelAnnotation(generateTester: false)`.
+
+Each of the functions **(2)** and **(3)** create a group of tests. The group's `description` is automatically generated, but it can be modified by :
+
+1. Providing it in the `Tester`'s arguments
+
+	```dart
+	final nameTester = NameTester(
+		isValidGroupDescription: 'Should be valid when given a valid name',
+		isInvalidGroupDescription: 'Should be invalid when given an invalid name',
+	);
+	```
+
+2. Providing it in the function itself. *This takes priority over a description set in the `Tester`'s arguments.*
+
+	```dart
+	nameTester.makeIsValidTestGroup(
+		tests: ...,
+		description: 'Should be valid when given a valid name',
+	);
+	```
+
+Each test's description is also automatically created. It usually contains the String representation of the modddel SUT *(`modddel.toString()`)*. To keep these descriptions tidy, this String's length is limited to `maxSutDescriptionLength`, beyond which it is ellipsized. This `maxSutDescriptionLength` defaults to `100`, but it can be modified by :
+
+1. Providing it in the modddel annotation :
+
+	```dart
+	@ModddelAnnotation(maxSutDescriptionLength: 50)
+	```
+
+2. Providing it in the `Tester`'s arguments. *This takes priority over `maxSutDescriptionLength` set in the `@ModddelAnnotation`.*
+
+	```dart
+	final nameTester = NameTester(
+		maxSutDescriptionLength: 50,
+	);
+	```
+
+3. Providing it in the function itself. *This takes priority over `maxSutDescriptionLength` set in the `Tester`'s arguments.*
+
+	```dart
+	nameTester.makeIsValidTestGroup(
+		tests: ...,
+		maxSutDescriptionLength: 50,
+	);
+	```
+
+> **NB 1:** This "ellipsisation" can be disabled by setting `maxSutDescriptionLength` value to `TesterUtils.noEllipsis` (Which equals `-1`).
+>
+> **NB 2:** The group description of `makeIsSanitizedTestGroup` contains two Strings (the input + the sanitizedValue), so each one's length is limited to *the half* of `maxSutDescriptionLength`. This is so that all group descriptions have comparable lengths.
+
+A test's description can be modified by providing the `customDescription` parameter.
+
+```dart
+nameTester.makeIsValidTestGroup(
+  tests: [
+    TestIsValidValue(
+      'Josh',
+	  // We add a prefix to the description
+      customDescription: const CustomDescription.addPrefix('- Important'),
+    ),
+    TestIsValidValue(
+      'Avi',
+	  // We replace the description altogether
+      customDescription:
+          const CustomDescription.replaceDescription('- Boy name'),
+    ),
+  ],
+);
+```
+
+All other usual `test()` and `group()` parameters (such as `skip`, `retry`...) can also be provided.
+
+```dart
+nameTester.makeIsNotSanitizedTestGroup(
+    tests: [
+      TestIsNotSanitized('Avi', retry: 4),
+    ],
+    skip: true,
+  );
+```
 
 # VsCode snippets
 
