@@ -1,25 +1,23 @@
-import 'package:modddels_annotations/modddels_annotations.dart';
+import 'package:modddels_annotations/modddels.dart';
+import 'package:modddels_annotations/src/testers/common.dart';
 import 'package:modddels_annotations/src/testers/entities_testers/mixins.dart';
 
 /// This is a Tester for unit testing a [SimpleEntity].
-class SimpleEntityTester<C extends InvalidEntityContent, V extends ValidEntity>
-    with
-        ValidTesterMixin<C, V, SimpleEntity<C, V>>,
-        ContentTesterMixin<C, C, V, SimpleEntity<C, V>> {
-  SimpleEntityTester({
-    required this.maxSutDescriptionLength,
+class SimpleEntityTester<C extends InvalidEntityContent, V extends ValidEntity,
+        E extends SimpleEntity<C, V>> extends Tester
+    with ValidTesterMixin<C, V, E>, ContentTesterMixin<C, C, V, E> {
+  /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
+  const SimpleEntityTester({
+    required int maxSutDescriptionLength,
     required this.isValidGroupDescription,
     required this.isInvalidContentGroupDescription,
-  });
+  }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
 
   @override
   final String isInvalidContentGroupDescription;
 
   @override
   final String isValidGroupDescription;
-
-  @override
-  final int maxSutDescriptionLength;
 }
 
 /// This is a Tester for unit testing a [GeneralEntity].
@@ -28,17 +26,19 @@ class GeneralEntityTester<
         C extends InvalidEntityContent,
         G extends InvalidEntityGeneral<F>,
         I extends InvalidEntity,
-        V extends ValidEntity>
+        V extends ValidEntity,
+        E extends GeneralEntity<F, I, V>> extends Tester
     with
-        ValidTesterMixin<I, V, GeneralEntity<F, I, V>>,
-        ContentTesterMixin<C, I, V, GeneralEntity<F, I, V>>,
-        GeneralTesterMixin<F, G, I, V, GeneralEntity<F, I, V>> {
-  GeneralEntityTester({
-    required this.maxSutDescriptionLength,
+        ValidTesterMixin<I, V, E>,
+        ContentTesterMixin<C, I, V, E>,
+        GeneralTesterMixin<F, G, I, V, E> {
+  /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
+  const GeneralEntityTester({
+    required int maxSutDescriptionLength,
     required this.isValidGroupDescription,
     required this.isInvalidGeneralGroupDescription,
     required this.isInvalidContentGroupDescription,
-  });
+  }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
 
   @override
   final String isInvalidContentGroupDescription;
@@ -48,30 +48,24 @@ class GeneralEntityTester<
 
   @override
   final String isValidGroupDescription;
-
-  @override
-  final int maxSutDescriptionLength;
 }
 
 /// This is a Tester for unit testing a [ListEntity].
-class ListEntityTester<C extends InvalidEntityContent, V extends ValidEntity>
-    with
-        ValidTesterMixin<C, V, SimpleEntity<C, V>>,
-        ContentTesterMixin<C, C, V, SimpleEntity<C, V>> {
-  ListEntityTester({
-    required this.maxSutDescriptionLength,
+class ListEntityTester<C extends InvalidEntityContent, V extends ValidEntity,
+        E extends ListEntity<C, V>> extends Tester
+    with ValidTesterMixin<C, V, E>, ContentTesterMixin<C, C, V, E> {
+  /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
+  const ListEntityTester({
+    required int maxSutDescriptionLength,
     required this.isValidGroupDescription,
     required this.isInvalidContentGroupDescription,
-  });
+  }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
 
   @override
   final String isInvalidContentGroupDescription;
 
   @override
   final String isValidGroupDescription;
-
-  @override
-  final int maxSutDescriptionLength;
 }
 
 /// This is a Tester for unit testing a [ListGeneralEntity].
@@ -80,17 +74,19 @@ class ListGeneralEntityTester<
         C extends InvalidEntityContent,
         G extends InvalidEntityGeneral<F>,
         I extends InvalidEntity,
-        V extends ValidEntity>
+        V extends ValidEntity,
+        E extends ListGeneralEntity<F, I, V>> extends Tester
     with
-        ValidTesterMixin<I, V, ListGeneralEntity<F, I, V>>,
-        ContentTesterMixin<C, I, V, ListGeneralEntity<F, I, V>>,
-        GeneralTesterMixin<F, G, I, V, ListGeneralEntity<F, I, V>> {
-  ListGeneralEntityTester({
-    required this.maxSutDescriptionLength,
+        ValidTesterMixin<I, V, E>,
+        ContentTesterMixin<C, I, V, E>,
+        GeneralTesterMixin<F, G, I, V, E> {
+  /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
+  const ListGeneralEntityTester({
+    required int maxSutDescriptionLength,
     required this.isValidGroupDescription,
     required this.isInvalidGeneralGroupDescription,
     required this.isInvalidContentGroupDescription,
-  });
+  }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
 
   @override
   final String isInvalidContentGroupDescription;
@@ -100,9 +96,6 @@ class ListGeneralEntityTester<
 
   @override
   final String isValidGroupDescription;
-
-  @override
-  final int maxSutDescriptionLength;
 }
 
 /// This is a Tester for unit testing a [SizedListEntity].
@@ -111,17 +104,19 @@ class SizedListEntityTester<
         S extends InvalidEntitySize<F>,
         C extends InvalidEntityContent,
         I extends InvalidEntity,
-        V extends ValidEntity>
+        V extends ValidEntity,
+        E extends SizedListEntity<F, I, V>> extends Tester
     with
-        ValidTesterMixin<I, V, SizedListEntity<F, I, V>>,
-        SizeTesterMixin<F, S, I, V, SizedListEntity<F, I, V>>,
-        ContentTesterMixin<C, I, V, SizedListEntity<F, I, V>> {
-  SizedListEntityTester({
-    required this.maxSutDescriptionLength,
+        ValidTesterMixin<I, V, E>,
+        SizeTesterMixin<F, S, I, V, E>,
+        ContentTesterMixin<C, I, V, E> {
+  /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
+  const SizedListEntityTester({
+    required int maxSutDescriptionLength,
     required this.isValidGroupDescription,
     required this.isInvalidSizeGroupDescription,
     required this.isInvalidContentGroupDescription,
-  });
+  }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
 
   @override
   final String isInvalidContentGroupDescription;
@@ -131,9 +126,6 @@ class SizedListEntityTester<
 
   @override
   final String isValidGroupDescription;
-
-  @override
-  final int maxSutDescriptionLength;
 }
 
 /// This is a Tester for unit testing a [SizedListGeneralEntity].
@@ -144,19 +136,21 @@ class SizedListGeneralEntityTester<
         C extends InvalidEntityContent,
         G extends InvalidEntityGeneral<FG>,
         I extends InvalidEntity,
-        V extends ValidEntity>
+        V extends ValidEntity,
+        E extends SizedListGeneralEntity<FS, FG, I, V>> extends Tester
     with
-        ValidTesterMixin<I, V, SizedListGeneralEntity<FS, FG, I, V>>,
-        SizeTesterMixin<FS, S, I, V, SizedListGeneralEntity<FS, FG, I, V>>,
-        ContentTesterMixin<C, I, V, SizedListGeneralEntity<FS, FG, I, V>>,
-        GeneralTesterMixin<FG, G, I, V, SizedListGeneralEntity<FS, FG, I, V>> {
-  SizedListGeneralEntityTester({
-    required this.maxSutDescriptionLength,
+        ValidTesterMixin<I, V, E>,
+        SizeTesterMixin<FS, S, I, V, E>,
+        ContentTesterMixin<C, I, V, E>,
+        GeneralTesterMixin<FG, G, I, V, E> {
+  /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
+  const SizedListGeneralEntityTester({
+    required int maxSutDescriptionLength,
     required this.isValidGroupDescription,
     required this.isInvalidSizeGroupDescription,
     required this.isInvalidContentGroupDescription,
     required this.isInvalidGeneralGroupDescription,
-  });
+  }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
 
   @override
   final String isInvalidContentGroupDescription;
@@ -169,7 +163,4 @@ class SizedListGeneralEntityTester<
 
   @override
   final String isValidGroupDescription;
-
-  @override
-  final int maxSutDescriptionLength;
 }

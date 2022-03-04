@@ -1,6 +1,6 @@
-import 'package:modddels_annotations/modddels_annotations.dart';
+import 'package:modddels_annotations/modddels.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modddels_annotations/src/testers/test_case.dart';
+import 'package:modddels_annotations/src/testers/common.dart';
 
 /// This is a [TestCase] for testing that the [sut] (which is an entity) is
 /// valid.

@@ -1,8 +1,10 @@
 import 'dart:math';
 
-import 'package:modddels_annotations/modddels_annotations.dart';
+import 'package:modddels_annotations/modddels.dart';
 
 abstract class TesterUtils {
+  static const noEllipsis = -1;
+
   /// Formats the classname of the [failure] into a readable format.
   ///
   /// Basically, it removes the '_' & '$' signs typically added by freezed.
@@ -20,22 +22,29 @@ abstract class TesterUtils {
 
   /// Formats an [object]'s string representation so that :
   ///
+  /// - Any newline character is replaced by the raw string '\n'
   /// - The string is ellipsized if it exceeds [maxLength] * [maxLengthFactor],
-  /// using the [TesterUtils.ellipsize] function.
-  /// - Any newline character is replaced with the raw string '\n'
+  ///   using the [TesterUtils.ellipsize] function.
+  ///
+  ///   This step can be skipped by setting [maxLength] to
+  ///   [TesterUtils.noEllipsis].
   static String formatObject(
     Object? object, {
     required int maxLength,
     double maxLengthFactor = 1,
   }) {
-    assert(maxLength > 0);
+    assert(maxLength == TesterUtils.noEllipsis || maxLength > 0);
     assert(maxLengthFactor > 0 && maxLengthFactor <= 1);
+
+    final result = object.toString().replaceAll('\n', r'\n');
+
+    if (maxLength == TesterUtils.noEllipsis) {
+      return result;
+    }
 
     final _maxLength = (maxLength * maxLengthFactor).ceil();
 
-    final result = ellipsize(object.toString(), maxLength: _maxLength);
-
-    return result.replaceAll('\n', r'\n');
+    return ellipsize(object.toString(), maxLength: _maxLength);
   }
 
   /// Shortens the [text] using an ellipsis if its length exceeds [maxLength].
