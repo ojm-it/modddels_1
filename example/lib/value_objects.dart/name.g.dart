@@ -91,3 +91,22 @@ class InvalidName extends Name
   @override
   List<Object?> get allProps => [failure];
 }
+
+class NameTester extends ValueObjectTester<String, NameValueFailure,
+    InvalidName, ValidName, Name> {
+  NameTester({
+    int maxSutDescriptionLength = 100,
+    String isNotSanitizedGroupDescription = 'Should not be sanitized',
+    String isInvalidGroupDescription =
+        'Should be an InvalidName and hold the NameValueFailure',
+    String isSanitizedGroupDescription = 'Should be sanitized',
+    String isValidGroupDescription = 'Should be a ValidName',
+  }) : super(
+          (input) => Name(input),
+          maxSutDescriptionLength: maxSutDescriptionLength,
+          isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
+          isInvalidGroupDescription: isInvalidGroupDescription,
+          isSanitizedGroupDescription: isSanitizedGroupDescription,
+          isValidGroupDescription: isValidGroupDescription,
+        );
+}

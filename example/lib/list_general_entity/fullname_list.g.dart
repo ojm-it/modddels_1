@@ -270,3 +270,25 @@ class InvalidFullNameListGeneral extends InvalidFullNameList
         list,
       ];
 }
+
+class FullNameListTester extends ListGeneralEntityTester<
+    FullNameListGeneralFailure,
+    InvalidFullNameListContent,
+    InvalidFullNameListGeneral,
+    InvalidFullNameList,
+    ValidFullNameList,
+    FullNameList> {
+  const FullNameListTester({
+    int maxSutDescriptionLength = 100,
+    String isValidGroupDescription = 'Should be a ValidFullNameList',
+    String isInvalidContentGroupDescription =
+        'Should be an InvalidFullNameListContent and hold the proper contentFailure',
+    String isInvalidGeneralGroupDescription =
+        'Should be an InvalidFullNameListGeneral and hold the FullNameListGeneralFailure',
+  }) : super(
+          maxSutDescriptionLength: maxSutDescriptionLength,
+          isValidGroupDescription: isValidGroupDescription,
+          isInvalidContentGroupDescription: isInvalidContentGroupDescription,
+          isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
+        );
+}

@@ -189,3 +189,17 @@ class InvalidFullName2Content extends FullName2
         hasMiddleName,
       ];
 }
+
+class FullName2Tester extends SimpleEntityTester<InvalidFullName2Content,
+    ValidFullName2, FullName2> {
+  const FullName2Tester({
+    int maxSutDescriptionLength = 100,
+    String isValidGroupDescription = 'Should be a ValidFullName2',
+    String isInvalidContentGroupDescription =
+        'Should be an InvalidFullName2Content and hold the proper contentFailure',
+  }) : super(
+          maxSutDescriptionLength: maxSutDescriptionLength,
+          isValidGroupDescription: isValidGroupDescription,
+          isInvalidContentGroupDescription: isInvalidContentGroupDescription,
+        );
+}

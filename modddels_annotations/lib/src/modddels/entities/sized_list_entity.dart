@@ -1,7 +1,7 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:modddels_annotations/src/entities/list_entity.dart';
-import 'package:modddels_annotations/src/modddel.dart';
-import 'package:modddels_annotations/src/entities/common.dart';
+import 'package:modddels_annotations/src/modddels/entities/common.dart';
+import 'package:modddels_annotations/src/modddels/entities/list_entity.dart';
+import 'package:modddels_annotations/src/modddels/modddel.dart';
 
 /// A [SizedListEntity] is similar to a [ListEntity], but its size is validated
 /// via the `validateSize` method. This method returns `some` [SizeFailure] if

@@ -1,13 +1,24 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:modddels_annotations/modddels.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
 class SimpleEntityGenerator {
-  SimpleEntityGenerator(
-      {required this.className, required this.factoryConstructor});
+  SimpleEntityGenerator({
+    required this.className,
+    required this.factoryConstructor,
+    required this.generateTester,
+    required this.maxSutDescriptionLength,
+  });
 
   final String className;
   final ConstructorElement factoryConstructor;
+
+  /// See [ModddelAnnotation.generateTester]
+  final bool generateTester;
+
+  /// See [ModddelAnnotation.maxSutDescriptionLength]
+  final int maxSutDescriptionLength;
 
   String generate() {
     final parameters = factoryConstructor.parameters;
@@ -58,6 +69,10 @@ class SimpleEntityGenerator {
     makeValidEntity(classBuffer, classInfo);
 
     makeInvalidEntityContent(classBuffer, classInfo);
+
+    if (generateTester) {
+      makeTester(classBuffer, classInfo);
+    }
 
     return classBuffer.toString();
   }
@@ -318,6 +333,30 @@ class SimpleEntityGenerator {
     ''');
 
     /// End
+    classBuffer.writeln('}');
+  }
+
+  void makeTester(StringBuffer classBuffer, SimpleEntityClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${className}Tester
+      extends SimpleEntityTester<${classInfo.invalidEntityContent}, ${classInfo.validEntity}, $className> {
+    ''');
+
+    /// constructor
+    classBuffer.writeln('''
+    const ${className}Tester({
+      int maxSutDescriptionLength = $maxSutDescriptionLength,
+      String isValidGroupDescription = 'Should be a ${classInfo.validEntity}',
+      String isInvalidContentGroupDescription =
+          'Should be an ${classInfo.invalidEntityContent} and hold the proper contentFailure',
+    }) : super(
+            maxSutDescriptionLength: maxSutDescriptionLength,
+            isValidGroupDescription: isValidGroupDescription,
+            isInvalidContentGroupDescription: isInvalidContentGroupDescription,
+          );
+    ''');
+
+    /// end
     classBuffer.writeln('}');
   }
 }

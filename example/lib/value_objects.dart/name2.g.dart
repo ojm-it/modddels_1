@@ -108,3 +108,22 @@ class InvalidName2 extends Name2
   @override
   List<Object?> get allProps => [failure];
 }
+
+class Name2Tester extends NullableValueObjectTester<String, Name2ValueFailure,
+    InvalidName2, ValidName2, Name2> {
+  Name2Tester({
+    int maxSutDescriptionLength = 100,
+    String isNotSanitizedGroupDescription = 'Should not be sanitized',
+    String isInvalidGroupDescription =
+        'Should be an InvalidName2 and hold the Name2ValueFailure',
+    String isSanitizedGroupDescription = 'Should be sanitized',
+    String isValidGroupDescription = 'Should be a ValidName2',
+  }) : super(
+          (input) => Name2(input),
+          maxSutDescriptionLength: maxSutDescriptionLength,
+          isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
+          isInvalidGroupDescription: isInvalidGroupDescription,
+          isSanitizedGroupDescription: isSanitizedGroupDescription,
+          isValidGroupDescription: isValidGroupDescription,
+        );
+}

@@ -1,6 +1,5 @@
-import 'package:modddels_annotations/src/entities/common.dart';
-
-import '../modddel.dart';
+import 'package:modddels_annotations/src/modddels/entities/common.dart';
+import 'package:modddels_annotations/src/modddels/modddel.dart';
 
 /// A [SimpleEntity] is a [Modddel] that holds multiple modddels (ValueObjects,
 /// Entities...).

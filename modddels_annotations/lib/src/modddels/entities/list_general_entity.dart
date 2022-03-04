@@ -1,6 +1,8 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:modddels_annotations/modddels_annotations.dart';
-import 'package:modddels_annotations/src/entities/common.dart';
+import 'package:modddels_annotations/src/modddels/entities/common.dart';
+import 'package:modddels_annotations/src/modddels/entities/general_entity.dart';
+import 'package:modddels_annotations/src/modddels/entities/list_entity.dart';
+import 'package:modddels_annotations/src/modddels/modddel.dart';
 
 /// A [ListGeneralEntity] is the [GeneralEntity] version of a [ListEntity] : It
 /// provides an extra validation step at the end that validates the entity as a

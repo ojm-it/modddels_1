@@ -327,3 +327,30 @@ class InvalidNameList4General extends InvalidNameList4
         list,
       ];
 }
+
+class NameList4Tester extends SizedListGeneralEntityTester<
+    NameList4SizeFailure,
+    NameList4GeneralFailure,
+    InvalidNameList4Size,
+    InvalidNameList4Content,
+    InvalidNameList4General,
+    InvalidNameList4,
+    ValidNameList4,
+    NameList4> {
+  const NameList4Tester({
+    int maxSutDescriptionLength = 100,
+    String isValidGroupDescription = 'Should be a ValidNameList4',
+    String isInvalidSizeGroupDescription =
+        'Should be an InvalidNameList4Size and hold the NameList4SizeFailure',
+    String isInvalidContentGroupDescription =
+        'Should be an InvalidNameList4Content and hold the proper contentFailure',
+    String isInvalidGeneralGroupDescription =
+        'Should be an InvalidNameList4General and hold the NameList4GeneralFailure',
+  }) : super(
+          maxSutDescriptionLength: maxSutDescriptionLength,
+          isValidGroupDescription: isValidGroupDescription,
+          isInvalidSizeGroupDescription: isInvalidSizeGroupDescription,
+          isInvalidContentGroupDescription: isInvalidContentGroupDescription,
+          isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
+        );
+}

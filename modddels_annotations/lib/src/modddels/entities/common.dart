@@ -1,5 +1,6 @@
-import 'package:modddels_annotations/modddels_annotations.dart';
-import 'package:modddels_annotations/src/modddel.dart';
+import 'package:modddels_annotations/src/modddels/entities/sized_list_entity.dart';
+import 'package:modddels_annotations/src/modddels/entities/sized_list_general_entity.dart';
+import 'package:modddels_annotations/src/modddels/modddel.dart';
 
 /// A [ValidEntity] is the valid union-case of an entity. It holds all the valid
 /// versions of the modddels contained inside the entity.

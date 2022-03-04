@@ -1,13 +1,24 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:modddels_annotations/modddels.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
 class SizedListGeneralEntityGenerator {
-  SizedListGeneralEntityGenerator(
-      {required this.className, required this.factoryConstructor});
+  SizedListGeneralEntityGenerator({
+    required this.className,
+    required this.factoryConstructor,
+    required this.generateTester,
+    required this.maxSutDescriptionLength,
+  });
 
   final String className;
   final ConstructorElement factoryConstructor;
+
+  /// See [ModddelAnnotation.generateTester]
+  final bool generateTester;
+
+  /// See [ModddelAnnotation.maxSutDescriptionLength]
+  final int maxSutDescriptionLength;
 
   String generate() {
     final parameters = factoryConstructor.parameters;
@@ -53,6 +64,10 @@ class SizedListGeneralEntityGenerator {
     makeInvalidEntityContent(classBuffer, classInfo);
 
     makeInvalidEntityGeneral(classBuffer, classInfo);
+
+    if (generateTester) {
+      makeTester(classBuffer, classInfo);
+    }
 
     return classBuffer.toString();
   }
@@ -543,6 +558,44 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// End
+    classBuffer.writeln('}');
+  }
+
+  void makeTester(
+      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${className}Tester extends SizedListGeneralEntityTester<
+      ${classInfo.sizeFailure},
+      ${classInfo.generalFailure},
+      ${classInfo.invalidEntitySize},
+      ${classInfo.invalidEntityContent},
+      ${classInfo.invalidEntityGeneral},
+      ${classInfo.invalidEntity},
+      ${classInfo.validEntity},
+      $className> {
+    ''');
+
+    /// constructor
+    classBuffer.writeln('''
+    const ${className}Tester({
+      int maxSutDescriptionLength = $maxSutDescriptionLength,
+      String isValidGroupDescription = 'Should be a ${classInfo.validEntity}',
+      String isInvalidSizeGroupDescription =
+          'Should be an ${classInfo.invalidEntitySize} and hold the ${classInfo.sizeFailure}',
+      String isInvalidContentGroupDescription =
+          'Should be an ${classInfo.invalidEntityContent} and hold the proper contentFailure',
+      String isInvalidGeneralGroupDescription =
+          'Should be an ${classInfo.invalidEntityGeneral} and hold the ${classInfo.generalFailure}',
+    }) : super(
+            maxSutDescriptionLength: maxSutDescriptionLength,
+            isValidGroupDescription: isValidGroupDescription,
+            isInvalidSizeGroupDescription: isInvalidSizeGroupDescription,
+            isInvalidContentGroupDescription: isInvalidContentGroupDescription,
+            isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
+          );
+    ''');
+
+    /// end
     classBuffer.writeln('}');
   }
 }
