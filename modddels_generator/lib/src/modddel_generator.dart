@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
-import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:modddels_generator/src/generators/simple_entity_generator.dart';
 import 'package:modddels_generator/src/generators/general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/list_entity_generator.dart';
@@ -8,9 +7,13 @@ import 'package:modddels_generator/src/generators/list_general_entity_generator.
 import 'package:modddels_generator/src/generators/sized_list_general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
-
 import 'generators/nullable_value_object_generator.dart';
 import 'generators/sized_list_entity_generator.dart';
+
+/// ⚠️ We shouldn't import the testers, because they use the package
+/// 'flutter_test' which in turn imports dart:ui, which is not allowed in a
+/// builder.
+import 'package:modddels_annotations/modddels.dart';
 
 enum Model {
   valueObject,
@@ -34,10 +37,11 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       );
     }
 
+    /// The className
     final ClassElement classElement = element;
-
     final className = classElement.name;
 
+    /// The constructor
     final constructors = classElement.constructors;
 
     if (constructors.length < 2) {
@@ -64,6 +68,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       ),
     );
 
+    /// The modelType
     Model modelType;
 
     final superClassNameFullName =
@@ -104,39 +109,67 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
       );
     }
 
+    final generateTester = annotation.read('generateTester').boolValue;
+    final maxSutDescriptionLength =
+        annotation.read('maxSutDescriptionLength').intValue;
+
     switch (modelType) {
       case Model.valueObject:
         return ValueObjectGenerator(
-                className: className, factoryConstructor: factoryConstructor)
-            .generate();
+          className: className,
+          factoryConstructor: factoryConstructor,
+          generateTester: generateTester,
+          maxSutDescriptionLength: maxSutDescriptionLength,
+        ).generate();
       case Model.nullableValueObject:
         return NullableValueObjectGenerator(
-                className: className, factoryConstructor: factoryConstructor)
-            .generate();
+          className: className,
+          factoryConstructor: factoryConstructor,
+          generateTester: generateTester,
+          maxSutDescriptionLength: maxSutDescriptionLength,
+        ).generate();
       case Model.listGeneralEntity:
         return ListGeneralEntityGenerator(
-                className: className, factoryConstructor: factoryConstructor)
-            .generate();
+          className: className,
+          factoryConstructor: factoryConstructor,
+          generateTester: generateTester,
+          maxSutDescriptionLength: maxSutDescriptionLength,
+        ).generate();
       case Model.sizedListGeneralEntity:
         return SizedListGeneralEntityGenerator(
-                className: className, factoryConstructor: factoryConstructor)
-            .generate();
+          className: className,
+          factoryConstructor: factoryConstructor,
+          generateTester: generateTester,
+          maxSutDescriptionLength: maxSutDescriptionLength,
+        ).generate();
       case Model.generalEntity:
         return GeneralEntityGenerator(
-                className: className, factoryConstructor: factoryConstructor)
-            .generate();
+          className: className,
+          factoryConstructor: factoryConstructor,
+          generateTester: generateTester,
+          maxSutDescriptionLength: maxSutDescriptionLength,
+        ).generate();
       case Model.simpleEntity:
         return SimpleEntityGenerator(
-                className: className, factoryConstructor: factoryConstructor)
-            .generate();
+          className: className,
+          factoryConstructor: factoryConstructor,
+          generateTester: generateTester,
+          maxSutDescriptionLength: maxSutDescriptionLength,
+        ).generate();
       case Model.listEntity:
         return ListEntityGenerator(
-                className: className, factoryConstructor: factoryConstructor)
-            .generate();
+          className: className,
+          factoryConstructor: factoryConstructor,
+          generateTester: generateTester,
+          maxSutDescriptionLength: maxSutDescriptionLength,
+        ).generate();
       case Model.sizedListEntity:
         return SizedListEntityGenerator(
-                className: className, factoryConstructor: factoryConstructor)
-            .generate();
+          className: className,
+          factoryConstructor: factoryConstructor,
+          generateTester: generateTester,
+          maxSutDescriptionLength: maxSutDescriptionLength,
+        ).generate();
     }
   }
 }

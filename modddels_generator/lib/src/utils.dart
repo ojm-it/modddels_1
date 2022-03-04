@@ -1,6 +1,10 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:modddels_annotations/modddels_annotations.dart';
+
+/// ⚠️ We shouldn't import the testers, because they use the package
+/// 'flutter_test' which in turn imports dart:ui, which is not allowed in a
+/// builder.
+import 'package:modddels_annotations/modddels.dart';
 import 'package:source_gen/source_gen.dart';
 
 class ValueObjectClassInfo {

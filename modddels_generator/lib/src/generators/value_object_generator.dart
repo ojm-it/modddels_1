@@ -1,13 +1,24 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:modddels_annotations/modddels.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
 class ValueObjectGenerator {
-  ValueObjectGenerator(
-      {required this.className, required this.factoryConstructor});
+  ValueObjectGenerator({
+    required this.className,
+    required this.factoryConstructor,
+    required this.generateTester,
+    required this.maxSutDescriptionLength,
+  });
 
   final String className;
   final ConstructorElement factoryConstructor;
+
+  /// See [ModddelAnnotation.generateTester]
+  final bool generateTester;
+
+  /// See [ModddelAnnotation.maxSutDescriptionLength]
+  final int maxSutDescriptionLength;
 
   String generate() {
     final parameters = factoryConstructor.parameters;
@@ -31,6 +42,10 @@ class ValueObjectGenerator {
     makeValidValueObject(classBuffer, classInfo);
 
     makeInvalidValueObject(classBuffer, classInfo);
+
+    if (generateTester) {
+      makeTester(classBuffer, classInfo);
+    }
 
     return classBuffer.toString();
   }
@@ -186,6 +201,35 @@ class ValueObjectGenerator {
     classBuffer.writeln('''
     @override
     List<Object?> get allProps => [failure];
+    ''');
+
+    /// end
+    classBuffer.writeln('}');
+  }
+
+  void makeTester(StringBuffer classBuffer, ValueObjectClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${className}Tester extends ValueObjectTester<${classInfo.valueType}, ${classInfo.valueFailure},
+      ${classInfo.invalidValueObject}, ${classInfo.validValueObject}, $className> {
+    ''');
+
+    /// constructor
+    classBuffer.writeln('''
+    ${className}Tester({
+      int maxSutDescriptionLength = $maxSutDescriptionLength,
+      String isNotSanitizedGroupDescription = 'Should not be sanitized',
+      String isInvalidGroupDescription =
+          'Should be an ${classInfo.invalidValueObject} and hold the ${classInfo.valueFailure}',
+      String isSanitizedGroupDescription = 'Should be sanitized',
+      String isValidGroupDescription = 'Should be a ${classInfo.validValueObject}',
+    }) : super(
+            (input) =>  $className(input),
+            maxSutDescriptionLength: maxSutDescriptionLength,
+            isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
+            isInvalidGroupDescription: isInvalidGroupDescription,
+            isSanitizedGroupDescription: isSanitizedGroupDescription,
+            isValidGroupDescription: isValidGroupDescription,
+          );
     ''');
 
     /// end
