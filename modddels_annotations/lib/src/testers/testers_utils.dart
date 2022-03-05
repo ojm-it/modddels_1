@@ -23,6 +23,7 @@ abstract class TesterUtils {
   /// Formats an [object]'s string representation so that :
   ///
   /// - Any newline character is replaced by the raw string '\n'
+  /// - Any tab character is replaced by the raw string '\t'
   /// - The string is ellipsized if it exceeds [maxLength] * [maxLengthFactor],
   ///   using the [TesterUtils.ellipsize] function.
   ///
@@ -36,7 +37,8 @@ abstract class TesterUtils {
     assert(maxLength == TesterUtils.noEllipsis || maxLength > 0);
     assert(maxLengthFactor > 0 && maxLengthFactor <= 1);
 
-    final result = object.toString().replaceAll('\n', r'\n');
+    final result =
+        object.toString().replaceAll('\n', r'\n').replaceAll('\t', r'\t');
 
     if (maxLength == TesterUtils.noEllipsis) {
       return result;
@@ -44,7 +46,7 @@ abstract class TesterUtils {
 
     final _maxLength = (maxLength * maxLengthFactor).ceil();
 
-    return ellipsize(object.toString(), maxLength: _maxLength);
+    return ellipsize(result, maxLength: _maxLength);
   }
 
   /// Shortens the [text] using an ellipsis if its length exceeds [maxLength].
