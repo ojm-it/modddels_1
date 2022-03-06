@@ -91,6 +91,10 @@ mixin $NameList2 {
   NameList2 copyWith(KtList<Name> Function(KtList<Name> list) callback) {
     return _create(callback(list));
   }
+
+  List<Object?> get props => throw UnimplementedError();
+
+  StringifyMode get stringifyMode => StringifyMode.always;
 }
 
 class ValidNameList2 extends NameList2 implements ValidEntity {
@@ -111,7 +115,7 @@ class ValidNameList2 extends NameList2 implements ValidEntity {
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         list,
       ];
 }
@@ -142,7 +146,7 @@ class InvalidNameList2Content extends NameList2
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         contentFailure,
         list,
       ];

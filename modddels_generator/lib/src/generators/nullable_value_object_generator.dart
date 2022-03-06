@@ -10,6 +10,7 @@ class NullableValueObjectGenerator {
     required this.factoryConstructor,
     required this.generateTester,
     required this.maxSutDescriptionLength,
+    required this.stringifyMode,
   });
 
   final String className;
@@ -20,6 +21,9 @@ class NullableValueObjectGenerator {
 
   /// See [ModddelAnnotation.maxSutDescriptionLength]
   final int maxSutDescriptionLength;
+
+  /// See [ModddelAnnotation.stringifyMode]
+  final StringifyMode stringifyMode;
 
   String generate() {
     final parameters = factoryConstructor.parameters;
@@ -150,6 +154,13 @@ class NullableValueObjectGenerator {
     
     ''');
 
+    /// props and stringifyMode getters
+    classBuffer.writeln('''
+    List<Object?> get props => throw UnimplementedError();
+
+    StringifyMode get stringifyMode => ${stringifyMode.toString()};
+    ''');
+
     /// End
     classBuffer.writeln('}');
   }
@@ -184,10 +195,10 @@ class NullableValueObjectGenerator {
 
     ''');
 
-    /// allProps method
+    /// props getter
     classBuffer.writeln('''
     @override
-    List<Object?> get allProps => [value];
+    List<Object?> get props => [value];
 
     ''');
 
@@ -228,10 +239,10 @@ class NullableValueObjectGenerator {
     }
     ''');
 
-    /// allProps method
+    /// props getter
     classBuffer.writeln('''
     @override
-    List<Object?> get allProps => [failure];
+    List<Object?> get props => [failure];
     ''');
 
     /// end

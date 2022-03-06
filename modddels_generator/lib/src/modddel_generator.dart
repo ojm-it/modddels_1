@@ -113,6 +113,14 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
     final maxSutDescriptionLength =
         annotation.read('maxSutDescriptionLength').intValue;
 
+    final stringifyModeName = annotation
+        .read('stringifyMode')
+        .objectValue
+        .getField('_name')!
+        .toStringValue()!;
+
+    final stringifyMode = StringifyMode.values.byName(stringifyModeName);
+
     switch (modelType) {
       case Model.valueObject:
         return ValueObjectGenerator(
@@ -120,6 +128,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
+          stringifyMode: stringifyMode,
         ).generate();
       case Model.nullableValueObject:
         return NullableValueObjectGenerator(
@@ -127,6 +136,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
+          stringifyMode: stringifyMode,
         ).generate();
       case Model.listGeneralEntity:
         return ListGeneralEntityGenerator(
@@ -134,6 +144,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
+          stringifyMode: stringifyMode,
         ).generate();
       case Model.sizedListGeneralEntity:
         return SizedListGeneralEntityGenerator(
@@ -141,6 +152,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
+          stringifyMode: stringifyMode,
         ).generate();
       case Model.generalEntity:
         return GeneralEntityGenerator(
@@ -148,6 +160,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
+          stringifyMode: stringifyMode,
         ).generate();
       case Model.simpleEntity:
         return SimpleEntityGenerator(
@@ -155,6 +168,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
+          stringifyMode: stringifyMode,
         ).generate();
       case Model.listEntity:
         return ListEntityGenerator(
@@ -162,6 +176,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
+          stringifyMode: stringifyMode,
         ).generate();
       case Model.sizedListEntity:
         return SizedListEntityGenerator(
@@ -169,6 +184,7 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
+          stringifyMode: stringifyMode,
         ).generate();
     }
   }

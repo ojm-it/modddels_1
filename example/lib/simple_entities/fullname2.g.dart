@@ -117,6 +117,10 @@ mixin $FullName2 {
       ),
     );
   }
+
+  List<Object?> get props => throw UnimplementedError();
+
+  StringifyMode get stringifyMode => StringifyMode.always;
 }
 
 class ValidFullName2 extends FullName2 implements ValidEntity {
@@ -143,7 +147,7 @@ class ValidFullName2 extends FullName2 implements ValidEntity {
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         firstName,
         lastName,
         hasMiddleName,
@@ -182,7 +186,7 @@ class InvalidFullName2Content extends FullName2
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         contentFailure,
         firstName,
         lastName,

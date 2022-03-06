@@ -9,6 +9,7 @@ class GeneralEntityGenerator {
     required this.factoryConstructor,
     required this.generateTester,
     required this.maxSutDescriptionLength,
+    required this.stringifyMode,
   });
 
   final String className;
@@ -19,6 +20,9 @@ class GeneralEntityGenerator {
 
   /// See [ModddelAnnotation.maxSutDescriptionLength]
   final int maxSutDescriptionLength;
+
+  /// See [ModddelAnnotation.stringifyMode]
+  final StringifyMode stringifyMode;
 
   String generate() {
     final parameters = factoryConstructor.parameters;
@@ -248,6 +252,13 @@ class GeneralEntityGenerator {
 
     ''');
 
+    /// props and stringifyMode getters
+    classBuffer.writeln('''
+    List<Object?> get props => throw UnimplementedError();
+
+    StringifyMode get stringifyMode => ${stringifyMode.toString()};
+    ''');
+
     /// End
     classBuffer.writeln('}');
   }
@@ -380,10 +391,10 @@ class GeneralEntityGenerator {
 
     ''');
 
-    /// allProps method
+    /// props getter
     classBuffer.writeln('''
     @override
-    List<Object?> get allProps => [
+    List<Object?> get props => [
         ${classInfo.namedParameters.map((param) => '${param.name},').join()}
       ];
     ''');
@@ -512,10 +523,10 @@ class GeneralEntityGenerator {
     }
     ''');
 
-    /// allProps method
+    /// props getter
     classBuffer.writeln('''
     @override
-    List<Object?> get allProps => [
+    List<Object?> get props => [
       contentFailure,
       ${classInfo.namedParameters.map((param) => '${param.name},').join()}
     ];
@@ -570,10 +581,10 @@ class GeneralEntityGenerator {
     }
     ''');
 
-    /// allProps method
+    /// props getter
     classBuffer.writeln('''
     @override
-    List<Object?> get allProps => [
+    List<Object?> get props => [
       generalFailure,
       ${classInfo.namedParameters.map((param) => '${param.name},').join()}
     ];
