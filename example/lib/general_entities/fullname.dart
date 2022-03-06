@@ -41,3 +41,19 @@ class FullNameGeneralFailure extends GeneralFailure
   const factory FullNameGeneralFailure.tooLong() = _TooLong;
   const factory FullNameGeneralFailure.incomplete() = _Incomplete;
 }
+
+class Heh extends InvalidValueObject<String, NameValueFailure> {
+  Heh(this.valueFailure);
+
+  @override
+  final NameValueFailure valueFailure;
+
+  @override
+  Failure get failure => valueFailure;
+
+  @override
+  List<Object?> get props => [valueFailure];
+
+  @override
+  StringifyMode get stringifyMode => StringifyMode.always;
+}
