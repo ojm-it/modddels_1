@@ -9,6 +9,7 @@ class SimpleEntityGenerator {
     required this.factoryConstructor,
     required this.generateTester,
     required this.maxSutDescriptionLength,
+    required this.stringifyMode,
   });
 
   final String className;
@@ -19,6 +20,9 @@ class SimpleEntityGenerator {
 
   /// See [ModddelAnnotation.maxSutDescriptionLength]
   final int maxSutDescriptionLength;
+
+  /// See [ModddelAnnotation.stringifyMode]
+  final StringifyMode stringifyMode;
 
   String generate() {
     final parameters = factoryConstructor.parameters;
@@ -190,6 +194,13 @@ class SimpleEntityGenerator {
 
     ''');
 
+    /// props and stringifyMode getters
+    classBuffer.writeln('''
+    List<Object?> get props => throw UnimplementedError();
+
+    StringifyMode get stringifyMode => ${stringifyMode.toString()};
+    ''');
+
     /// End
     classBuffer.writeln('}');
   }
@@ -267,10 +278,10 @@ class SimpleEntityGenerator {
 
     ''');
 
-    /// allProps method
+    /// props getter
     classBuffer.writeln('''
     @override
-    List<Object?> get allProps => [
+    List<Object?> get props => [
         ${classInfo.namedParameters.map((param) => '${param.name},').join()}
       ];
     ''');
@@ -294,7 +305,7 @@ class SimpleEntityGenerator {
     }) : super._();
     ''');
 
-    /// Getters
+    /// class members
     classBuffer.writeln('''
     @override
     final Failure contentFailure;
@@ -322,10 +333,10 @@ class SimpleEntityGenerator {
 
     ''');
 
-    /// allProps method
+    /// props method
     classBuffer.writeln('''
     @override
-    List<Object?> get allProps => [
+    List<Object?> get props => [
       contentFailure,
       ${classInfo.namedParameters.map((param) => '${param.name},').join()}
     ];

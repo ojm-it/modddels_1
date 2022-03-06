@@ -9,6 +9,7 @@ export 'src/modddels/modddel.dart'
     show Modddel, ValidModddel, InvalidModddel, Failure;
 export 'src/modddels/annotations.dart'
     show
+        StringifyMode,
         ModddelAnnotation,
         modddel,
         ValidAnnotation,
