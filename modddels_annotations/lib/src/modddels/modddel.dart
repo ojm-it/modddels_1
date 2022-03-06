@@ -50,9 +50,10 @@ abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
 
 /// This is the base class for the "Valid" union-case of a modddel.
 ///
-/// NB : This class's subclasses such as [ValidValueObject] are used as
-/// interfaces in the generated "Valid" classes. However, you can directly
-/// extend them if you want to have a modddel that is always valid.
+/// NB : This class's subclasses, which are : [ValidValueObject] -
+/// [ValidEntity], are used as interfaces in the generated "Valid" classes.
+/// However, you can directly extend them if you want to have a modddel that is
+/// always valid.
 ///
 /// Example :
 ///
@@ -78,9 +79,11 @@ abstract class ValidModddel extends Equatable with Stringify {}
 
 /// This is the base class for the "Invalid" union-case of a modddel.
 ///
-/// NB : This class's subclasses such as [InvalidValueObject] are used as
-/// interfaces in the generated "Invalid" classes. However, you can directly
-/// extend them if you want to have a modddel that is always invalid.
+/// NB : This class's subclasses, which are : [InvalidValueObject] -
+/// [InvalidEntity] - [InvalidEntitySize] - [InvalidEntityContent] -
+/// [InvalidEntityGeneral], are used as interfaces in the generated "Invalid"
+/// classes. However, you can directly extend them if you want to have a modddel
+/// that is always invalid.
 ///
 /// Example :
 ///
