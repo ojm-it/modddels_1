@@ -147,6 +147,10 @@ mixin $NameList4 {
       invalid: (invalid) => _create(callback(invalid.list)),
     );
   }
+
+  List<Object?> get props => throw UnimplementedError();
+
+  StringifyMode get stringifyMode => StringifyMode.always;
 }
 
 class ValidNameList4 extends NameList4 implements ValidEntity {
@@ -168,7 +172,7 @@ class ValidNameList4 extends NameList4 implements ValidEntity {
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         list,
       ];
 }
@@ -254,7 +258,7 @@ class InvalidNameList4Size extends InvalidNameList4
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         sizeFailure,
         list,
       ];
@@ -288,7 +292,7 @@ class InvalidNameList4Content extends InvalidNameList4
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         contentFailure,
         list,
       ];
@@ -322,7 +326,7 @@ class InvalidNameList4General extends InvalidNameList4
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         generalFailure,
         list,
       ];

@@ -1,3 +1,4 @@
+import 'package:example/general_entities/fullname.dart';
 import 'package:example/sized_list_general_entity/namelist4.dart';
 import 'package:example/value_objects.dart/name.dart';
 import 'package:example/value_objects.dart/name2.dart';
@@ -23,6 +24,12 @@ final invalidNameListContent = NameList4(KtList.from([
   Name(validName1),
   Name(validName2),
 ]));
+
+final validFullName =
+    FullName(firstName: Name(validName1), lastName: Name(validName2));
+
+final invalidFullNameContent =
+    FullName(firstName: Name(validName1), lastName: Name(''));
 
 void main() {
   final nameTester = NameTester();
@@ -75,4 +82,21 @@ void main() {
         TestIsInvalidContent(invalidNameListContent,
             const NameValueFailure.empty(failedValue: '')),
       ]);
+
+  const fullNameTester = FullNameTester();
+
+  fullNameTester.makeIsValidTestGroup(
+    tests: [
+      TestIsValidEntity(validFullName),
+    ],
+  );
+
+  fullNameTester.makeIsInvalidContentTestGroup(
+    tests: [
+      TestIsInvalidContent(
+        invalidFullNameContent,
+        const NameValueFailure.empty(failedValue: ''),
+      ),
+    ],
+  );
 }

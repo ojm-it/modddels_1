@@ -67,6 +67,10 @@ mixin $Name2 {
       invalid: invalid,
     );
   }
+
+  List<Object?> get props => throw UnimplementedError();
+
+  StringifyMode get stringifyMode => StringifyMode.always;
 }
 
 class ValidName2 extends Name2 implements ValidValueObject<String> {
@@ -83,7 +87,7 @@ class ValidName2 extends Name2 implements ValidValueObject<String> {
   }
 
   @override
-  List<Object?> get allProps => [value];
+  List<Object?> get props => [value];
 }
 
 class InvalidName2 extends Name2
@@ -106,7 +110,7 @@ class InvalidName2 extends Name2
   }
 
   @override
-  List<Object?> get allProps => [failure];
+  List<Object?> get props => [failure];
 }
 
 class Name2Tester extends NullableValueObjectTester<String, Name2ValueFailure,

@@ -132,6 +132,10 @@ mixin $FullNameList {
       invalid: (invalid) => _create(callback(invalid.list)),
     );
   }
+
+  List<Object?> get props => throw UnimplementedError();
+
+  StringifyMode get stringifyMode => StringifyMode.always;
 }
 
 class ValidFullNameList extends FullNameList implements ValidEntity {
@@ -152,7 +156,7 @@ class ValidFullNameList extends FullNameList implements ValidEntity {
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         list,
       ];
 }
@@ -232,7 +236,7 @@ class InvalidFullNameListContent extends InvalidFullNameList
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         contentFailure,
         list,
       ];
@@ -265,7 +269,7 @@ class InvalidFullNameListGeneral extends InvalidFullNameList
   }
 
   @override
-  List<Object?> get allProps => [
+  List<Object?> get props => [
         generalFailure,
         list,
       ];
