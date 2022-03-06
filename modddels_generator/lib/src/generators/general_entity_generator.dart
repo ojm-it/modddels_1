@@ -154,15 +154,12 @@ class GeneralEntityGenerator {
 
     /// Getters for fields marked with '@withGetter' (or with '@validWithGetter')
 
-    final getterParameters = classInfo.namedParameters
-        .where((e) => e.hasWithGetterAnnotation == true);
+    final getterParameters =
+        classInfo.namedParameters.where((e) => e.hasWithGetterAnnotation);
 
     for (final param in getterParameters) {
       classBuffer.writeln('''
-      ${param.type} get ${param.name} => mapValidity(
-        valid: (valid) => valid.${param.name},
-        invalid: (invalid) => invalid.${param.name},
-      );
+      ${param.type} get ${param.name} => throw UnimplementedError();
     
       ''');
     }
@@ -364,7 +361,7 @@ class GeneralEntityGenerator {
 
     /// class members
     for (final param in classInfo.namedParameters) {
-      if (param.hasWithGetterAnnotation == true) {
+      if (param.hasWithGetterAnnotation) {
         classBuffer.writeln('@override');
       }
       final paramType = param.hasInvalidNullAnnotation
@@ -418,7 +415,7 @@ class GeneralEntityGenerator {
 
     /// Fields Getters
     for (final param in classInfo.namedParameters) {
-      if (param.hasWithGetterAnnotation == true) {
+      if (param.hasWithGetterAnnotation) {
         classBuffer.writeln('@override');
       }
       classBuffer.writeln('${param.type} get ${param.name};');
