@@ -37,16 +37,18 @@ class SimpleEntityGenerator {
       );
     }
 
-    for (final param in namedParameters) {
+    final classInfo = SimpleEntityClassInfo(className, namedParameters);
+
+    for (final param in classInfo.namedParameters) {
       if (param.type.toString() == 'dynamic') {
         throw InvalidGenerationSourceError(
-          'The named parameters of the factory constructor should have valid types, and should not be dynamic',
-          element: param,
+          'The named parameters of the factory constructor should have valid types, and should not be dynamic.'
+          'Consider using the @TypeName annotation to manually provide the type.',
+          element: param.parameter,
         );
       }
     }
 
-    final classInfo = SimpleEntityClassInfo(className, namedParameters);
 
     for (final param in classInfo.namedParameters) {
       if (param.hasWithGetterAnnotation) {

@@ -18,7 +18,8 @@ export 'src/modddels/annotations.dart'
         withGetter,
         ValidWithGetterAnnotation,
         validWithGetter,
-        InvalidNull;
+        InvalidNull,
+        TypeName;
 
 export 'src/modddels/value_objects/value_object.dart'
     show ValueObject, ValidValueObject, InvalidValueObject, ValueFailure;

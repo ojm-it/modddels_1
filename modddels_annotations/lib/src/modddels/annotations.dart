@@ -150,3 +150,36 @@ class InvalidNull {
 
   final String generalFailure;
 }
+
+/// Use this to manually provide the type of a [SimpleEntity] or [GeneralEntity]
+/// constructor parameter.
+///
+/// This is useful when the type does not exist at the time of generation (which
+/// is usually the case when the type class itself is generated).
+///
+/// Example :
+///
+/// ```dart
+/// @modddel
+/// class Person extends SimpleEntity<InvalidPersonContent, ValidPerson>
+///     with $Person {
+///   factory Person({
+///     required Age age,
+///     @TypeName('ValidName') @valid required ValidName validName,
+///   }) {
+///     return $Person._create(
+///       age: age,
+///       validName: validName,
+///     );
+///   }
+///
+///   const Person._();
+/// }
+/// ```
+///
+/// Here, `ValidName` is a generated class so it's not defined during the
+/// generation. So we provided the type using `@TypeName('ValidName')`.
+class TypeName {
+  const TypeName(this.typeName);
+  final String typeName;
+}

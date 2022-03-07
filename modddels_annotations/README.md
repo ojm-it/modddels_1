@@ -46,6 +46,7 @@ The different states a Modddel can have are represented with **Union Cases Class
 	- [SizedListGeneralEntity](#sizedlistgeneralentity)
 		- [Usage](#usage-6)
 	- [Additionnal remarks](#additionnal-remarks)
+		- [TypeName annotation](#typename-annotation)
 		- [Optional and Nullable types](#optional-and-nullable-types)
 		- [Modddels that are always valid](#modddels-that-are-always-valid)
 		- [List getter](#list-getter)
@@ -611,6 +612,32 @@ When creating a SizedListGeneralEntity, the validation is made in this order :
 ---
 
 ## Additionnal remarks
+
+### TypeName annotation
+
+The types of the constructor parameters of `SimpleEntity` and `GeneralEntity` need to be defined at the time of generation. If the type does not exist at the time of generation (which is usually the case when the type class itself is generated), you should manually provide it using the `@TypeName` annotation.
+
+Example :
+
+```dart
+@modddel
+class Person extends SimpleEntity<InvalidPersonContent, ValidPerson>
+    with $Person {
+  factory Person({
+    required Age age,
+    @TypeName('ValidName') @valid required ValidName validName,
+  }) {
+    return $Person._create(
+	  age: age,
+      validName: validName,
+	);
+  }
+
+  const Person._();
+}
+```
+
+Here, `ValidName` is a generated class so it's not defined during the generation. So we provided the type using `@TypeName('ValidName')`.
 
 ### Optional and Nullable types
 

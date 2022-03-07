@@ -137,7 +137,12 @@ class EntityParameter {
     return type.endsWith('?') ? type : '$type?';
   }
 
-  String get type => parameter.type.toString();
+  String get type => hasTypeNameAnnotation
+      ? _typeNameChecker
+          .firstAnnotationOfExact(parameter)!
+          .getField('typeName')!
+          .toStringValue()!
+      : parameter.type.toString();
 
   String get typeWithoutNullabilitySuffix =>
       type.endsWith('?') ? type.substring(0, type.length - 1) : type;
@@ -175,6 +180,10 @@ class EntityParameter {
   bool get hasInvalidNullAnnotation =>
       _invalidNullChecker.hasAnnotationOfExact(parameter);
 
+  /// True if the parameter has the `@TypeName` annotation.
+  bool get hasTypeNameAnnotation =>
+      _typeNameChecker.hasAnnotationOfExact(parameter);
+
   String get invalidNullGeneralFailure {
     final annotation = _invalidNullChecker.annotationsOfExact(parameter).single;
 
@@ -200,6 +209,8 @@ const _validWithGetterChecker =
     TypeChecker.fromRuntime(ValidWithGetterAnnotation);
 
 const _invalidNullChecker = TypeChecker.fromRuntime(InvalidNull);
+
+const _typeNameChecker = TypeChecker.fromRuntime(TypeName);
 
 extension StringExtension on String {
   String capitalize() {
