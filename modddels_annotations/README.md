@@ -779,7 +779,7 @@ nameTester.makeIsNotSanitizedTestGroup(
 
 ```json
 {
-	"Value Object": {
+		"Value Object": {
 		"prefix": "valueobject",
 		"body": [
 			"@modddel",
@@ -806,8 +806,8 @@ nameTester.makeIsNotSanitizedTestGroup(
 			"@freezed",
 			"class ${1}ValueFailure extends ValueFailure<${2}> with _$${1}ValueFailure {",
 			"  const factory ${1}ValueFailure.${3}({",
-			"    required ${2} failedValue,${5}",
-			"  }) = _${4};",
+			"    required ${2} failedValue,${4}",
+			"  }) = _${3/(^.)/${1:/upcase}/};",
 			"}"
 		],
 		"description": "Value Failure"
@@ -816,8 +816,8 @@ nameTester.makeIsNotSanitizedTestGroup(
 		"prefix": "valuefailurecase",
 		"body": [
 			"const factory ${1}ValueFailure.${3}({",
-			"  required ${2} failedValue,${5}",
-			"}) = _${4};",
+			"  required ${2} failedValue,${4}",
+			"}) = _${3/(^.)/${1:/upcase}/};",
 		],
 		"description": "Value Failure Union Case"
 	},
@@ -954,7 +954,7 @@ nameTester.makeIsNotSanitizedTestGroup(
 		"body": [
 			"@freezed",
 			"class ${1}GeneralFailure extends GeneralFailure with _$${1}GeneralFailure {",
-			"  const factory ${1}GeneralFailure.${2}(${4}) = _${3};",
+			"  const factory ${1}GeneralFailure.${2}(${3}) = _${2/(^.)/${1:/upcase}/};",
 			"}"
 		],
 		"description": "General Failure"
@@ -962,7 +962,7 @@ nameTester.makeIsNotSanitizedTestGroup(
 	"General Failure Union Case": {
 		"prefix": "generalfailurecase",
 		"body": [
-			"const factory ${1}GeneralFailure.${2}(${4}) = _${3};",
+			"const factory ${1}GeneralFailure.${2}(${3}) = _${2/(^.)/${1:/upcase}/};",
 		],
 		"description": "General Failure Union Case"
 	},
@@ -971,7 +971,7 @@ nameTester.makeIsNotSanitizedTestGroup(
 		"body": [
 			"@freezed",
 			"class ${1}SizeFailure extends SizeFailure with _$${1}SizeFailure {",
-			"  const factory ${1}SizeFailure.${2}(${4}) = _${3};",
+			"  const factory ${1}SizeFailure.${2}(${3}) = _${2/(^.)/${1:/upcase}/};",
 			"}"
 		],
 		"description": "Size Failure"
@@ -979,7 +979,7 @@ nameTester.makeIsNotSanitizedTestGroup(
 	"Size Failure Union Case": {
 		"prefix": "sizefailurecase",
 		"body": [
-			"const factory ${1}SizeFailure.${2}(${4}) = _${3};",
+			"const factory ${1}SizeFailure.${2}(${3}) = _${2/(^.)/${1:/upcase}/};",
 		],
 		"description": "Size Failure Union Case"
 	},
