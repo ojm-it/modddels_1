@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 /// ⚠️ We shouldn't import the testers, because they use the package
 /// 'flutter_test' which in turn imports dart:ui, which is not allowed in a
@@ -157,12 +156,9 @@ class EntityParameter {
 
   String get optionalType => optionalize(type);
 
-  bool get isRequired => parameter.isRequiredNamed;
-
   bool get hasDefaultValue => parameter.hasDefaultValue;
 
-  bool get isNullable =>
-      parameter.type.nullabilitySuffix == NullabilitySuffix.question;
+  bool get isNullable => type.endsWith('?');
 
   /// True if the parameter has the `@valid` annotation or the `@validWithGetter`
   /// annotation
