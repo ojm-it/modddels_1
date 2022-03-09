@@ -58,8 +58,9 @@ abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
 /// Example :
 ///
 /// ```dart
-/// class ValidName extends ValidValueObject<String> {
-///   ValidName(this.value);
+/// class ValidName extends ValidValueObject<String>
+///     with EquatableMixin, Stringify {
+///   const ValidName(this.value);
 ///
 ///   @override
 ///   final String value;
@@ -71,11 +72,9 @@ abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
 ///   StringifyMode get stringifyMode => StringifyMode.always;
 /// }
 /// ```
-
-// Note to self : This extends [Equatable] and mixins [Stringify] for the
-// use-case where we directly extend this class's subclasses such as
-// [ValidValueObject].
-abstract class ValidModddel extends Equatable with Stringify {}
+abstract class ValidModddel {
+  const ValidModddel();
+}
 
 /// This is the base class for the "Invalid" union-case of a modddel.
 ///
@@ -88,9 +87,10 @@ abstract class ValidModddel extends Equatable with Stringify {}
 /// Example :
 ///
 /// ```dart
-/// class InvalidName extends InvalidValueObject<String,NameValueFailure>{
+/// class InvalidName extends InvalidValueObject<String,NameValueFailure>
+///     with EquatableMixin, Stringify {
 ///
-///   InvalidName(this.valueFailure);
+///   const InvalidName(this.valueFailure);
 ///
 ///   @override
 ///   final NameValueFailure valueFailure;
@@ -102,11 +102,9 @@ abstract class ValidModddel extends Equatable with Stringify {}
 ///   StringifyMode get stringifyMode => StringifyMode.always;
 /// }
 /// ```
+abstract class InvalidModddel {
+  const InvalidModddel();
 
-// Note to self : This extends [Equatable] and mixins [Stringify] for the
-// use-case where we directly extend this class's subclasses such as
-// [InvalidValueObject].
-abstract class InvalidModddel extends Equatable with Stringify {
   Failure get failure;
 }
 
