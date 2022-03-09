@@ -130,4 +130,6 @@ mixin Stringify {
 /// The base class for all the possible failures a [Modddel] can have.
 ///
 /// For example : [ValueFailure], [GeneralFailure], [SizeFailure]...
-abstract class Failure {}
+abstract class Failure {
+  const Failure();
+}

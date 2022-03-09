@@ -27,6 +27,8 @@ abstract class ValueObject<
 /// A [ValidValueObject] is the "valid" union-case of a [ValueObject]. It holds
 /// the validated [value].
 abstract class ValidValueObject<T> extends ValidModddel {
+  const ValidValueObject();
+
   /// The validated value.
   T get value;
 }
@@ -35,6 +37,8 @@ abstract class ValidValueObject<T> extends ValidModddel {
 /// It holds the [ValueFailure] that made it invalid.
 abstract class InvalidValueObject<T, F extends ValueFailure<T>>
     extends InvalidModddel {
+  const InvalidValueObject();
+
   /// The [ValueFailure] that made this [ValueObject] invalid.
   F get valueFailure;
 
@@ -46,6 +50,8 @@ abstract class InvalidValueObject<T, F extends ValueFailure<T>>
 
 /// A [ValueFailure] is a [Failure] caused by an invalid value of a [ValueObject]
 abstract class ValueFailure<T> extends Failure {
+  const ValueFailure();
+
   /// The invalid value of the [ValueObject].
   ///
   /// NB : All the freezed subclasses union-cases should have in their constructor the
