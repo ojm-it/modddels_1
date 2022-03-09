@@ -108,6 +108,8 @@ abstract class InvalidModddel {
   Failure get failure;
 }
 
+/// This is a convenience mixin to automatically override [Equatable.stringify]
+/// based on the desired [stringifyMode].
 mixin Stringify {
   /// See [Equatable.stringify]
   bool? get stringify {

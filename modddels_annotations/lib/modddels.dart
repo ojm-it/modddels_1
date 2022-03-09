@@ -6,7 +6,7 @@ library modddels;
 
 export 'src/modddels/errors.dart' show UnreachableError;
 export 'src/modddels/modddel.dart'
-    show Modddel, ValidModddel, InvalidModddel, Failure;
+    show Modddel, ValidModddel, InvalidModddel, Failure, Stringify;
 export 'src/modddels/annotations.dart'
     show
         StringifyMode,
