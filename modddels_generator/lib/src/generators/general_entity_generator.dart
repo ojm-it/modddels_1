@@ -49,12 +49,45 @@ class GeneralEntityGenerator {
       }
     }
 
+    if (classInfo.namedParameters.every((param) => param.hasValidAnnotation)) {
+      throw InvalidGenerationSourceError(
+        'A GeneralEntity can\'t have all its fields marked with @valid.',
+        element: factoryConstructor,
+      );
+    }
+
+    for (final param in classInfo.namedParameters) {
+      if (param.hasValidAnnotation && param.hasInvalidAnnotation) {
+        throw InvalidGenerationSourceError(
+          'The @valid and @invalid annotations can\'t be used together on the same parameter.',
+          element: param.parameter,
+        );
+      }
+    }
+
+    for (final param in classInfo.namedParameters) {
+      if (param.hasInvalidAnnotation && !param.isNullable) {
+        throw InvalidGenerationSourceError(
+          'The @invalid annotation can only be used on nullable parameters.',
+          element: param.parameter,
+        );
+      }
+    }
+
+    for (final param in classInfo.namedParameters) {
+      if (param.hasInvalidAnnotation && param.hasInvalidNullAnnotation) {
+        throw InvalidGenerationSourceError(
+          'The @invalid and @InvalidNull annotations can\'t be used together on the same parameter.',
+          element: param.parameter,
+        );
+      }
+    }
 
     for (final param in classInfo.namedParameters) {
       if (param.hasInvalidNullAnnotation) {
         if (!param.isNullable) {
           throw InvalidGenerationSourceError(
-            'The InvalidNull annotation can only be used with nullable parameters.',
+            'The @InvalidNull annotation can only be used with nullable parameters.',
             element: param.parameter,
           );
         }
@@ -62,6 +95,8 @@ class GeneralEntityGenerator {
     }
 
     final classBuffer = StringBuffer();
+
+    makeHeader(classBuffer);
 
     makeMixin(classBuffer, classInfo);
 
@@ -80,6 +115,13 @@ class GeneralEntityGenerator {
     }
 
     return classBuffer.toString();
+  }
+
+  void makeHeader(StringBuffer classBuffer) {
+    classBuffer.writeln('''
+    // ignore_for_file: prefer_void_to_null
+    
+    ''');
   }
 
   void makeMixin(StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
@@ -154,7 +196,8 @@ class GeneralEntityGenerator {
 
     ''');
 
-    /// Getters for fields marked with '@withGetter' (or with '@validWithGetter')
+    /// Getters for fields marked with '@withGetter' (or '@validWithGetter' or
+    /// '@invalidWithGetter')
 
     final getterParameters =
         classInfo.namedParameters.where((e) => e.hasWithGetterAnnotation);
@@ -277,20 +320,22 @@ class GeneralEntityGenerator {
     if (paramsToVerify.isNotEmpty) {
       final param = paramsToVerify.first;
 
-      final toBroadEither = param.isNullable
-          ? '\$${param.typeWithoutNullabilitySuffix}.toBroadEitherNullable(${param.name})'
-          : '${param.name}.toBroadEither';
+      final either = param.hasInvalidAnnotation
+          ? 'Either<Null, Failure>.fromNullable(${param.name}?.failure, (r) => null).swap()'
+          : param.isNullable
+              ? '\$${param.typeWithoutNullabilitySuffix}.toBroadEitherNullable(${param.name})'
+              : '${param.name}.toBroadEither';
 
-      return '''$toBroadEither.flatMap(
-      (${param.validName}) => ${_makeContentVerificationRecursive(totalParamsToVerify, [
+      return '''$either.flatMap(
+      (${param.hasInvalidAnnotation ? '_' : param.validName}) => ${_makeContentVerificationRecursive(totalParamsToVerify, [
                 ...paramsToVerify
               ]..removeAt(0), classInfo)}
       )$comma
       ''';
     }
 
-    final constructorParams = classInfo.namedParameters.map(
-        (p) => '${p.name}: ${p.hasValidAnnotation ? p.name : p.validName},');
+    final constructorParams = classInfo.namedParameters.map((p) =>
+        '${p.name}: ${p.hasInvalidAnnotation ? 'null' : p.hasValidAnnotation ? p.name : p.validName},');
 
     return '''right<Failure, ${classInfo.validEntityContent}>(${classInfo.validEntityContent}._(
         ${constructorParams.join('')}
@@ -315,8 +360,11 @@ class GeneralEntityGenerator {
 
     /// class members
     for (final param in classInfo.namedParameters) {
-      final paramType =
-          param.hasValidAnnotation ? param.type : 'Valid${param.type}';
+      final paramType = param.hasInvalidAnnotation
+          ? 'Null'
+          : param.hasValidAnnotation
+              ? param.type
+              : 'Valid${param.type}';
       classBuffer.writeln('final $paramType ${param.name};');
     }
     classBuffer.writeln('');
@@ -370,8 +418,11 @@ class GeneralEntityGenerator {
           ? param.typeWithoutNullabilitySuffix
           : param.type;
 
-      final validParamType =
-          param.hasValidAnnotation ? paramType : 'Valid$paramType';
+      final validParamType = param.hasInvalidAnnotation
+          ? 'Null'
+          : param.hasValidAnnotation
+              ? paramType
+              : 'Valid$paramType';
       classBuffer.writeln('final $validParamType ${param.name};');
     }
     classBuffer.writeln('');
@@ -559,7 +610,7 @@ class GeneralEntityGenerator {
 
     ${classInfo.namedParameters.map((param) => '''
     @override
-    final ${param.hasValidAnnotation ? param.type : 'Valid${param.type}'} ${param.name};
+    final ${param.hasInvalidAnnotation ? 'Null' : param.hasValidAnnotation ? param.type : 'Valid${param.type}'} ${param.name};
     ''').join()}
 
     ''');

@@ -14,10 +14,14 @@ export 'src/modddels/annotations.dart'
         modddel,
         ValidAnnotation,
         valid,
+        InvalidAnnotation,
+        invalid,
         WithGetterAnnotation,
         withGetter,
         ValidWithGetterAnnotation,
         validWithGetter,
+        InvalidWithGetterAnnotation,
+        invalidWithGetter,
         InvalidNull,
         TypeName;
 

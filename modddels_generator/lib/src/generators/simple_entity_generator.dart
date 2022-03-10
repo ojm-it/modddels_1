@@ -49,6 +49,30 @@ class SimpleEntityGenerator {
       }
     }
 
+    if (classInfo.namedParameters.every((param) => param.hasValidAnnotation)) {
+      throw InvalidGenerationSourceError(
+        'A SimpleEntity can\'t have all its fields marked with @valid.',
+        element: factoryConstructor,
+      );
+    }
+
+    for (final param in classInfo.namedParameters) {
+      if (param.hasValidAnnotation && param.hasInvalidAnnotation) {
+        throw InvalidGenerationSourceError(
+          'The @valid and @invalid annotations can\'t be used together on the same parameter.',
+          element: param.parameter,
+        );
+      }
+    }
+
+    for (final param in classInfo.namedParameters) {
+      if (param.hasInvalidAnnotation && !param.isNullable) {
+        throw InvalidGenerationSourceError(
+          'The @invalid annotation can only be used on nullable parameters.',
+          element: param.parameter,
+        );
+      }
+    }
 
     for (final param in classInfo.namedParameters) {
       if (param.hasWithGetterAnnotation) {
@@ -62,13 +86,15 @@ class SimpleEntityGenerator {
     for (final param in classInfo.namedParameters) {
       if (param.hasInvalidNullAnnotation) {
         throw InvalidGenerationSourceError(
-          'The InvalidNull annotation can only be used with a GeneralEntity.',
+          'The @InvalidNull annotation can only be used with a GeneralEntity.',
           element: param.parameter,
         );
       }
     }
 
     final classBuffer = StringBuffer();
+
+    makeHeader(classBuffer);
 
     makeMixin(classBuffer, classInfo);
 
@@ -81,6 +107,13 @@ class SimpleEntityGenerator {
     }
 
     return classBuffer.toString();
+  }
+
+  void makeHeader(StringBuffer classBuffer) {
+    classBuffer.writeln('''
+    // ignore_for_file: prefer_void_to_null
+
+    ''');
   }
 
   void makeMixin(StringBuffer classBuffer, SimpleEntityClassInfo classInfo) {
@@ -222,20 +255,22 @@ class SimpleEntityGenerator {
     if (paramsToVerify.isNotEmpty) {
       final param = paramsToVerify.first;
 
-      final toBroadEither = param.isNullable
-          ? '\$${param.typeWithoutNullabilitySuffix}.toBroadEitherNullable(${param.name})'
-          : '${param.name}.toBroadEither';
+      final either = param.hasInvalidAnnotation
+          ? 'Either<Null, Failure>.fromNullable(${param.name}?.failure, (r) => null).swap()'
+          : param.isNullable
+              ? '\$${param.typeWithoutNullabilitySuffix}.toBroadEitherNullable(${param.name})'
+              : '${param.name}.toBroadEither';
 
-      return '''$toBroadEither.flatMap(
-      (${param.validName}) => ${_makeContentVerificationRecursive(totalParamsToVerify, [
+      return '''$either.flatMap(
+      (${param.hasInvalidAnnotation ? '_' : param.validName}) => ${_makeContentVerificationRecursive(totalParamsToVerify, [
                 ...paramsToVerify
               ]..removeAt(0), classInfo)}
       )$comma
       ''';
     }
 
-    final constructorParams = classInfo.namedParameters.map(
-        (p) => '${p.name}: ${p.hasValidAnnotation ? p.name : p.validName},');
+    final constructorParams = classInfo.namedParameters.map((p) =>
+        '${p.name}: ${p.hasInvalidAnnotation ? 'null' : p.hasValidAnnotation ? p.name : p.validName},');
 
     return '''right<Failure, ${classInfo.validEntity}>(${classInfo.validEntity}._(
         ${constructorParams.join('')}
@@ -261,8 +296,11 @@ class SimpleEntityGenerator {
     /// class members
     for (final param in classInfo.namedParameters) {
       classBuffer.writeln('@override');
-      final paramType =
-          param.hasValidAnnotation ? param.type : 'Valid${param.type}';
+      final paramType = param.hasInvalidAnnotation
+          ? 'Null'
+          : param.hasValidAnnotation
+              ? param.type
+              : 'Valid${param.type}';
       classBuffer.writeln('final $paramType ${param.name};');
     }
     classBuffer.writeln('');

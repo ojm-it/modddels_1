@@ -160,18 +160,24 @@ class EntityParameter {
 
   bool get isNullable => type.endsWith('?');
 
-  /// True if the parameter has the `@valid` annotation or the `@validWithGetter`
-  /// annotation
+  /// True if the parameter has the `@valid` annotation or the
+  /// `@validWithGetter` annotation
   bool get hasValidAnnotation =>
       _validChecker.hasAnnotationOfExact(parameter) ||
       _validWithGetterChecker.hasAnnotationOfExact(parameter);
 
-  /// True if the parameter has the `@withGetter` annotation or the
-  /// `@validWithGetter` annotation
+  /// True if the parameter has the `@invalid` annotation or the
+  /// `@invalidWithGetter` annotation
+  bool get hasInvalidAnnotation =>
+      _invalidChecker.hasAnnotationOfExact(parameter) ||
+      _invalidWithGetterChecker.hasAnnotationOfExact(parameter);
 
+  /// True if the parameter has the `@withGetter` annotation, the
+  /// `@validWithGetter` annotation, or the `@invalidWithGetter` annotation
   bool get hasWithGetterAnnotation =>
       _withGetterChecker.hasAnnotationOfExact(parameter) ||
-      _validWithGetterChecker.hasAnnotationOfExact(parameter);
+      _validWithGetterChecker.hasAnnotationOfExact(parameter) ||
+      _invalidWithGetterChecker.hasAnnotationOfExact(parameter);
 
   bool get hasInvalidNullAnnotation =>
       _invalidNullChecker.hasAnnotationOfExact(parameter);
@@ -199,10 +205,15 @@ class EntityParameter {
 
 const _validChecker = TypeChecker.fromRuntime(ValidAnnotation);
 
+const _invalidChecker = TypeChecker.fromRuntime(InvalidAnnotation);
+
 const _withGetterChecker = TypeChecker.fromRuntime(WithGetterAnnotation);
 
 const _validWithGetterChecker =
     TypeChecker.fromRuntime(ValidWithGetterAnnotation);
+
+const _invalidWithGetterChecker =
+    TypeChecker.fromRuntime(InvalidWithGetterAnnotation);
 
 const _invalidNullChecker = TypeChecker.fromRuntime(InvalidNull);
 
