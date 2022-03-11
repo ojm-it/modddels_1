@@ -50,15 +50,17 @@ abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
 
 /// This is the base class for the "Valid" union-case of a modddel.
 ///
-/// NB : This class's subclasses such as [ValidValueObject] are used as
-/// interfaces in the generated "Valid" classes. However, you can directly
-/// extend them if you want to have a modddel that is always valid.
+/// NB : This class's subclasses, which are : [ValidValueObject] -
+/// [ValidEntity], are used as interfaces in the generated "Valid" classes.
+/// However, you can directly extend them if you want to have a modddel that is
+/// always valid.
 ///
 /// Example :
 ///
 /// ```dart
-/// class ValidName extends ValidValueObject<String> {
-///   ValidName(this.value);
+/// class ValidName extends ValidValueObject<String>
+///     with EquatableMixin, Stringify {
+///   const ValidName(this.value);
 ///
 ///   @override
 ///   final String value;
@@ -70,24 +72,25 @@ abstract class Modddel<I extends InvalidModddel, V extends ValidModddel>
 ///   StringifyMode get stringifyMode => StringifyMode.always;
 /// }
 /// ```
-
-// Note to self : This extends [Equatable] and mixins [Stringify] for the
-// use-case where we directly extend this class's subclasses such as
-// [ValidValueObject].
-abstract class ValidModddel extends Equatable with Stringify {}
+abstract class ValidModddel {
+  const ValidModddel();
+}
 
 /// This is the base class for the "Invalid" union-case of a modddel.
 ///
-/// NB : This class's subclasses such as [InvalidValueObject] are used as
-/// interfaces in the generated "Invalid" classes. However, you can directly
-/// extend them if you want to have a modddel that is always invalid.
+/// NB : This class's subclasses, which are : [InvalidValueObject] -
+/// [InvalidEntity] - [InvalidEntitySize] - [InvalidEntityContent] -
+/// [InvalidEntityGeneral], are used as interfaces in the generated "Invalid"
+/// classes. However, you can directly extend them if you want to have a modddel
+/// that is always invalid.
 ///
 /// Example :
 ///
 /// ```dart
-/// class InvalidName extends InvalidValueObject<String,NameValueFailure>{
+/// class InvalidName extends InvalidValueObject<String,NameValueFailure>
+///     with EquatableMixin, Stringify {
 ///
-///   InvalidName(this.valueFailure);
+///   const InvalidName(this.valueFailure);
 ///
 ///   @override
 ///   final NameValueFailure valueFailure;
@@ -99,14 +102,14 @@ abstract class ValidModddel extends Equatable with Stringify {}
 ///   StringifyMode get stringifyMode => StringifyMode.always;
 /// }
 /// ```
+abstract class InvalidModddel {
+  const InvalidModddel();
 
-// Note to self : This extends [Equatable] and mixins [Stringify] for the
-// use-case where we directly extend this class's subclasses such as
-// [InvalidValueObject].
-abstract class InvalidModddel extends Equatable with Stringify {
   Failure get failure;
 }
 
+/// This is a convenience mixin to automatically override [Equatable.stringify]
+/// based on the desired [stringifyMode].
 mixin Stringify {
   /// See [Equatable.stringify]
   bool? get stringify {
@@ -127,4 +130,6 @@ mixin Stringify {
 /// The base class for all the possible failures a [Modddel] can have.
 ///
 /// For example : [ValueFailure], [GeneralFailure], [SizeFailure]...
-abstract class Failure {}
+abstract class Failure {
+  const Failure();
+}

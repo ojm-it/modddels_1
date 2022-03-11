@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 /// ⚠️ We shouldn't import the testers, because they use the package
 /// 'flutter_test' which in turn imports dart:ui, which is not allowed in a
@@ -137,7 +136,12 @@ class EntityParameter {
     return type.endsWith('?') ? type : '$type?';
   }
 
-  String get type => parameter.type.toString();
+  String get type => hasTypeNameAnnotation
+      ? _typeNameChecker
+          .firstAnnotationOfExact(parameter)!
+          .getField('typeName')!
+          .toStringValue()!
+      : parameter.type.toString();
 
   String get typeWithoutNullabilitySuffix =>
       type.endsWith('?') ? type.substring(0, type.length - 1) : type;
@@ -152,31 +156,46 @@ class EntityParameter {
 
   String get optionalType => optionalize(type);
 
-  bool get isRequired => parameter.isRequiredNamed;
-
   bool get hasDefaultValue => parameter.hasDefaultValue;
 
-  bool get isNullable =>
-      parameter.type.nullabilitySuffix == NullabilitySuffix.question;
+  bool get isNullable => type.endsWith('?');
 
-  /// True if the parameter has the `@valid` annotation or the `@validWithGetter`
-  /// annotation
+  /// True if the parameter has the `@valid` annotation or the
+  /// `@validWithGetter` annotation
   bool get hasValidAnnotation =>
       _validChecker.hasAnnotationOfExact(parameter) ||
       _validWithGetterChecker.hasAnnotationOfExact(parameter);
 
-  /// True if the parameter has the `@withGetter` annotation or the
-  /// `@validWithGetter` annotation
+  /// True if the parameter has the `@invalid` annotation or the
+  /// `@invalidWithGetter` annotation
+  bool get hasInvalidAnnotation =>
+      _invalidChecker.hasAnnotationOfExact(parameter) ||
+      _invalidWithGetterChecker.hasAnnotationOfExact(parameter);
 
+  /// True if the parameter has the `@withGetter` annotation, the
+  /// `@validWithGetter` annotation, or the `@invalidWithGetter` annotation
   bool get hasWithGetterAnnotation =>
       _withGetterChecker.hasAnnotationOfExact(parameter) ||
-      _validWithGetterChecker.hasAnnotationOfExact(parameter);
+      _validWithGetterChecker.hasAnnotationOfExact(parameter) ||
+      _invalidWithGetterChecker.hasAnnotationOfExact(parameter);
 
-  bool get hasInvalidNullAnnotation =>
-      _invalidNullChecker.hasAnnotationOfExact(parameter);
+  /// True if the parameter has the `@NullFailure` annotation.
+  bool get hasNullFailureAnnotation =>
+      _nullFailureChecker.hasAnnotationOfExact(parameter);
 
-  String get invalidNullGeneralFailure {
-    final annotation = _invalidNullChecker.annotationsOfExact(parameter).single;
+  /// True if the parameter has the `@TypeName` annotation.
+  bool get hasTypeNameAnnotation =>
+      _typeNameChecker.hasAnnotationOfExact(parameter);
+
+  /// Returns the value of the `@NullFailure` annotation's field
+  /// [NullFailure.generalFailure].
+  ///
+  /// This should only be called if this parameter has the `@NullFailure`
+  /// annotation.
+  String get nullFailureString {
+    assert(hasNullFailureAnnotation);
+
+    final annotation = _nullFailureChecker.annotationsOfExact(parameter).single;
 
     final generalFailure =
         annotation.getField('generalFailure')?.toStringValue();
@@ -194,12 +213,19 @@ class EntityParameter {
 
 const _validChecker = TypeChecker.fromRuntime(ValidAnnotation);
 
+const _invalidChecker = TypeChecker.fromRuntime(InvalidAnnotation);
+
 const _withGetterChecker = TypeChecker.fromRuntime(WithGetterAnnotation);
 
 const _validWithGetterChecker =
     TypeChecker.fromRuntime(ValidWithGetterAnnotation);
 
-const _invalidNullChecker = TypeChecker.fromRuntime(InvalidNull);
+const _invalidWithGetterChecker =
+    TypeChecker.fromRuntime(InvalidWithGetterAnnotation);
+
+const _nullFailureChecker = TypeChecker.fromRuntime(NullFailure);
+
+const _typeNameChecker = TypeChecker.fromRuntime(TypeName);
 
 extension StringExtension on String {
   String capitalize() {

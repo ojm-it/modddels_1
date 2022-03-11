@@ -6,7 +6,7 @@ library modddels;
 
 export 'src/modddels/errors.dart' show UnreachableError;
 export 'src/modddels/modddel.dart'
-    show Modddel, ValidModddel, InvalidModddel, Failure;
+    show Modddel, ValidModddel, InvalidModddel, Failure, Stringify;
 export 'src/modddels/annotations.dart'
     show
         StringifyMode,
@@ -14,11 +14,16 @@ export 'src/modddels/annotations.dart'
         modddel,
         ValidAnnotation,
         valid,
+        InvalidAnnotation,
+        invalid,
         WithGetterAnnotation,
         withGetter,
         ValidWithGetterAnnotation,
         validWithGetter,
-        InvalidNull;
+        InvalidWithGetterAnnotation,
+        invalidWithGetter,
+        NullFailure,
+        TypeName;
 
 export 'src/modddels/value_objects/value_object.dart'
     show ValueObject, ValidValueObject, InvalidValueObject, ValueFailure;

@@ -37,22 +37,57 @@ class GeneralEntityGenerator {
       );
     }
 
-    for (final param in namedParameters) {
-      if (param.type.toString() == 'dynamic') {
+    final classInfo = GeneralEntityClassInfo(className, namedParameters);
+
+    for (final param in classInfo.namedParameters) {
+      if (param.type == 'dynamic') {
         throw InvalidGenerationSourceError(
-          'The named parameters of the factory constructor should have valid types, and should not be dynamic',
-          element: param,
+          'The named parameters of the factory constructor should have valid types, and should not be dynamic.'
+          'Consider using the @TypeName annotation to manually provide the type.',
+          element: param.parameter,
         );
       }
     }
 
-    final classInfo = GeneralEntityClassInfo(className, namedParameters);
+    if (classInfo.namedParameters.every((param) => param.hasValidAnnotation)) {
+      throw InvalidGenerationSourceError(
+        'A GeneralEntity can\'t have all its fields marked with @valid.',
+        element: factoryConstructor,
+      );
+    }
 
     for (final param in classInfo.namedParameters) {
-      if (param.hasInvalidNullAnnotation) {
+      if (param.hasValidAnnotation && param.hasInvalidAnnotation) {
+        throw InvalidGenerationSourceError(
+          'The @valid and @invalid annotations can\'t be used together on the same parameter.',
+          element: param.parameter,
+        );
+      }
+    }
+
+    for (final param in classInfo.namedParameters) {
+      if (param.hasInvalidAnnotation && !param.isNullable) {
+        throw InvalidGenerationSourceError(
+          'The @invalid annotation can only be used on nullable parameters.',
+          element: param.parameter,
+        );
+      }
+    }
+
+    for (final param in classInfo.namedParameters) {
+      if (param.hasInvalidAnnotation && param.hasNullFailureAnnotation) {
+        throw InvalidGenerationSourceError(
+          'The @invalid and @NullFailure annotations can\'t be used together on the same parameter.',
+          element: param.parameter,
+        );
+      }
+    }
+
+    for (final param in classInfo.namedParameters) {
+      if (param.hasNullFailureAnnotation) {
         if (!param.isNullable) {
           throw InvalidGenerationSourceError(
-            'The InvalidNull annotation can only be used with nullable parameters.',
+            'The @NullFailure annotation can only be used with nullable parameters.',
             element: param.parameter,
           );
         }
@@ -60,6 +95,8 @@ class GeneralEntityGenerator {
     }
 
     final classBuffer = StringBuffer();
+
+    makeHeader(classBuffer);
 
     makeMixin(classBuffer, classInfo);
 
@@ -78,6 +115,13 @@ class GeneralEntityGenerator {
     }
 
     return classBuffer.toString();
+  }
+
+  void makeHeader(StringBuffer classBuffer) {
+    classBuffer.writeln('''
+    // ignore_for_file: prefer_void_to_null
+    
+    ''');
   }
 
   void makeMixin(StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
@@ -134,7 +178,7 @@ class GeneralEntityGenerator {
     /// verifyGeneral function
     classBuffer.writeln('''
     /// This holds a [GeneralFailure] on the Left if :
-    ///  - One of the nullable fields marked with `@InvalidNull` is null
+    ///  - One of the nullable fields marked with `@NullFailure` is null
     ///  - The validateGeneral method returns a [GeneralFailure]
     /// Otherwise, holds the ValidEntity on the Right.
     static Either<${classInfo.generalFailure}, ${classInfo.validEntity}> _verifyGeneral(
@@ -152,17 +196,15 @@ class GeneralEntityGenerator {
 
     ''');
 
-    /// Getters for fields marked with '@withGetter' (or with '@validWithGetter')
+    /// Getters for fields marked with '@withGetter' (or '@validWithGetter' or
+    /// '@invalidWithGetter')
 
-    final getterParameters = classInfo.namedParameters
-        .where((e) => e.hasWithGetterAnnotation == true);
+    final getterParameters =
+        classInfo.namedParameters.where((e) => e.hasWithGetterAnnotation);
 
     for (final param in getterParameters) {
       classBuffer.writeln('''
-      ${param.type} get ${param.name} => mapValidity(
-        valid: (valid) => valid.${param.name},
-        invalid: (invalid) => invalid.${param.name},
-      );
+      ${param.type} get ${param.name} => throw UnimplementedError();
     
       ''');
     }
@@ -278,20 +320,22 @@ class GeneralEntityGenerator {
     if (paramsToVerify.isNotEmpty) {
       final param = paramsToVerify.first;
 
-      final toBroadEither = param.isNullable
-          ? '\$${param.typeWithoutNullabilitySuffix}.toBroadEitherNullable(${param.name})'
-          : '${param.name}.toBroadEither';
+      final either = param.hasInvalidAnnotation
+          ? 'Either<Null, Failure>.fromNullable(${param.name}?.failure, (r) => null).swap()'
+          : param.isNullable
+              ? '\$${param.typeWithoutNullabilitySuffix}.toBroadEitherNullable(${param.name})'
+              : '${param.name}.toBroadEither';
 
-      return '''$toBroadEither.flatMap(
-      (${param.validName}) => ${_makeContentVerificationRecursive(totalParamsToVerify, [
+      return '''$either.flatMap(
+      (${param.hasInvalidAnnotation ? '_' : param.validName}) => ${_makeContentVerificationRecursive(totalParamsToVerify, [
                 ...paramsToVerify
               ]..removeAt(0), classInfo)}
       )$comma
       ''';
     }
 
-    final constructorParams = classInfo.namedParameters.map(
-        (p) => '${p.name}: ${p.hasValidAnnotation ? p.name : p.validName},');
+    final constructorParams = classInfo.namedParameters.map((p) =>
+        '${p.name}: ${p.hasInvalidAnnotation ? 'null' : p.hasValidAnnotation ? p.name : p.validName},');
 
     return '''right<Failure, ${classInfo.validEntityContent}>(${classInfo.validEntityContent}._(
         ${constructorParams.join('')}
@@ -316,23 +360,26 @@ class GeneralEntityGenerator {
 
     /// class members
     for (final param in classInfo.namedParameters) {
-      final paramType =
-          param.hasValidAnnotation ? param.type : 'Valid${param.type}';
+      final paramType = param.hasInvalidAnnotation
+          ? 'Null'
+          : param.hasValidAnnotation
+              ? param.type
+              : 'Valid${param.type}';
       classBuffer.writeln('final $paramType ${param.name};');
     }
     classBuffer.writeln('');
 
     /// verifyNullables method
     classBuffer.writeln('''
-    /// If one of the nullable fields marked with `@InvalidNull` is null, this
+    /// If one of the nullable fields marked with `@NullFailure` is null, this
     /// holds a [GeneralFailure] on the Left. Otherwise, holds the ValidEntity on
     /// the Right.
     Either<${classInfo.generalFailure}, ${classInfo.validEntity}> verifyNullables() {
 
-      ${classInfo.namedParameters.where((p) => p.hasInvalidNullAnnotation).map((param) => '''
+      ${classInfo.namedParameters.where((p) => p.hasNullFailureAnnotation).map((param) => '''
       final ${param.name} = this.${param.name};
       if(${param.name} == null) {
-        return left(${param.invalidNullGeneralFailure});
+        return left(${param.nullFailureString});
       }
       
       ''').join()}
@@ -364,15 +411,18 @@ class GeneralEntityGenerator {
 
     /// class members
     for (final param in classInfo.namedParameters) {
-      if (param.hasWithGetterAnnotation == true) {
+      if (param.hasWithGetterAnnotation) {
         classBuffer.writeln('@override');
       }
-      final paramType = param.hasInvalidNullAnnotation
+      final paramType = param.hasNullFailureAnnotation
           ? param.typeWithoutNullabilitySuffix
           : param.type;
 
-      final validParamType =
-          param.hasValidAnnotation ? paramType : 'Valid$paramType';
+      final validParamType = param.hasInvalidAnnotation
+          ? 'Null'
+          : param.hasValidAnnotation
+              ? paramType
+              : 'Valid$paramType';
       classBuffer.writeln('final $validParamType ${param.name};');
     }
     classBuffer.writeln('');
@@ -418,7 +468,7 @@ class GeneralEntityGenerator {
 
     /// Fields Getters
     for (final param in classInfo.namedParameters) {
-      if (param.hasWithGetterAnnotation == true) {
+      if (param.hasWithGetterAnnotation) {
         classBuffer.writeln('@override');
       }
       classBuffer.writeln('${param.type} get ${param.name};');
@@ -560,7 +610,7 @@ class GeneralEntityGenerator {
 
     ${classInfo.namedParameters.map((param) => '''
     @override
-    final ${param.hasValidAnnotation ? param.type : 'Valid${param.type}'} ${param.name};
+    final ${param.hasInvalidAnnotation ? 'Null' : param.hasValidAnnotation ? param.type : 'Valid${param.type}'} ${param.name};
     ''').join()}
 
     ''');

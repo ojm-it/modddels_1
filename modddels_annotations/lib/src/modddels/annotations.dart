@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:modddels_annotations/src/modddels/entities/common.dart';
 import 'package:modddels_annotations/src/modddels/entities/general_entity.dart';
 import 'package:modddels_annotations/src/modddels/entities/simple_entity.dart';
+import 'package:modddels_annotations/src/modddels/modddel.dart';
 import 'package:modddels_annotations/src/modddels/value_objects/value_object.dart';
 import 'package:modddels_annotations/src/testers/testers_utils.dart';
 
@@ -66,6 +67,10 @@ class ValidAnnotation {
   const ValidAnnotation();
 }
 
+class InvalidAnnotation {
+  const InvalidAnnotation();
+}
+
 class WithGetterAnnotation {
   const WithGetterAnnotation();
 }
@@ -74,18 +79,23 @@ class ValidWithGetterAnnotation {
   const ValidWithGetterAnnotation();
 }
 
+class InvalidWithGetterAnnotation {
+  const InvalidWithGetterAnnotation();
+}
+
 const modddel = ModddelAnnotation();
 
-/// This annotation can only be used inside a [SimpleEntity] or a [GeneralEntity], in
-/// front of a factory parameter.
+/// This annotation can only be used inside a [SimpleEntity] or a
+/// [GeneralEntity], in front of a factory parameter.
 ///
 /// Use this annotation :
-/// - When you want a a [SimpleEntity] or a [GeneralEntity] to contain a modddel that should be considered as
-///   being valid (so it shouldn't be validated)
+/// - When you want a [SimpleEntity] or a [GeneralEntity] to contain a modddel
+///   that should be considered as being valid (so it shouldn't be validated)
 /// - When a parameter isn't a modddel and should be considered as being valid.
 ///   For example : a [ValidValueObject], a [ValidEntity], a boolean...
 ///
 /// Example :
+///
 /// ```dart
 /// factory FullName({
 ///    required Name firstName,
@@ -95,6 +105,25 @@ const modddel = ModddelAnnotation();
 /// ```
 
 const valid = ValidAnnotation();
+
+/// This annotation can only be used inside a [SimpleEntity] or a
+/// [GeneralEntity], in front of a **nullable** factory parameter.
+///
+/// Use this annotation when you want a [SimpleEntity] or a [GeneralEntity]
+/// to contain an [InvalidModddel] that should be always considered as invalid,
+/// unless it's null.
+///
+/// Example :
+///
+/// ```dart
+/// factory FullName({
+///    required Name firstName,
+///    required Name lastName,
+///    @invalid @TypeName('InvalidName?') required InvalidName? middleName,
+///  }) { ...
+/// ```
+
+const invalid = InvalidAnnotation();
 
 /// This annotation can only be used inside a [GeneralEntity], in front of a
 /// factory parameter.
@@ -109,11 +138,12 @@ const valid = ValidAnnotation();
 /// For example :
 ///
 /// ```dart
-///   final firstName = fullName.firstName; //ERROR : The getter 'firstName'
-///   isn't defined for the type 'FullName'.
+///   final firstName = fullName.firstName;
+///   //ERROR : The getter 'firstName' isn't defined for the type 'FullName'.
 ///
 ///   final firstName = fullName.mapValidity( valid: (valid) => valid.firstName,
-///       invalid: (invalid) => invalid.firstName); //No error.
+///       invalid: (invalid) => invalid.firstName);
+///   //No error.
 /// ```
 ///
 /// That's because the GeneralEntity may have a GeneralFailure, which may be
@@ -124,6 +154,7 @@ const valid = ValidAnnotation();
 ///  example : Having a getter for an "id" field.
 ///
 /// Example :
+///
 /// ```dart
 /// factory FullName({
 ///    @withGetter required UniqueId id,
@@ -136,6 +167,7 @@ const withGetter = WithGetterAnnotation();
 /// Same as specifying both the [valid] and [withGetter] annotations.
 ///
 /// Example :
+///
 /// ```dart
 /// factory FullName({
 ///    @validWithGetter required String id,
@@ -145,8 +177,78 @@ const withGetter = WithGetterAnnotation();
 /// ```
 const validWithGetter = ValidWithGetterAnnotation();
 
-class InvalidNull {
-  const InvalidNull(this.generalFailure);
+/// Same as specifying both the [invalid] and [withGetter] annotations.
+///
+/// Example :
+/// ```dart
+/// factory FullName({
+///    required Name firstName,
+///    required Name lastName,
+///    @invalidWithGetter @TypeName('InvalidName?') required InvalidName? middleName,
+///  }) { ...
+/// ```
+const invalidWithGetter = InvalidWithGetterAnnotation();
+
+/// This annotation can only be used inside a [GeneralEntity], in front of a
+/// factory parameter.
+///
+/// Use this annotation when you want a [GeneralEntity] to contain a nullable
+/// modddel that, when null, should make the entity invalid and hold a
+/// generalFailure (that you should provide as a String).
+///
+/// Example :
+///
+/// ```dart
+/// class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
+///     ValidFullName> with $FullName {
+///   factory FullName({
+///     @NullFailure('const FullNameGeneralFailure.incomplete()')
+///         required Name? lastName,
+///     ...
+///   }) {
+///     ...
+///
+/// ```
+///
+/// Here, if the field `lastName` is null, then the `FullName` entity will be an
+/// `InvalidEntityGeneral`, with as a general failure
+/// `FullNameGeneralFailure.incomplete()`. The field `lastName` in
+/// `ValidFullName` is non-nullable.
+class NullFailure {
+  const NullFailure(this.generalFailure);
 
   final String generalFailure;
+}
+
+/// Use this to manually provide the type of a [SimpleEntity] or [GeneralEntity]
+/// constructor parameter.
+///
+/// This is useful when the type does not exist at the time of generation (which
+/// is usually the case when the type class itself is generated).
+///
+/// Example :
+///
+/// ```dart
+/// @modddel
+/// class Person extends SimpleEntity<InvalidPersonContent, ValidPerson>
+///     with $Person {
+///   factory Person({
+///     required Age age,
+///     @TypeName('ValidName') @valid required ValidName validName,
+///   }) {
+///     return $Person._create(
+///       age: age,
+///       validName: validName,
+///     );
+///   }
+///
+///   const Person._();
+/// }
+/// ```
+///
+/// Here, `ValidName` is a generated class so it's not defined during the
+/// generation. So we provided the type using `@TypeName('ValidName')`.
+class TypeName {
+  const TypeName(this.typeName);
+  final String typeName;
 }
