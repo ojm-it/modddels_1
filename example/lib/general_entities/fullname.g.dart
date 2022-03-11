@@ -6,6 +6,8 @@ part of 'fullname.dart';
 // ModddelGenerator
 // **************************************************************************
 
+// ignore_for_file: prefer_void_to_null
+
 mixin $FullName {
   static FullName _create({
     required Name firstName,
@@ -65,7 +67,7 @@ mixin $FullName {
   }
 
   /// This holds a [GeneralFailure] on the Left if :
-  ///  - One of the nullable fields marked with `@InvalidNull` is null
+  ///  - One of the nullable fields marked with `@NullFailure` is null
   ///  - The validateGeneral method returns a [GeneralFailure]
   /// Otherwise, holds the ValidEntity on the Right.
   static Either<FullNameGeneralFailure, ValidFullName> _verifyGeneral(
@@ -81,15 +83,9 @@ mixin $FullName {
     return generalVerification;
   }
 
-  Name? get lastName => mapValidity(
-        valid: (valid) => valid.lastName,
-        invalid: (invalid) => invalid.lastName,
-      );
+  Name? get lastName => throw UnimplementedError();
 
-  bool get hasMiddleName => mapValidity(
-        valid: (valid) => valid.hasMiddleName,
-        invalid: (invalid) => invalid.hasMiddleName,
-      );
+  bool get hasMiddleName => throw UnimplementedError();
 
   /// If [nullableEntity] is null, returns `right(null)`.
   /// Otherwise, returns `nullableEntity.toBroadEither`.
@@ -178,7 +174,7 @@ class _ValidFullNameContent {
   final ValidName? lastName;
   final bool hasMiddleName;
 
-  /// If one of the nullable fields marked with `@InvalidNull` is null, this
+  /// If one of the nullable fields marked with `@NullFailure` is null, this
   /// holds a [GeneralFailure] on the Left. Otherwise, holds the ValidEntity on
   /// the Right.
   Either<FullNameGeneralFailure, ValidFullName> verifyNullables() {

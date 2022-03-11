@@ -6,6 +6,8 @@ part of 'fullname2.dart';
 // ModddelGenerator
 // **************************************************************************
 
+// ignore_for_file: prefer_void_to_null
+
 mixin $FullName2 {
   static FullName2 _create({
     required Name firstName,
