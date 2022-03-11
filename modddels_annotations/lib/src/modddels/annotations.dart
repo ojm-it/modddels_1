@@ -202,7 +202,7 @@ const invalidWithGetter = InvalidWithGetterAnnotation();
 /// class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
 ///     ValidFullName> with $FullName {
 ///   factory FullName({
-///     @InvalidNull('const FullNameGeneralFailure.incomplete()')
+///     @NullFailure('const FullNameGeneralFailure.incomplete()')
 ///         required Name? lastName,
 ///     ...
 ///   }) {
@@ -214,8 +214,8 @@ const invalidWithGetter = InvalidWithGetterAnnotation();
 /// `InvalidEntityGeneral`, with as a general failure
 /// `FullNameGeneralFailure.incomplete()`. The field `lastName` in
 /// `ValidFullName` is non-nullable.
-class InvalidNull {
-  const InvalidNull(this.generalFailure);
+class NullFailure {
+  const NullFailure(this.generalFailure);
 
   final String generalFailure;
 }

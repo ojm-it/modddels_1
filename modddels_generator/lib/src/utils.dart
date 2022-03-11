@@ -179,15 +179,23 @@ class EntityParameter {
       _validWithGetterChecker.hasAnnotationOfExact(parameter) ||
       _invalidWithGetterChecker.hasAnnotationOfExact(parameter);
 
-  bool get hasInvalidNullAnnotation =>
-      _invalidNullChecker.hasAnnotationOfExact(parameter);
+  /// True if the parameter has the `@NullFailure` annotation.
+  bool get hasNullFailureAnnotation =>
+      _nullFailureChecker.hasAnnotationOfExact(parameter);
 
   /// True if the parameter has the `@TypeName` annotation.
   bool get hasTypeNameAnnotation =>
       _typeNameChecker.hasAnnotationOfExact(parameter);
 
-  String get invalidNullGeneralFailure {
-    final annotation = _invalidNullChecker.annotationsOfExact(parameter).single;
+  /// Returns the value of the `@NullFailure` annotation's field
+  /// [NullFailure.generalFailure].
+  ///
+  /// This should only be called if this parameter has the `@NullFailure`
+  /// annotation.
+  String get nullFailureString {
+    assert(hasNullFailureAnnotation);
+
+    final annotation = _nullFailureChecker.annotationsOfExact(parameter).single;
 
     final generalFailure =
         annotation.getField('generalFailure')?.toStringValue();
@@ -215,7 +223,7 @@ const _validWithGetterChecker =
 const _invalidWithGetterChecker =
     TypeChecker.fromRuntime(InvalidWithGetterAnnotation);
 
-const _invalidNullChecker = TypeChecker.fromRuntime(InvalidNull);
+const _nullFailureChecker = TypeChecker.fromRuntime(NullFailure);
 
 const _typeNameChecker = TypeChecker.fromRuntime(TypeName);
 

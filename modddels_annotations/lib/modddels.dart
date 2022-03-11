@@ -22,7 +22,7 @@ export 'src/modddels/annotations.dart'
         validWithGetter,
         InvalidWithGetterAnnotation,
         invalidWithGetter,
-        InvalidNull,
+        NullFailure,
         TypeName;
 
 export 'src/modddels/value_objects/value_object.dart'

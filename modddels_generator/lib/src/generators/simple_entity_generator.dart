@@ -84,9 +84,9 @@ class SimpleEntityGenerator {
     }
 
     for (final param in classInfo.namedParameters) {
-      if (param.hasInvalidNullAnnotation) {
+      if (param.hasNullFailureAnnotation) {
         throw InvalidGenerationSourceError(
-          'The @InvalidNull annotation can only be used with a GeneralEntity.',
+          'The @NullFailure annotation can only be used with a GeneralEntity.',
           element: param.parameter,
         );
       }

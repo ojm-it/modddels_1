@@ -43,7 +43,7 @@ The different states a Modddel can have are represented with **Union Cases Class
 		- [Fields getters](#fields-getters)
 		- [The `valid` annotation](#the-valid-annotation-1)
 		- [The `invalid` annotation](#the-invalid-annotation-1)
-		- [The `InvalidNull` annotation](#the-invalidnull-annotation)
+		- [The `NullFailure` annotation](#the-nullfailure-annotation)
 	- [ListGeneralEntity](#listgeneralentity)
 		- [Usage](#usage-5)
 	- [SizedListGeneralEntity](#sizedlistgeneralentity)
@@ -230,7 +230,7 @@ When creating a SimpleEntity, the validation is made in this order :
 
 When a `SimpleEntity` contains a nullable modddel, when it is null, it is considered valid during the "Content Validation" step.
 
-If you want a nullable modddel to make the Entity invalid when it's null, consider using a `GeneralEntity` and annotating the parameter with the [`@InvalidNull` annotation.](#the-invalidnull-annotation)
+If you want a nullable modddel to make the Entity invalid when it's null, consider using a `GeneralEntity` and annotating the parameter with the [`@NullFailure` annotation.](#the-nullfailure-annotation)
 
 ### The `valid` annotation
 
@@ -474,12 +474,12 @@ If you want to use both `@invalid` and `@withGetter` annotation, you can use the
 
 > **NB :** For the same reasons as for `SimpleEntity` [(mentioned here)](#the-invalid-annotation), the `invalid` annotation can only be used on nullable parameters.
 
-### The `InvalidNull` annotation
+### The `NullFailure` annotation
 
 When a `GeneralEntity` contains a nullable modddel, when it is null, it is considered valid during the "Content Validation" step. If you want the `GeneralEntity` to be invalid when that parameter is null, you could :
 
 - Verify if the parameter is null in the `validateGeneral` method, and if so, return a `GeneralFailure`. **(Not recommended)**
-- Use the `@InvalidNull` annotation with the String of the `GeneralFailure`. This is the recommended way, since it has the benefit of making the field non-nullable in the `ValidEntity`.
+- Use the `@NullFailure` annotation with the String of the `GeneralFailure`. This is the recommended way, since it has the benefit of making the field non-nullable in the `ValidEntity`.
 
 Example :
 
@@ -487,7 +487,7 @@ Example :
 class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
     ValidFullName> with $FullName {
   factory FullName({
-    @InvalidNull('const FullNameGeneralFailure.incomplete()')
+    @NullFailure('const FullNameGeneralFailure.incomplete()')
         required Name? lastName,
     ...
   }) {
@@ -497,9 +497,9 @@ class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
 
 Here, if the field `lastName` is null, then the `FullName` entity will be an `InvalidEntityGeneral`, with as a general failure `FullNameGeneralFailure.incomplete()`. The field `lastName` in `ValidFullName` is non-nullable.
 
-> **NB 1:** This validation step of nullable fields marked with the `@InvalidNull` annotation occurs just before the `validateGeneral` method is called. So the entity passed in the `validateGeneral` method will have those fields non-nullable.
+> **NB 1:** This validation step of nullable fields marked with the `@NullFailure` annotation occurs just before the `validateGeneral` method is called. So the entity passed in the `validateGeneral` method will have those fields non-nullable.
 >
-> **NB 2:** The `@InvalidNull` annotation can be used with any other annotation, except `@invalid`. That's because a nullable parameter annotated with both `@invalid` and `@InvalidNull` will cause the `GeneralEntity` to never be valid, while fundamentally, an Entity can either be valid or invalid.
+> **NB 2:** The `@NullFailure` annotation can be used with any other annotation, except `@invalid`. That's because a nullable parameter annotated with both `@invalid` and `@NullFailure` will cause the `GeneralEntity` to never be valid, while fundamentally, an Entity can either be valid or invalid.
 >
 > For an alternative to this specific case, see [the related section in "Special Cases".](#modddels-that-are-always-invalid).
 
@@ -772,7 +772,7 @@ Sometimes you may need to create a modddel that is always invalid. For example :
 
 - A ValueObject that is always invalid and holds a Failure.
 - A `SimpleEntity` or `GeneralEntity` with a non-nullable `@invalid` parameter [(See remark)](#the-invalid-annotation)
-- A `GeneralEntity` with a nullable parameter annotated with both `@invalid` and `@InvalidNull` [(See remark)](#the-invalidnull-annotation)
+- A `GeneralEntity` with a nullable parameter annotated with both `@invalid` and `@NullFailure` [(See remark)](#the-nullfailure-annotation)
 
 However, modddels by definition have both a valid and invalid state, so this isn't allowed.
 
@@ -833,7 +833,7 @@ class InvalidPersonContent2 extends InvalidEntityContent
 }
 ```
 
-_Example 3 :_ Creating an `InvalidEntityGeneral` using freezed. This also demonstrates the alternative for the situation where we want to have a nullable parameter annotated with both `@invalid` and `@InvalidNull`.
+_Example 3 :_ Creating an `InvalidEntityGeneral` using freezed. This also demonstrates the alternative for the situation where we want to have a nullable parameter annotated with both `@invalid` and `@NullFailure`.
 
 ```dart
 @freezed
