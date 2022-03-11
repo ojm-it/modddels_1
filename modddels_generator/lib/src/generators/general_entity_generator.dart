@@ -40,7 +40,7 @@ class GeneralEntityGenerator {
     final classInfo = GeneralEntityClassInfo(className, namedParameters);
 
     for (final param in classInfo.namedParameters) {
-      if (param.type.toString() == 'dynamic') {
+      if (param.type == 'dynamic') {
         throw InvalidGenerationSourceError(
           'The named parameters of the factory constructor should have valid types, and should not be dynamic.'
           'Consider using the @TypeName annotation to manually provide the type.',
