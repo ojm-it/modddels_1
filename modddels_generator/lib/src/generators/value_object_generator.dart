@@ -3,8 +3,8 @@ import 'package:modddels_annotations/modddels.dart';
 import 'package:modddels_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
-class ValueObjectGenerator {
-  ValueObjectGenerator({
+class SingleValueObjectGenerator {
+  SingleValueObjectGenerator({
     required this.className,
     required this.factoryConstructor,
     required this.generateTester,
@@ -64,7 +64,10 @@ class ValueObjectGenerator {
     static $className _create(${classInfo.valueType} input) {
       /// 1. **Value Validation**
       return _verifyValue(input).match(
-        (valueFailure) => ${classInfo.invalidValueObject}._(valueFailure: valueFailure),
+        (valueFailure) => ${classInfo.invalidValueObject}._(
+          valueFailure: valueFailure,
+          failedValue: input,
+        ),
 
         /// 2. **→ Validations passed**
         (validValue) => ${classInfo.validValueObject}._(value: validValue),
@@ -78,7 +81,7 @@ class ValueObjectGenerator {
     /// If the value is invalid, this holds the [ValueFailure] on the Left.
     /// Otherwise, holds the value on the Right.
     static Either<${classInfo.valueFailure}, ${classInfo.valueType}> _verifyValue(${classInfo.valueType} input) {
-      final valueVerification = const $className._().validateValue(input);
+      final valueVerification = const $className._().validateValue(${classInfo.validValueObject}._(value: input));
       return valueVerification.toEither(() => input).swap();
     }
 
@@ -137,7 +140,7 @@ class ValueObjectGenerator {
   void makeValidValueObject(
       StringBuffer classBuffer, ValueObjectClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.validValueObject} extends $className implements ValidValueObject<${classInfo.valueType}> {
+    class ${classInfo.validValueObject} extends $className implements ValidSingleValueObject<${classInfo.valueType}> {
     ''');
 
     /// private constructor
@@ -179,13 +182,14 @@ class ValueObjectGenerator {
       StringBuffer classBuffer, ValueObjectClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalidValueObject} extends $className
-      implements InvalidValueObject<${classInfo.valueType}, ${classInfo.valueFailure}> {
+      implements InvalidSingleValueObject<${classInfo.valueType}, ${classInfo.valueFailure}> {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
     const ${classInfo.invalidValueObject}._({
       required this.valueFailure,
+      required this.failedValue,
     }) : super._();
     ''');
 
@@ -193,6 +197,9 @@ class ValueObjectGenerator {
     classBuffer.writeln('''
     @override
     final ${classInfo.valueFailure} valueFailure;
+
+    @override
+    final ${classInfo.valueType} failedValue;
 
     @override
     ${classInfo.valueFailure} get failure => valueFailure; 
@@ -211,7 +218,7 @@ class ValueObjectGenerator {
     /// props getter
     classBuffer.writeln('''
     @override
-    List<Object?> get props => [failure];
+    List<Object?> get props => [valueFailure, failedValue];
     ''');
 
     /// end

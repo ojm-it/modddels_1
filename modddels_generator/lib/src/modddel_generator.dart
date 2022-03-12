@@ -7,7 +7,6 @@ import 'package:modddels_generator/src/generators/list_general_entity_generator.
 import 'package:modddels_generator/src/generators/sized_list_general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
-import 'generators/nullable_value_object_generator.dart';
 import 'generators/sized_list_entity_generator.dart';
 
 /// ⚠️ We shouldn't import the testers, because they use the package
@@ -16,8 +15,7 @@ import 'generators/sized_list_entity_generator.dart';
 import 'package:modddels_annotations/modddels.dart';
 
 enum Model {
-  valueObject,
-  nullableValueObject,
+  singleValueObject,
   simpleEntity,
   listEntity,
   sizedListEntity,
@@ -86,10 +84,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
         element: classElement,
       );
     }
-    if (superClassName == 'ValueObject') {
-      modelType = Model.valueObject;
-    } else if (superClassName == 'NullableValueObject') {
-      modelType = Model.nullableValueObject;
+    if (superClassName == 'SingleValueObject') {
+      modelType = Model.singleValueObject;
     } else if (superClassName == 'ListGeneralEntity') {
       modelType = Model.listGeneralEntity;
     } else if (superClassName == 'SizedListGeneralEntity') {
@@ -122,16 +118,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
     final stringifyMode = StringifyMode.values.byName(stringifyModeName);
 
     switch (modelType) {
-      case Model.valueObject:
-        return ValueObjectGenerator(
-          className: className,
-          factoryConstructor: factoryConstructor,
-          generateTester: generateTester,
-          maxSutDescriptionLength: maxSutDescriptionLength,
-          stringifyMode: stringifyMode,
-        ).generate();
-      case Model.nullableValueObject:
-        return NullableValueObjectGenerator(
+      case Model.singleValueObject:
+        return SingleValueObjectGenerator(
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
