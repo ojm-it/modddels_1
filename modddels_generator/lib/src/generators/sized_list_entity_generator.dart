@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_generator/src/utils.dart';
+import 'package:modddels_generator/src/core/class_info.dart';
 import 'package:source_gen/source_gen.dart';
 
 class SizedListEntityGenerator {
@@ -53,7 +53,10 @@ class SizedListEntityGenerator {
       );
     }
 
-    final classInfo = SizedListEntityClassInfo(className, ktListType);
+    final classInfo = SizedListEntityClassInfo(
+      className: className,
+      ktListType: ktListType,
+    );
 
     final classBuffer = StringBuffer();
 
@@ -69,6 +72,8 @@ class SizedListEntityGenerator {
 
     if (generateTester) {
       makeTester(classBuffer, classInfo);
+
+      makeModddelInput(classBuffer, classInfo);
     }
 
     return classBuffer.toString();
@@ -85,17 +90,17 @@ class SizedListEntityGenerator {
       /// 1. **Size validation**
       return _verifySize(list).match(
         (sizeFailure) =>
-            ${classInfo.invalidEntitySize}._(sizeFailure: sizeFailure, list: list),
+            ${classInfo.invalidSize}._(sizeFailure: sizeFailure, list: list),
         
         /// 2. **Content validation**
         (validSize) => _verifyContent(validSize).match(
-          (contentFailure) => ${classInfo.invalidEntityContent}._(
+          (contentFailure) => ${classInfo.invalidContent}._(
             contentFailure: contentFailure,
             list: validSize,
           ),
 
           /// 3. **→ Validations passed**
-          (validContent) =>${classInfo.validEntity}._(list: validContent),
+          (validContent) =>${classInfo.valid}._(list: validContent),
         ),
       );
     }
@@ -159,7 +164,7 @@ class SizedListEntityGenerator {
     classBuffer.writeln('''
     /// If [nullableEntity] is null, returns `right(null)`.
     /// Otherwise, returns `nullableEntity.toBroadEither`.
-    static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
+    static Either<Failure, ${classInfo.valid}?> toBroadEitherNullable(
           $className? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
     
@@ -172,10 +177,10 @@ class SizedListEntityGenerator {
     /// - [InvalidEntitySize]
     /// - [InvalidEntityContent]
     TResult map<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntitySize} invalidSize)
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidSize} invalidSize)
           invalidSize,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,      
     }) {
       return maybeMap(
@@ -193,10 +198,10 @@ class SizedListEntityGenerator {
     /// Equivalent to [map], but only the [valid] callback is required. It also
     /// adds an extra orElse required parameter, for fallback behavior.
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidSize} invalidSize)? invalidSize,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       throw UnimplementedError();
     }
@@ -208,8 +213,8 @@ class SizedListEntityGenerator {
     /// Pattern matching for the two different union-cases of this entity : valid
     /// and invalid.
     TResult mapValidity<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntity} invalid) invalid,
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalid} invalid) invalid,
     }) {
       return maybeMap(
         valid: valid,
@@ -248,11 +253,11 @@ class SizedListEntityGenerator {
   void makeValidEntity(
       StringBuffer classBuffer, SizedListEntityClassInfo classInfo) {
     classBuffer.writeln(
-        'class ${classInfo.validEntity} extends $className implements ValidEntity {');
+        'class ${classInfo.valid} extends $className implements ValidEntity {');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.validEntity}._({
+    const ${classInfo.valid}._({
       required this.list,
     }) : super._();    
     
@@ -268,10 +273,10 @@ class SizedListEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidSize} invalidSize)? invalidSize,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       return valid(this);
     }
@@ -294,13 +299,13 @@ class SizedListEntityGenerator {
   void makeInvalidEntity(
       StringBuffer classBuffer, SizedListEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    abstract class ${classInfo.invalidEntity} extends $className
+    abstract class ${classInfo.invalid} extends $className
     implements InvalidEntity {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntity}._() : super._();
+    const ${classInfo.invalid}._() : super._();
     
     ''');
 
@@ -327,9 +332,9 @@ class SizedListEntityGenerator {
     /// - [InvalidEntitySize]
     /// - [InvalidEntityContent]
     TResult mapInvalid<TResult extends Object?>({
-      required TResult Function(${classInfo.invalidEntitySize} invalidSize)
+      required TResult Function(${classInfo.invalidSize} invalidSize)
           invalidSize,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
     }) {
       return maybeMap(
@@ -370,13 +375,13 @@ class SizedListEntityGenerator {
   void makeInvalidEntitySize(
       StringBuffer classBuffer, SizedListEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.invalidEntitySize} extends ${classInfo.invalidEntity}
+    class ${classInfo.invalidSize} extends ${classInfo.invalid}
       implements InvalidEntitySize<${classInfo.sizeFailure}> {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntitySize}._({
+    const ${classInfo.invalidSize}._({
       required this.sizeFailure,
       required this.list,
     }) : super._();
@@ -396,10 +401,10 @@ class SizedListEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidSize} invalidSize)? invalidSize,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       if (invalidSize != null) {
         return invalidSize(this);
@@ -425,14 +430,14 @@ class SizedListEntityGenerator {
   void makeInvalidEntityContent(
       StringBuffer classBuffer, SizedListEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.invalidEntityContent} extends ${classInfo.invalidEntity}
+    class ${classInfo.invalidContent} extends ${classInfo.invalid}
       implements InvalidEntityContent {
     
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntityContent}._({
+    const ${classInfo.invalidContent}._({
       required this.contentFailure,
       required this.list,
     }) : super._();
@@ -451,10 +456,10 @@ class SizedListEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntitySize} invalidSize)? invalidSize,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidSize} invalidSize)? invalidSize,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       if (invalidContent != null) {
         return invalidContent(this);
@@ -481,28 +486,76 @@ class SizedListEntityGenerator {
     classBuffer.writeln('''
     class ${className}Tester extends SizedListEntityTester<
       ${classInfo.sizeFailure},
-      ${classInfo.invalidEntitySize},
-      ${classInfo.invalidEntityContent},
-      ${classInfo.invalidEntity},
-      ${classInfo.validEntity},
-      $className> {
+      ${classInfo.invalidSize},
+      ${classInfo.invalidContent},
+      ${classInfo.invalid},
+      ${classInfo.valid},
+      $className,
+      ${classInfo.modddelInput}> {
     ''');
 
     /// constructor
     classBuffer.writeln('''
     const ${className}Tester({
       int maxSutDescriptionLength = $maxSutDescriptionLength,
-      String isValidGroupDescription = 'Should be a ${classInfo.validEntity}',
+      String isSanitizedGroupDescription = 'Should be sanitized',
+      String isNotSanitizedGroupDescription = 'Should not be sanitized',
+      String isValidGroupDescription = 'Should be a ${classInfo.valid}',
       String isInvalidSizeGroupDescription =
-          'Should be an ${classInfo.invalidEntitySize} and hold the ${classInfo.sizeFailure}',
+          'Should be an ${classInfo.invalidSize} and hold the ${classInfo.sizeFailure}',
       String isInvalidContentGroupDescription =
-          'Should be an ${classInfo.invalidEntityContent} and hold the proper contentFailure',
+          'Should be an ${classInfo.invalidContent} and hold the proper contentFailure',
     }) : super(
             maxSutDescriptionLength: maxSutDescriptionLength,
+            isSanitizedGroupDescription: isSanitizedGroupDescription,
+            isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
             isValidGroupDescription: isValidGroupDescription,
             isInvalidSizeGroupDescription: isInvalidSizeGroupDescription,
             isInvalidContentGroupDescription: isInvalidContentGroupDescription,
           );
+    ''');
+
+    /// makeInput field
+    classBuffer.writeln('''
+    final makeInput = ${classInfo.modddelInput}.new;
+    ''');
+
+    /// end
+    classBuffer.writeln('}');
+  }
+
+  void makeModddelInput(
+      StringBuffer classBuffer, SizedListEntityClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${classInfo.modddelInput} extends ModddelInput<$className> {
+    ''');
+
+    /// constructor
+    classBuffer.writeln('''
+    const ${classInfo.modddelInput}(this.list);
+    ''');
+
+    /// class members
+    classBuffer.writeln('''
+    final KtList<${classInfo.ktListType}> list;
+    ''');
+
+    /// props method
+    classBuffer.writeln('''
+    @override
+    List<Object?> get props => [list];
+    ''');
+
+    /// sanitizedInput method
+    classBuffer.writeln('''
+    @override
+    ${classInfo.modddelInput} get sanitizedInput {
+      final modddel = $className(list);
+      final modddelList = modddel.mapValidity(
+          valid: (v) => v.list, invalid: (i) => i.list);
+
+      return ${classInfo.modddelInput}(modddelList);
+    }
     ''');
 
     /// end

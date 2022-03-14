@@ -2,7 +2,6 @@ import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/src/modddels/entities/common.dart';
 import 'package:modddels_annotations/src/modddels/entities/general_entity.dart';
 import 'package:modddels_annotations/src/modddels/entities/list_entity.dart';
-import 'package:modddels_annotations/src/modddels/modddel.dart';
 
 /// A [ListGeneralEntity] is the [GeneralEntity] version of a [ListEntity] : It
 /// provides an extra validation step at the end that validates the entity as a
@@ -22,7 +21,7 @@ import 'package:modddels_annotations/src/modddels/modddel.dart';
 /// 3. **→ Validations passed** : This [ListGeneralEntity] is valid, and becomes a
 ///    [ValidEntity] that holds the valid version of its modddels.
 abstract class ListGeneralEntity<F extends GeneralFailure,
-    I extends InvalidEntity, V extends ValidEntity> extends Modddel<I, V> {
+    I extends InvalidEntity, V extends ValidEntity> extends Entity<I, V> {
   const ListGeneralEntity();
 
   /// Validates this [ListGeneralEntity] as a whole, after all its modddels have

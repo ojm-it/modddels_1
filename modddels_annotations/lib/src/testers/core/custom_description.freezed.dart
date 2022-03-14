@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
 
-part of 'common.dart';
+part of 'custom_description.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -168,25 +168,15 @@ class __$ReplaceDescriptionCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_ReplaceDescription
-    with DiagnosticableTreeMixin
-    implements _ReplaceDescription {
+class _$_ReplaceDescription implements _ReplaceDescription {
   const _$_ReplaceDescription(this.newDescription);
 
   @override
   final String newDescription;
 
   @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+  String toString() {
     return 'CustomDescription.replaceDescription(newDescription: $newDescription)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'CustomDescription.replaceDescription'))
-      ..add(DiagnosticsProperty('newDescription', newDescription));
   }
 
   @override
@@ -334,23 +324,15 @@ class __$AddPrefixCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_AddPrefix with DiagnosticableTreeMixin implements _AddPrefix {
+class _$_AddPrefix implements _AddPrefix {
   const _$_AddPrefix(this.prefix);
 
   @override
   final String prefix;
 
   @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+  String toString() {
     return 'CustomDescription.addPrefix(prefix: $prefix)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'CustomDescription.addPrefix'))
-      ..add(DiagnosticsProperty('prefix', prefix));
   }
 
   @override
@@ -496,23 +478,15 @@ class __$AddSuffixCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_AddSuffix with DiagnosticableTreeMixin implements _AddSuffix {
+class _$_AddSuffix implements _AddSuffix {
   const _$_AddSuffix(this.suffix);
 
   @override
   final String suffix;
 
   @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+  String toString() {
     return 'CustomDescription.addSuffix(suffix: $suffix)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'CustomDescription.addSuffix'))
-      ..add(DiagnosticsProperty('suffix', suffix));
   }
 
   @override
@@ -664,9 +638,7 @@ class __$AddPrefixAndSuffixCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_AddPrefixAndSuffix
-    with DiagnosticableTreeMixin
-    implements _AddPrefixAndSuffix {
+class _$_AddPrefixAndSuffix implements _AddPrefixAndSuffix {
   const _$_AddPrefixAndSuffix(this.prefix, this.suffix);
 
   @override
@@ -675,17 +647,8 @@ class _$_AddPrefixAndSuffix
   final String suffix;
 
   @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+  String toString() {
     return 'CustomDescription.addPrefixAndSuffix(prefix: $prefix, suffix: $suffix)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'CustomDescription.addPrefixAndSuffix'))
-      ..add(DiagnosticsProperty('prefix', prefix))
-      ..add(DiagnosticsProperty('suffix', suffix));
   }
 
   @override
@@ -837,25 +800,15 @@ class __$ModifyDescriptionCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_ModifyDescription
-    with DiagnosticableTreeMixin
-    implements _ModifyDescription {
+class _$_ModifyDescription implements _ModifyDescription {
   const _$_ModifyDescription(this.modifyDescription);
 
   @override
   final String Function(String) modifyDescription;
 
   @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+  String toString() {
     return 'CustomDescription.modifyDescription(modifyDescription: $modifyDescription)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'CustomDescription.modifyDescription'))
-      ..add(DiagnosticsProperty('modifyDescription', modifyDescription));
   }
 
   @override

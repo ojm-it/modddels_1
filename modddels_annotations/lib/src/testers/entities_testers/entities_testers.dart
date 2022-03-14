@@ -1,20 +1,32 @@
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_annotations/src/testers/common.dart';
-import 'package:modddels_annotations/src/testers/entities_testers/mixins.dart';
+import 'package:modddels_annotations/src/testers/core/modddel_input.dart';
+import 'package:modddels_annotations/src/testers/core/tester.dart';
+import 'package:modddels_annotations/src/testers/testers_mixins.dart';
 
 /// This is a Tester for unit testing a [SimpleEntity].
 class SimpleEntityTester<C extends InvalidEntityContent, V extends ValidEntity,
-        E extends SimpleEntity<C, V>> extends Tester
-    with ValidTesterMixin<C, V, E>, ContentTesterMixin<C, C, V, E> {
+        M extends SimpleEntity<C, V>, P extends ModddelInput<M>> extends Tester
+    with
+        SanitizationTesterMixin<M, P>,
+        ValidTesterMixin<C, V, M>,
+        ContentTesterMixin<C, C, V, M> {
   /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
   const SimpleEntityTester({
     required int maxSutDescriptionLength,
+    required this.isSanitizedGroupDescription,
+    required this.isNotSanitizedGroupDescription,
     required this.isValidGroupDescription,
     required this.isInvalidContentGroupDescription,
   }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
 
   @override
   final String isInvalidContentGroupDescription;
+
+  @override
+  final String isNotSanitizedGroupDescription;
+
+  @override
+  final String isSanitizedGroupDescription;
 
   @override
   final String isValidGroupDescription;
@@ -27,14 +39,18 @@ class GeneralEntityTester<
         G extends InvalidEntityGeneral<F>,
         I extends InvalidEntity,
         V extends ValidEntity,
-        E extends GeneralEntity<F, I, V>> extends Tester
+        M extends GeneralEntity<F, I, V>,
+        P extends ModddelInput<M>> extends Tester
     with
-        ValidTesterMixin<I, V, E>,
-        ContentTesterMixin<C, I, V, E>,
-        GeneralTesterMixin<F, G, I, V, E> {
+        SanitizationTesterMixin<M, P>,
+        ValidTesterMixin<I, V, M>,
+        ContentTesterMixin<C, I, V, M>,
+        GeneralTesterMixin<F, G, I, V, M> {
   /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
   const GeneralEntityTester({
     required int maxSutDescriptionLength,
+    required this.isSanitizedGroupDescription,
+    required this.isNotSanitizedGroupDescription,
     required this.isValidGroupDescription,
     required this.isInvalidGeneralGroupDescription,
     required this.isInvalidContentGroupDescription,
@@ -47,19 +63,36 @@ class GeneralEntityTester<
   final String isInvalidGeneralGroupDescription;
 
   @override
+  final String isNotSanitizedGroupDescription;
+
+  @override
+  final String isSanitizedGroupDescription;
+
+  @override
   final String isValidGroupDescription;
 }
 
 /// This is a Tester for unit testing a [ListEntity].
 class ListEntityTester<C extends InvalidEntityContent, V extends ValidEntity,
-        E extends ListEntity<C, V>> extends Tester
-    with ValidTesterMixin<C, V, E>, ContentTesterMixin<C, C, V, E> {
+        M extends ListEntity<C, V>, P extends ModddelInput<M>> extends Tester
+    with
+        SanitizationTesterMixin<M, P>,
+        ValidTesterMixin<C, V, M>,
+        ContentTesterMixin<C, C, V, M> {
   /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
   const ListEntityTester({
     required int maxSutDescriptionLength,
+    required this.isSanitizedGroupDescription,
+    required this.isNotSanitizedGroupDescription,
     required this.isValidGroupDescription,
     required this.isInvalidContentGroupDescription,
   }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
+
+  @override
+  final String isSanitizedGroupDescription;
+
+  @override
+  final String isNotSanitizedGroupDescription;
 
   @override
   final String isInvalidContentGroupDescription;
@@ -75,18 +108,28 @@ class ListGeneralEntityTester<
         G extends InvalidEntityGeneral<F>,
         I extends InvalidEntity,
         V extends ValidEntity,
-        E extends ListGeneralEntity<F, I, V>> extends Tester
+        M extends ListGeneralEntity<F, I, V>,
+        P extends ModddelInput<M>> extends Tester
     with
-        ValidTesterMixin<I, V, E>,
-        ContentTesterMixin<C, I, V, E>,
-        GeneralTesterMixin<F, G, I, V, E> {
+        SanitizationTesterMixin<M, P>,
+        ValidTesterMixin<I, V, M>,
+        ContentTesterMixin<C, I, V, M>,
+        GeneralTesterMixin<F, G, I, V, M> {
   /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
   const ListGeneralEntityTester({
     required int maxSutDescriptionLength,
+    required this.isSanitizedGroupDescription,
+    required this.isNotSanitizedGroupDescription,
     required this.isValidGroupDescription,
     required this.isInvalidGeneralGroupDescription,
     required this.isInvalidContentGroupDescription,
   }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
+
+  @override
+  final String isSanitizedGroupDescription;
+
+  @override
+  final String isNotSanitizedGroupDescription;
 
   @override
   final String isInvalidContentGroupDescription;
@@ -105,18 +148,28 @@ class SizedListEntityTester<
         C extends InvalidEntityContent,
         I extends InvalidEntity,
         V extends ValidEntity,
-        E extends SizedListEntity<F, I, V>> extends Tester
+        M extends SizedListEntity<F, I, V>,
+        P extends ModddelInput<M>> extends Tester
     with
-        ValidTesterMixin<I, V, E>,
-        SizeTesterMixin<F, S, I, V, E>,
-        ContentTesterMixin<C, I, V, E> {
+        SanitizationTesterMixin<M, P>,
+        ValidTesterMixin<I, V, M>,
+        SizeTesterMixin<F, S, I, V, M>,
+        ContentTesterMixin<C, I, V, M> {
   /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
   const SizedListEntityTester({
     required int maxSutDescriptionLength,
+    required this.isSanitizedGroupDescription,
+    required this.isNotSanitizedGroupDescription,
     required this.isValidGroupDescription,
     required this.isInvalidSizeGroupDescription,
     required this.isInvalidContentGroupDescription,
   }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
+
+  @override
+  final String isSanitizedGroupDescription;
+
+  @override
+  final String isNotSanitizedGroupDescription;
 
   @override
   final String isInvalidContentGroupDescription;
@@ -137,20 +190,30 @@ class SizedListGeneralEntityTester<
         G extends InvalidEntityGeneral<FG>,
         I extends InvalidEntity,
         V extends ValidEntity,
-        E extends SizedListGeneralEntity<FS, FG, I, V>> extends Tester
+        M extends SizedListGeneralEntity<FS, FG, I, V>,
+        P extends ModddelInput<M>> extends Tester
     with
-        ValidTesterMixin<I, V, E>,
-        SizeTesterMixin<FS, S, I, V, E>,
-        ContentTesterMixin<C, I, V, E>,
-        GeneralTesterMixin<FG, G, I, V, E> {
+        SanitizationTesterMixin<M, P>,
+        ValidTesterMixin<I, V, M>,
+        SizeTesterMixin<FS, S, I, V, M>,
+        ContentTesterMixin<C, I, V, M>,
+        GeneralTesterMixin<FG, G, I, V, M> {
   /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
   const SizedListGeneralEntityTester({
     required int maxSutDescriptionLength,
+    required this.isSanitizedGroupDescription,
+    required this.isNotSanitizedGroupDescription,
     required this.isValidGroupDescription,
     required this.isInvalidSizeGroupDescription,
     required this.isInvalidContentGroupDescription,
     required this.isInvalidGeneralGroupDescription,
   }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
+
+  @override
+  final String isSanitizedGroupDescription;
+
+  @override
+  final String isNotSanitizedGroupDescription;
 
   @override
   final String isInvalidContentGroupDescription;

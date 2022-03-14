@@ -25,45 +25,50 @@ The different states a Modddel can have are represented with **Union Cases Class
 - [Table of contents](#table-of-contents)
 - [Features](#features)
 - [Getting started](#getting-started)
-- [Modddels](#modddels)
-	- [ValueObject](#valueobject)
-		- [Usage](#usage)
-		- [NullableValueObject](#nullablevalueobject)
-	- [SimpleEntity](#simpleentity)
-		- [Usage](#usage-1)
-		- [Nullable parameters](#nullable-parameters)
-		- [The `valid` annotation](#the-valid-annotation)
-		- [The `invalid` annotation](#the-invalid-annotation)
-	- [ListEntity](#listentity)
-		- [Usage](#usage-2)
-	- [SizedListEntity](#sizedlistentity)
-		- [Usage](#usage-3)
-	- [GeneralEntity](#generalentity)
-		- [Usage](#usage-4)
-		- [Fields getters](#fields-getters)
-		- [The `valid` annotation](#the-valid-annotation-1)
-		- [The `invalid` annotation](#the-invalid-annotation-1)
-		- [The `NullFailure` annotation](#the-nullfailure-annotation)
-	- [ListGeneralEntity](#listgeneralentity)
-		- [Usage](#usage-5)
-	- [SizedListGeneralEntity](#sizedlistgeneralentity)
-		- [Usage](#usage-6)
-	- [Additionnal remarks](#additionnal-remarks)
-		- [TypeName annotation](#typename-annotation)
-		- [Optional and Nullable types](#optional-and-nullable-types)
-		- [List getter](#list-getter)
-	- [Special cases](#special-cases)
-		- [Modddels that are always valid](#modddels-that-are-always-valid)
-		- [Modddels that are always invalid](#modddels-that-are-always-invalid)
+- [ValueObjects](#valueobjects)
+  - [SingleValueObject](#singlevalueobject)
+    - [Usage](#usage)
+- [Entities](#entities)
+  - [SimpleEntity](#simpleentity)
+    - [Usage](#usage-1)
+    - [Nullable parameters](#nullable-parameters)
+    - [The `valid` annotation](#the-valid-annotation)
+    - [The `invalid` annotation](#the-invalid-annotation)
+  - [ListEntity](#listentity)
+    - [Usage](#usage-2)
+  - [SizedListEntity](#sizedlistentity)
+    - [Usage](#usage-3)
+  - [GeneralEntity](#generalentity)
+    - [Usage](#usage-4)
+    - [Fields getters](#fields-getters)
+    - [The `valid` annotation](#the-valid-annotation-1)
+    - [The `invalid` annotation](#the-invalid-annotation-1)
+    - [The `NullFailure` annotation](#the-nullfailure-annotation)
+  - [ListGeneralEntity](#listgeneralentity)
+    - [Usage](#usage-5)
+  - [SizedListGeneralEntity](#sizedlistgeneralentity)
+    - [Usage](#usage-6)
+  - [Additionnal remarks](#additionnal-remarks)
+    - [TypeName annotation](#typename-annotation)
+    - [Optional and Nullable types](#optional-and-nullable-types)
+    - [List getter](#list-getter)
+- [Sanitization](#sanitization)
+- [Asserts](#asserts)
+- [Special cases](#special-cases)
+  - [Modddels that are always valid](#modddels-that-are-always-valid)
+  - [Modddels that are always invalid](#modddels-that-are-always-invalid)
 - [Testers](#testers)
+  - [Testing Sanitization](#testing-sanitization)
 - [VsCode snippets](#vscode-snippets)
+- [Limitations](#limitations)
 - [Additional information](#additional-information)
 
 # Features
 
 Available modddels :
 
-- ValueObject
+- ValueObjects
+  - SingleValueObject
 - Entities
   - SimpleEntity
   - ListEntity
@@ -81,47 +86,48 @@ You should have these packages installed :
 - fpdart
 - freezed
 
-# Modddels
+# ValueObjects
 
-## ValueObject
-
-A ValueObject is a Modddel that holds a single value, which is validated via the `validateValue` method. This method returns `some` `ValueFailure` if the value is invalid, otherwise returns `none`.
+A `ValueObject` is a `Modddel` that holds a "value", which is validated via the `validateValue` method. This method returns `some` `ValueFailure` if the value is invalid, otherwise returns `none`.
 
 When creating the ValueObject, the validation is made in this order :
 
 1. **Value Validation** : If the value is invalid, this ValueObject becomes an `InvalidValueObject` that holds the `ValueFailure`.
 2. **→ Validations passed** : This ValueObject is valid, and becomes a `ValidValueObject`.
 
+## SingleValueObject
+
+A SingleValueObject is a `ValueObject` that holds a single value.
+
 ### Usage
 
-1. Create a ValueObject, and annotate it with `@modddel`
+1. Create a SingleValueObject, and annotate it with `@modddel`
 
    ```dart
    @modddel
-   class Name extends ValueObject<String, NameValueFailure, InvalidName, ValidName>
-   	with $Name {
-   factory Name(String input) {
-   	return $Name._create(input);
-   }
+   class Name
+     extends SingleValueObject<String, NameValueFailure, InvalidName, ValidName>
+     with $Name {
+    factory Name(String input) {
+   	 return $Name._create(input);
+    }
 
-   const Name._();
+    const Name._();
 
-   @override
-   Option<NameValueFailure> validateValue(String input) {
-   	// TODO: implement validateValue
-   	return none();
-   }
+    @override
+    Option<NameValueFailure> validateValue(ValidName input) {
+   	 // TODO: implement validateValue
+   	 return none();
+    }
    }
    ```
 
-2. Create a Freezed ValueFailure for your ValueObject
+2. Create a Freezed ValueFailure for your SingleValueObject
 
    ```dart
    @freezed
-   class NameValueFailure extends ValueFailure<String> with _$NameValueFailure {
-   const factory NameValueFailure.empty({
-   	required String failedValue,
-   }) = _Empty;
+   class NameValueFailure extends ValueFailure with _$NameValueFailure {
+    const factory NameValueFailure.empty() = _Empty;
    }
    ```
 
@@ -136,61 +142,29 @@ When creating the ValueObject, the validation is made in this order :
 
    ```dart
    @override
-   Option<NameValueFailure> validateValue(String input) {
-   	if (input.isEmpty) {
-   		return some(NameValueFailure.empty(failedValue: input));
-   	}
-   	return none();
+   Option<NameValueFailure> validateValue(ValidName input) {
+     if (input.value.isEmpty) {
+       return some(const NameValueFailure.empty());
+     }
+     return none();
    }
    ```
 
 5. Run the generator
 
-### NullableValueObject
-
-If your ValueObject holds a nullable value that you want to be non-nullable in the `ValidValueObject`, then you should use instead a `NullableValueObject`.
-
-Example :
-
-```dart
-@modddel
-class Name2 extends NullableValueObject<String, Name2ValueFailure, InvalidName2,
-    ValidName2> with $Name2 {
-  factory Name2(String? input) {
-    return $Name2._create(input);
-  }
-
-  const Name2._();
-
-  @override
-  Option<Name2ValueFailure> validateValue(String input) {
-    ...
-  }
-
-  @override
-  Name2ValueFailure nullFailure() {
-    return const Name2ValueFailure.none(failedValue: null);
-  }
-}
-
-@freezed
-class Name2ValueFailure extends ValueFailure<String?> with _$Name2ValueFailure {
-  const factory Name2ValueFailure.none({
-    required String? failedValue,
-  }) = _None;
-}
-
-```
-
-Here, if the value is null, then the ValueObject will be an `InvalidValueObject` with a value failure `Name2ValueFailure.none`.
-
-> **NB :** This null verification is done just before the `validateValue` method is called. So the value passed in the `validateValue` method will be non-nullable.
-
 ---
+
+# Entities
+
+An `Entity` is a `Modddel` that holds multiple modddels (ValueObjects, Entities...).
+
+In order to be valid, all the modddels inside the `Entity` must be valid too. This is called "Content Validation".
+
+In addition to the "Content Validation", entities can have additionnal validations steps that can occur either before or after the "Content Validation" step.
 
 ## SimpleEntity
 
-A `SimpleEntity` is a modddel that holds multiple modddels (ValueObjects, Entities...).
+A `SimpleEntity` is an `Entity` that holds multiple modddels as separate fields. The only validation step is the "Content Validation", so if all the modddels are valid, the `SimpleEntity` is valid too.
 
 When creating a SimpleEntity, the validation is made in this order :
 
@@ -272,7 +246,7 @@ factory FullName({
 
 ## ListEntity
 
-A ListEntity is similar to a `SimpleEntity` in a sense that it holds a List of other modddels (of the same type).
+A `ListEntity` is similar to a `SimpleEntity`, but the modddels are stored as a list (of the same type).
 
 When creating a ListEntity, the validation is made in this order :
 
@@ -713,15 +687,56 @@ For example :
 
 That's because the entity may have a `GeneralFailure` or a `SizeFailure`, which otherwise may be unnoticed by you the developer.
 
-## Special cases
+# Sanitization
+
+The factory constructors of the modddels give you an opportunity to do all sort of data manipulation and sanitization.
+
+_Example :_
+
+```dart
+factory Person({
+    @valid required String id,
+    required Name name,
+  }) {
+    // Your sanitization code goes here
+    final sanitizedId = id.trim();
+
+    return $Person._create(
+      id: sanitizedId,
+      name: name,
+    );
+  }
+```
+
+# Asserts
+
+You can add your asserts inside the factory constructor of the modddel.
+
+_Example :_
+
+```dart
+factory Person({
+    @valid required String id,
+    required Name name,
+  }) {
+    assert(id.length > 1);
+
+    return $Person._create(
+      id: sanitizedId,
+      name: name,
+    );
+  }
+```
+
+# Special cases
 
 There are a few special cases that you might encounter.
 
-### Modddels that are always valid
+## Modddels that are always valid
 
 Sometimes you may want to create a modddel that is always valid. For example :
 
-- A `ValueObject` that is always valid and doesn't need validation
+- A `SingleValueObject` that is always valid and doesn't need validation
 - A `SimpleEntity` with only `@valid` parameters [(See remark)](#the-valid-annotation)
 
 However, modddels by definition have both a valid and invalid state, so this isn't allowed.
@@ -766,7 +781,7 @@ class ValidPerson2 extends ValidEntity with EquatableMixin, Stringify {
 
 > **NB :** While extending `ValidEntity` or `ValidValueObject` doesn't offer any extra functionality to these dataclasses, it is a good practice to do so because it makes your code and intentions clear. It is also a good practice to start the names of these dataclasses with `"Valid"`.
 
-### Modddels that are always invalid
+## Modddels that are always invalid
 
 Sometimes you may need to create a modddel that is always invalid. For example :
 
@@ -868,7 +883,7 @@ In this example, it's true that we aren't replicating the exact behaviour of hav
 
 Every modddel mentioned above has a dedicated `Tester`, that makes unit testing easy and straight-forward.
 
-For example, for a 'Name' ValueObject :
+For example, for a 'Name' `SingleValueObject` :
 
 ```dart
 void main() {
@@ -876,15 +891,19 @@ void main() {
   final nameTester = NameTester();
 
   // (2)
-  nameTester.makeIsValidTestGroup(tests: [
-    TestIsValidValue('Josh'),
-    TestIsValidValue('Avi'),
-  ]);
+  nameTester.makeIsValidTestGroup(
+    tests: [
+      TestIsValid(Name('Josh')),
+      TestIsValid(Name('Avi')),
+    ],
+  );
 
   // (3)
-  nameTester.makeIsInvalidTestGroup(tests: [
-    TestIsInvalidValue('', const NameValueFailure.empty(failedValue: '')),
-  ]);
+  nameTester.makeIsInvalidValueTestGroup(
+    tests: [
+      TestIsInvalidValue(Name(''), const NameValueFailure.empty()),
+    ],
+  );
 }
 ```
 
@@ -944,13 +963,13 @@ A test's description can be modified by providing the `customDescription` parame
 ```dart
 nameTester.makeIsValidTestGroup(
   tests: [
-    TestIsValidValue(
-      'Josh',
+    TestIsValid(
+      Name('Josh'),
 	  // We add a prefix to the description
       customDescription: const CustomDescription.addPrefix('- Important'),
     ),
-    TestIsValidValue(
-      'Avi',
+    TestIsValid(
+      Name('Avi'),
 	  // We replace the description altogether
       customDescription:
           const CustomDescription.replaceDescription('- Boy name'),
@@ -962,23 +981,45 @@ nameTester.makeIsValidTestGroup(
 All other usual `test()` and `group()` parameters (such as `skip`, `retry`...) can also be provided.
 
 ```dart
-nameTester.makeIsNotSanitizedTestGroup(
+nameTester.makeIsValidTestGroup(
     tests: [
-      TestIsNotSanitized('Avi', retry: 4),
+      TestIsValid(Name('Avi'), retry: 4),
     ],
     skip: true,
   );
 ```
 
+## Testing Sanitization
+
+You can test for sanitization, i.e the changes that are made to the input before being stored inside the modddel.
+
+```dart
+void main() {
+
+  final nameTester = NameTester();
+  // (1)
+  final input = nameTester.makeInput;
+
+  // (2)
+  nameTester.makeIsSanitizedTestGroup(
+    tests: [
+      TestIsSanitized(input(' Josh  '), input('Josh')),
+    ],
+  );
+}
+```
+
+Here, we're testing that when the `Name` modddel is given `' Josh '` as an input, it should hold the sanitized input `'Josh'`.
+
 # VsCode snippets
 
 ```json
 {
-  "Value Object": {
-    "prefix": "valueobject",
+  "Single Value Object": {
+    "prefix": "singlevalueobject",
     "body": [
       "@modddel",
-      "class ${1} extends ValueObject<${2}, ${1}ValueFailure, Invalid${1}, Valid${1}>",
+      "class ${1} extends SingleValueObject<${2}, ${1}ValueFailure, Invalid${1}, Valid${1}>",
       "    with $${1} {",
       "  factory ${1}(${2} input) {",
       "    return $${1}._create(input);",
@@ -987,7 +1028,7 @@ nameTester.makeIsNotSanitizedTestGroup(
       "  const ${1}._();",
       "",
       "  @override",
-      "  Option<${1}ValueFailure> validateValue(${2} input) {",
+      "  Option<${1}ValueFailure> validateValue(Valid${1} input) {",
       "    //TODO Implement validateValue",
       "    return none();",
       "  }",
@@ -999,10 +1040,8 @@ nameTester.makeIsNotSanitizedTestGroup(
     "prefix": "valuefailure",
     "body": [
       "@freezed",
-      "class ${1}ValueFailure extends ValueFailure<${2}> with _$${1}ValueFailure {",
-      "  const factory ${1}ValueFailure.${3}({",
-      "    required ${2} failedValue,${4}",
-      "  }) = _${3/(^.)/${1:/upcase}/};",
+      "class ${1}ValueFailure extends ValueFailure with _$${1}ValueFailure {",
+      "  const factory ${1}ValueFailure.${3}(${4}) = _${3/(^.)/${1:/upcase}/};",
       "}"
     ],
     "description": "Value Failure"
@@ -1010,9 +1049,7 @@ nameTester.makeIsNotSanitizedTestGroup(
   "Value Failure Union Case": {
     "prefix": "valuefailurecase",
     "body": [
-      "const factory ${1}ValueFailure.${3}({",
-      "  required ${2} failedValue,${4}",
-      "}) = _${3/(^.)/${1:/upcase}/};"
+      "const factory ${1}ValueFailure.${3}(${4}) = _${3/(^.)/${1:/upcase}/};"
     ],
     "description": "Value Failure Union Case"
   },
@@ -1177,9 +1214,32 @@ nameTester.makeIsNotSanitizedTestGroup(
       "const factory ${1}SizeFailure.${2}(${3}) = _${2/(^.)/${1:/upcase}/};"
     ],
     "description": "Size Failure Union Case"
+  },
+  "Test a Modddel": {
+    "prefix": "testmodddel",
+    "body": [
+      "void main() {",
+      "  const ${1/(^.)/${1:/downcase}/}Tester = ${1/(^.)/${1:/upcase}/}Tester();",
+      "  final input = ${1/(^.)/${1:/downcase}/}Tester.makeInput;",
+      "",
+      "  ${1/(^.)/${1:/downcase}/}Tester.${0}",
+      "",
+      "}"
+    ],
+    "description": "Test a Modddel"
   }
 }
 ```
+
+# Limitations
+
+Unlike packages like freezed, the generator doesn't parse the code, so the types that are not defined generation-time can't be retrieved.
+As a result :
+
+- The names of the different classes of a modddel such as `InvalidEntity`, `ValidEntity`, `ValueFailure`, `GeneralFailure`... can't be customized. So for example, for a modddel named `Age`, the name of the `ValidEntity` must be `ValidAge`... Using snippets is recommended to make your life easier.
+- You sometimes need to use the `TypeName` annotation [(See relevant section).](#typename-annotation)
+
+On the other hand, this makes this package's codebase much easier to maintain, and also it enforces a naming style that will hopefully make your code more readable.
 
 # Additional information
 

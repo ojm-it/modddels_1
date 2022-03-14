@@ -153,15 +153,37 @@ class InvalidNameList2Content extends NameList2
 }
 
 class NameList2Tester extends ListEntityTester<InvalidNameList2Content,
-    ValidNameList2, NameList2> {
+    ValidNameList2, NameList2, _NameList2Input> {
   const NameList2Tester({
     int maxSutDescriptionLength = 100,
+    String isSanitizedGroupDescription = 'Should be sanitized',
+    String isNotSanitizedGroupDescription = 'Should not be sanitized',
     String isValidGroupDescription = 'Should be a ValidNameList2',
     String isInvalidContentGroupDescription =
         'Should be an InvalidNameList2Content and hold the proper contentFailure',
   }) : super(
           maxSutDescriptionLength: maxSutDescriptionLength,
+          isSanitizedGroupDescription: isSanitizedGroupDescription,
+          isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
           isValidGroupDescription: isValidGroupDescription,
           isInvalidContentGroupDescription: isInvalidContentGroupDescription,
         );
+
+  final makeInput = _NameList2Input.new;
+}
+
+class _NameList2Input extends ModddelInput<NameList2> {
+  const _NameList2Input(this.list);
+
+  final KtList<Name> list;
+
+  @override
+  List<Object?> get props => [list];
+
+  @override
+  _NameList2Input get sanitizedInput {
+    final modddel = NameList2(list);
+
+    return _NameList2Input(modddel.list);
+  }
 }

@@ -1,7 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/src/modddels/entities/common.dart';
 import 'package:modddels_annotations/src/modddels/entities/list_general_entity.dart';
-import 'package:modddels_annotations/src/modddels/modddel.dart';
 
 /// A [SizedListGeneralEntity] is similar to a [ListGeneralEntity], but its size
 /// is validated via the `validateSize` method. This method returns `some`
@@ -36,7 +35,7 @@ abstract class SizedListGeneralEntity<
     FS extends SizeFailure,
     FG extends GeneralFailure,
     I extends InvalidEntity,
-    V extends ValidEntity> extends Modddel<I, V> {
+    V extends ValidEntity> extends Entity<I, V> {
   const SizedListGeneralEntity();
 
   /// Validates the size of the list of this [SizedListGeneralEntity]. This

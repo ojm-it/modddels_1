@@ -27,11 +27,12 @@ export 'src/modddels/annotations.dart'
 
 export 'src/modddels/value_objects/value_object.dart'
     show ValueObject, ValidValueObject, InvalidValueObject, ValueFailure;
-export 'src/modddels/value_objects/nullable_value_object.dart'
-    show NullableValueObject;
+export 'src/modddels/value_objects/single_value_object.dart'
+    show SingleValueObject, ValidSingleValueObject, InvalidSingleValueObject;
 
 export 'src/modddels/entities/common.dart'
     show
+        Entity,
         ValidEntity,
         InvalidEntity,
         InvalidEntityContent,

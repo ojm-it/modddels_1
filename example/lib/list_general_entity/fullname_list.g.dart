@@ -281,9 +281,12 @@ class FullNameListTester extends ListGeneralEntityTester<
     InvalidFullNameListGeneral,
     InvalidFullNameList,
     ValidFullNameList,
-    FullNameList> {
+    FullNameList,
+    _FullNameListInput> {
   const FullNameListTester({
     int maxSutDescriptionLength = 100,
+    String isSanitizedGroupDescription = 'Should be sanitized',
+    String isNotSanitizedGroupDescription = 'Should not be sanitized',
     String isValidGroupDescription = 'Should be a ValidFullNameList',
     String isInvalidContentGroupDescription =
         'Should be an InvalidFullNameListContent and hold the proper contentFailure',
@@ -291,8 +294,30 @@ class FullNameListTester extends ListGeneralEntityTester<
         'Should be an InvalidFullNameListGeneral and hold the FullNameListGeneralFailure',
   }) : super(
           maxSutDescriptionLength: maxSutDescriptionLength,
+          isSanitizedGroupDescription: isSanitizedGroupDescription,
+          isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
           isValidGroupDescription: isValidGroupDescription,
           isInvalidContentGroupDescription: isInvalidContentGroupDescription,
           isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
         );
+
+  final makeInput = _FullNameListInput.new;
+}
+
+class _FullNameListInput extends ModddelInput<FullNameList> {
+  const _FullNameListInput(this.list);
+
+  final KtList<FullName> list;
+
+  @override
+  List<Object?> get props => [list];
+
+  @override
+  _FullNameListInput get sanitizedInput {
+    final modddel = FullNameList(list);
+    final modddelList =
+        modddel.mapValidity(valid: (v) => v.list, invalid: (i) => i.list);
+
+    return _FullNameListInput(modddelList);
+  }
 }

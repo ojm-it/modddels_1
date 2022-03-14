@@ -1,9 +1,9 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/src/modddels/modddel.dart';
 
-/// A [ValueObject] is a [Modddel] that holds a single value, which is validated
-/// via the `validateValue` method. This method returns `some` [ValueFailure] if
-/// the value is invalid, otherwise returns `none`.
+/// A [ValueObject] is a [Modddel] that holds a "value", which is validated via
+/// the `validateValue` method. This method returns `some` [ValueFailure] if the
+/// value is invalid, otherwise returns `none`.
 ///
 /// When creating the ValueObject, the validation is made in this order :
 ///
@@ -12,30 +12,26 @@ import 'package:modddels_annotations/src/modddels/modddel.dart';
 /// 2. **→ Validations passed** : This [ValueObject] is valid, and becomes a
 ///    [ValidValueObject], from which you can access the valid value.
 abstract class ValueObject<
-    T extends Object?,
-    F extends ValueFailure<T>,
-    I extends InvalidValueObject<T, F>,
-    V extends ValidValueObject<T>> extends Modddel<I, V> {
+    F extends ValueFailure,
+    I extends InvalidValueObject<F>,
+    V extends ValidValueObject> extends Modddel<I, V> {
   const ValueObject();
 
   /// Validates the value that will be held inside this [ValueObject]. This
   /// method should return `some` [ValueFailure] if the value is invalid,
   /// otherwise it should return `none`.
-  Option<F> validateValue(T input);
+  Option<F> validateValue(V input);
 }
 
 /// A [ValidValueObject] is the "valid" union-case of a [ValueObject]. It holds
-/// the validated [value].
-abstract class ValidValueObject<T> extends ValidModddel {
+/// the validated "value".
+abstract class ValidValueObject extends ValidModddel {
   const ValidValueObject();
-
-  /// The validated value.
-  T get value;
 }
 
 /// An [InvalidValueObject] is is the "invalid" union-case of a [ValueObject].
 /// It holds the [ValueFailure] that made it invalid.
-abstract class InvalidValueObject<T, F extends ValueFailure<T>>
+abstract class InvalidValueObject<F extends ValueFailure>
     extends InvalidModddel {
   const InvalidValueObject();
 
@@ -48,14 +44,8 @@ abstract class InvalidValueObject<T, F extends ValueFailure<T>>
   Failure get failure => valueFailure;
 }
 
-/// A [ValueFailure] is a [Failure] caused by an invalid value of a [ValueObject]
-abstract class ValueFailure<T> extends Failure {
+/// A [ValueFailure] is a [Failure] caused by an invalid value of a
+/// [ValueObject]
+abstract class ValueFailure extends Failure {
   const ValueFailure();
-
-  /// The invalid value of the [ValueObject].
-  ///
-  /// NB : All the freezed subclasses union-cases should have in their constructor the
-  /// proprety [failedValue], so that it becomes a class member.
-  /// See https://pub.dev/packages/freezed#unionssealed-classes
-  T get failedValue;
 }

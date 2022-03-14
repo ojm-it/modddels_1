@@ -2,6 +2,20 @@ import 'package:modddels_annotations/src/modddels/entities/sized_list_entity.dar
 import 'package:modddels_annotations/src/modddels/entities/sized_list_general_entity.dart';
 import 'package:modddels_annotations/src/modddels/modddel.dart';
 
+/// An [Entity] is a [Modddel] that holds multiple modddels (ValueObjects,
+/// Entities...).
+///
+/// In order to be valid, all the modddels inside the [Entity] must be valid
+/// too. This is called "Content Validation".
+///
+/// In addition to the "Content Validation", entities can have additionnal
+/// validations steps that can occur either before or after the "Content
+/// Validation" step.
+abstract class Entity<I extends InvalidEntity, V extends ValidEntity>
+    extends Modddel<I, V> {
+  const Entity();
+}
+
 /// A [ValidEntity] is the valid union-case of an entity. It holds all the valid
 /// versions of the modddels contained inside the entity.
 abstract class ValidEntity extends ValidModddel {

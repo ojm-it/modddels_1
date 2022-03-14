@@ -361,9 +361,12 @@ class FullNameTester extends GeneralEntityTester<
     InvalidFullNameGeneral,
     InvalidFullName,
     ValidFullName,
-    FullName> {
+    FullName,
+    _FullNameInput> {
   const FullNameTester({
     int maxSutDescriptionLength = 100,
+    String isSanitizedGroupDescription = 'Should be sanitized',
+    String isNotSanitizedGroupDescription = 'Should not be sanitized',
     String isValidGroupDescription = 'Should be a ValidFullName',
     String isInvalidContentGroupDescription =
         'Should be an InvalidFullNameContent and hold the proper contentFailure',
@@ -371,8 +374,46 @@ class FullNameTester extends GeneralEntityTester<
         'Should be an InvalidFullNameGeneral and hold the FullNameGeneralFailure',
   }) : super(
           maxSutDescriptionLength: maxSutDescriptionLength,
+          isSanitizedGroupDescription: isSanitizedGroupDescription,
+          isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
           isValidGroupDescription: isValidGroupDescription,
           isInvalidContentGroupDescription: isInvalidContentGroupDescription,
           isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
         );
+
+  final makeInput = _FullNameInput.new;
+}
+
+class _FullNameInput extends ModddelInput<FullName> {
+  const _FullNameInput({
+    required this.firstName,
+    required this.lastName,
+    this.hasMiddleName = false,
+  });
+
+  final Name firstName;
+  final Name? lastName;
+  final bool hasMiddleName;
+  @override
+  List<Object?> get props => [
+        firstName,
+        lastName,
+        hasMiddleName,
+      ];
+
+  @override
+  _FullNameInput get sanitizedInput {
+    final modddel = FullName(
+      firstName: firstName,
+      lastName: lastName,
+      hasMiddleName: hasMiddleName,
+    );
+
+    return _FullNameInput(
+      firstName: modddel.mapValidity(
+          valid: (v) => v.firstName, invalid: (i) => i.firstName),
+      lastName: modddel.lastName,
+      hasMiddleName: modddel.hasMiddleName,
+    );
+  }
 }

@@ -6,26 +6,26 @@ part 'name.g.dart';
 part 'name.freezed.dart';
 
 @modddel
-class Name extends ValueObject<String, NameValueFailure, InvalidName, ValidName>
+class Name
+    extends SingleValueObject<String, NameValueFailure, InvalidName, ValidName>
     with $Name {
   factory Name(String input) {
-    return $Name._create(input);
+    final sanitizedInput = input.trim();
+    return $Name._create(sanitizedInput);
   }
 
   const Name._();
 
   @override
-  Option<NameValueFailure> validateValue(String input) {
-    if (input.isEmpty) {
-      return some(NameValueFailure.empty(failedValue: input));
+  Option<NameValueFailure> validateValue(ValidName input) {
+    if (input.value.isEmpty) {
+      return some(const NameValueFailure.empty());
     }
     return none();
   }
 }
 
 @freezed
-class NameValueFailure extends ValueFailure<String> with _$NameValueFailure {
-  const factory NameValueFailure.empty({
-    required String failedValue,
-  }) = _Empty;
+class NameValueFailure extends ValueFailure with _$NameValueFailure {
+  const factory NameValueFailure.empty() = _Empty;
 }

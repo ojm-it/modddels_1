@@ -1,7 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/src/modddels/entities/common.dart';
 import 'package:modddels_annotations/src/modddels/entities/list_entity.dart';
-import 'package:modddels_annotations/src/modddels/modddel.dart';
 
 /// A [SizedListEntity] is similar to a [ListEntity], but its size is validated
 /// via the `validateSize` method. This method returns `some` [SizeFailure] if
@@ -18,7 +17,7 @@ import 'package:modddels_annotations/src/modddels/modddel.dart';
 /// 3. **→ Validations passed** : This [SizedListEntity] is valid, and becomes a
 ///    [ValidEntity] that holds the valid version of its modddels.
 abstract class SizedListEntity<F extends SizeFailure, I extends InvalidEntity,
-    V extends ValidEntity> extends Modddel<I, V> {
+    V extends ValidEntity> extends Entity<I, V> {
   const SizedListEntity();
 
   /// Validates the size of the list of this [SizedListEntity]. This

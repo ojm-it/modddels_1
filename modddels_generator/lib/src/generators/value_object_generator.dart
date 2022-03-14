@@ -1,10 +1,10 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_generator/src/utils.dart';
+import 'package:modddels_generator/src/core/class_info.dart';
 import 'package:source_gen/source_gen.dart';
 
-class ValueObjectGenerator {
-  ValueObjectGenerator({
+class SingleValueObjectGenerator {
+  SingleValueObjectGenerator({
     required this.className,
     required this.factoryConstructor,
     required this.generateTester,
@@ -35,9 +35,12 @@ class ValueObjectGenerator {
       ),
     );
 
-    final valueTypeName = inputParameter.type.toString();
+    final singleValueType = inputParameter.type.toString();
 
-    final classInfo = ValueObjectClassInfo(valueTypeName, className);
+    final classInfo = SingleValueObjectClassInfo(
+      className: className,
+      singleValueType: singleValueType,
+    );
 
     final classBuffer = StringBuffer();
 
@@ -49,25 +52,31 @@ class ValueObjectGenerator {
 
     if (generateTester) {
       makeTester(classBuffer, classInfo);
+
+      makeModddelInput(classBuffer, classInfo);
     }
 
     return classBuffer.toString();
   }
 
-  void makeMixin(StringBuffer classBuffer, ValueObjectClassInfo classInfo) {
+  void makeMixin(
+      StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
     classBuffer.writeln('''
     mixin \$$className {
     ''');
 
     /// create method
     classBuffer.writeln('''
-    static $className _create(${classInfo.valueType} input) {
+    static $className _create(${classInfo.singleValueType} input) {
       /// 1. **Value Validation**
       return _verifyValue(input).match(
-        (valueFailure) => ${classInfo.invalidValueObject}._(valueFailure: valueFailure),
+        (valueFailure) => ${classInfo.invalid}._(
+          valueFailure: valueFailure,
+          failedValue: input,
+        ),
 
         /// 2. **→ Validations passed**
-        (validValue) => ${classInfo.validValueObject}._(value: validValue),
+        (validValue) => ${classInfo.valid}._(value: validValue),
       );
     }
     
@@ -77,8 +86,8 @@ class ValueObjectGenerator {
     classBuffer.writeln('''
     /// If the value is invalid, this holds the [ValueFailure] on the Left.
     /// Otherwise, holds the value on the Right.
-    static Either<${classInfo.valueFailure}, ${classInfo.valueType}> _verifyValue(${classInfo.valueType} input) {
-      final valueVerification = const $className._().validateValue(input);
+    static Either<${classInfo.valueFailure}, ${classInfo.singleValueType}> _verifyValue(${classInfo.singleValueType} input) {
+      final valueVerification = const $className._().validateValue(${classInfo.valid}._(value: input));
       return valueVerification.toEither(() => input).swap();
     }
 
@@ -88,7 +97,7 @@ class ValueObjectGenerator {
     classBuffer.writeln('''
     /// If [nullableValueObject] is null, returns `right(null)`.
     /// Otherwise, returns `nullableValueObject.toBroadEither`.
-    static Either<Failure, ${classInfo.validValueObject}?> toBroadEitherNullable(
+    static Either<Failure, ${classInfo.valid}?> toBroadEitherNullable(
       $className? nullableValueObject) =>
         optionOf(nullableValueObject)
           .match((t) => t.toBroadEither, () => right(null));
@@ -99,8 +108,8 @@ class ValueObjectGenerator {
     classBuffer.writeln('''
     /// Same as [mapValidity] (because there is only one invalid union-case)
     TResult map<TResult extends Object?>({
-      required TResult Function(${classInfo.validValueObject} valid) valid,
-      required TResult Function(${classInfo.invalidValueObject} invalid) invalid,
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalid} invalid) invalid,
     }) {
       throw UnimplementedError();
     }
@@ -112,8 +121,8 @@ class ValueObjectGenerator {
     /// Pattern matching for the two different union-cases of this ValueObject :
     /// valid and invalid.
     TResult mapValidity<TResult extends Object?>({
-      required TResult Function(${classInfo.validValueObject} valid) valid,
-      required TResult Function(${classInfo.invalidValueObject} invalid) invalid,
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalid} invalid) invalid,
     }) {
       return map(
         valid: valid,
@@ -135,21 +144,21 @@ class ValueObjectGenerator {
   }
 
   void makeValidValueObject(
-      StringBuffer classBuffer, ValueObjectClassInfo classInfo) {
+      StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.validValueObject} extends $className implements ValidValueObject<${classInfo.valueType}> {
+    class ${classInfo.valid} extends $className implements ValidSingleValueObject<${classInfo.singleValueType}> {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.validValueObject}._({required this.value}) : super._();
+    const ${classInfo.valid}._({required this.value}) : super._();
     
     ''');
 
     /// class members
     classBuffer.writeln('''
     @override
-    final ${classInfo.valueType} value;
+    final ${classInfo.singleValueType} value;
 
     ''');
 
@@ -157,8 +166,8 @@ class ValueObjectGenerator {
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>(
-      {required TResult Function(${classInfo.validValueObject} valid) valid,
-      required TResult Function(${classInfo.invalidValueObject} invalid) invalid}) {
+      {required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalid} invalid) invalid}) {
         return valid(this);
     }
 
@@ -176,16 +185,17 @@ class ValueObjectGenerator {
   }
 
   void makeInvalidValueObject(
-      StringBuffer classBuffer, ValueObjectClassInfo classInfo) {
+      StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.invalidValueObject} extends $className
-      implements InvalidValueObject<${classInfo.valueType}, ${classInfo.valueFailure}> {
+    class ${classInfo.invalid} extends $className
+      implements InvalidSingleValueObject<${classInfo.singleValueType}, ${classInfo.valueFailure}> {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidValueObject}._({
+    const ${classInfo.invalid}._({
       required this.valueFailure,
+      required this.failedValue,
     }) : super._();
     ''');
 
@@ -195,6 +205,9 @@ class ValueObjectGenerator {
     final ${classInfo.valueFailure} valueFailure;
 
     @override
+    final ${classInfo.singleValueType} failedValue;
+
+    @override
     ${classInfo.valueFailure} get failure => valueFailure; 
     ''');
 
@@ -202,8 +215,8 @@ class ValueObjectGenerator {
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>(
-      {required TResult Function(${classInfo.validValueObject} valid) valid,
-      required TResult Function(${classInfo.invalidValueObject} invalid) invalid}) {
+      {required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalid} invalid) invalid}) {
         return invalid(this);
     }
     ''');
@@ -211,36 +224,79 @@ class ValueObjectGenerator {
     /// props getter
     classBuffer.writeln('''
     @override
-    List<Object?> get props => [failure];
+    List<Object?> get props => [valueFailure, failedValue];
     ''');
 
     /// end
     classBuffer.writeln('}');
   }
 
-  void makeTester(StringBuffer classBuffer, ValueObjectClassInfo classInfo) {
+  void makeTester(
+      StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${className}Tester extends ValueObjectTester<${classInfo.valueType}, ${classInfo.valueFailure},
-      ${classInfo.invalidValueObject}, ${classInfo.validValueObject}, $className> {
+    class ${className}Tester extends ValueObjectTester<${classInfo.valueFailure}, ${classInfo.invalid},
+    ${classInfo.valid}, $className, ${classInfo.modddelInput}> {
     ''');
 
     /// constructor
     classBuffer.writeln('''
-    ${className}Tester({
+    const ${className}Tester({
       int maxSutDescriptionLength = $maxSutDescriptionLength,
-      String isNotSanitizedGroupDescription = 'Should not be sanitized',
-      String isInvalidGroupDescription =
-          'Should be an ${classInfo.invalidValueObject} and hold the ${classInfo.valueFailure}',
       String isSanitizedGroupDescription = 'Should be sanitized',
-      String isValidGroupDescription = 'Should be a ${classInfo.validValueObject}',
+      String isNotSanitizedGroupDescription = 'Should not be sanitized',
+      String isValidGroupDescription = 'Should be a ${classInfo.valid}',
+      String isInvalidValueGroupDescription =
+          'Should be an ${classInfo.invalid} and hold the ${classInfo.valueFailure}',
     }) : super(
-            (input) =>  $className(input),
             maxSutDescriptionLength: maxSutDescriptionLength,
-            isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
-            isInvalidGroupDescription: isInvalidGroupDescription,
             isSanitizedGroupDescription: isSanitizedGroupDescription,
+            isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
             isValidGroupDescription: isValidGroupDescription,
+            isInvalidValueGroupDescription: isInvalidValueGroupDescription,
           );
+    ''');
+
+    /// makeInput field
+    classBuffer.writeln('''
+    final makeInput = ${classInfo.modddelInput}.new;
+    ''');
+
+    /// end
+    classBuffer.writeln('}');
+  }
+
+  void makeModddelInput(
+      StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${classInfo.modddelInput} extends ModddelInput<$className> {
+    ''');
+
+    /// constructor
+    classBuffer.writeln('''
+    const ${classInfo.modddelInput}(this.input);
+    ''');
+
+    /// class members
+    classBuffer.writeln('''
+    final ${classInfo.singleValueType} input;
+    ''');
+
+    /// props method
+    classBuffer.writeln('''
+    @override
+    List<Object?> get props => [input];
+    ''');
+
+    /// sanitizedInput method
+    classBuffer.writeln('''
+    @override
+    ${classInfo.modddelInput} get sanitizedInput {
+      final modddel = $className(input);
+      final modddelValue = modddel.mapValidity(
+          valid: (v) => v.value, invalid: (i) => i.failedValue);
+
+      return ${classInfo.modddelInput}(modddelValue);
+    }
     ''');
 
     /// end

@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_generator/src/utils.dart';
+import 'package:modddels_generator/src/core/class_info.dart';
 import 'package:source_gen/source_gen.dart';
 
 class ListEntityGenerator {
@@ -53,7 +53,10 @@ class ListEntityGenerator {
       );
     }
 
-    final classInfo = ListEntityClassInfo(className, ktListType);
+    final classInfo = ListEntityClassInfo(
+      className: className,
+      ktListType: ktListType,
+    );
 
     final classBuffer = StringBuffer();
 
@@ -65,6 +68,8 @@ class ListEntityGenerator {
 
     if (generateTester) {
       makeTester(classBuffer, classInfo);
+
+      makeModddelInput(classBuffer, classInfo);
     }
 
     return classBuffer.toString();
@@ -80,13 +85,13 @@ class ListEntityGenerator {
       ) {
         /// 1. **Content validation**
         return _verifyContent(list).match(
-          (contentFailure) => ${classInfo.invalidEntityContent}._(
+          (contentFailure) => ${classInfo.invalidContent}._(
             contentFailure: contentFailure,
             list: list,
           ),
 
           /// 2. **→ Validations passed**
-          (validContent) => ${classInfo.validEntity}._(list: validContent),
+          (validContent) => ${classInfo.valid}._(list: validContent),
         );
       }
       ''');
@@ -143,7 +148,7 @@ class ListEntityGenerator {
     classBuffer.writeln('''
     /// If [nullableEntity] is null, returns `right(null)`.
     /// Otherwise, returns `nullableEntity.toBroadEither`.
-    static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
+    static Either<Failure, ${classInfo.valid}?> toBroadEitherNullable(
           $className? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
     
@@ -153,8 +158,8 @@ class ListEntityGenerator {
     classBuffer.writeln('''
     /// Same as [mapValidity] (because there is only one invalid union-case)
     TResult map<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
     }) {
       throw UnimplementedError();
@@ -167,8 +172,8 @@ class ListEntityGenerator {
     /// Pattern matching for the two different union-cases of this entity : valid
     /// and invalid.
     TResult mapValidity<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalid,
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidContent} invalidContent) invalid,
     }) {
       return map(
         valid: valid,
@@ -204,11 +209,11 @@ class ListEntityGenerator {
   void makeValidEntity(
       StringBuffer classBuffer, ListEntityClassInfo classInfo) {
     classBuffer.writeln(
-        'class ${classInfo.validEntity} extends $className implements ValidEntity {');
+        'class ${classInfo.valid} extends $className implements ValidEntity {');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.validEntity}._({
+    const ${classInfo.valid}._({
       required this.list,
     }) : super._();    
     
@@ -225,8 +230,8 @@ class ListEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
     }) {
       return valid(this);
@@ -250,14 +255,14 @@ class ListEntityGenerator {
   void makeInvalidEntityContent(
       StringBuffer classBuffer, ListEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.invalidEntityContent} extends $className
+    class ${classInfo.invalidContent} extends $className
       implements InvalidEntityContent {
     
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntityContent}._({
+    const ${classInfo.invalidContent}._({
       required this.contentFailure,
       required this.list,
     }) : super._();
@@ -279,8 +284,8 @@ class ListEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
     }) {
       return invalidContent(this);
@@ -303,22 +308,67 @@ class ListEntityGenerator {
 
   void makeTester(StringBuffer classBuffer, ListEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${className}Tester
-      extends ListEntityTester<${classInfo.invalidEntityContent}, ${classInfo.validEntity}, $className> {
+    class ${className}Tester extends ListEntityTester<${classInfo.invalidContent},
+      ${classInfo.valid}, $className, ${classInfo.modddelInput}> {
     ''');
 
     /// constructor
     classBuffer.writeln('''
     const ${className}Tester({
       int maxSutDescriptionLength = $maxSutDescriptionLength,
-      String isValidGroupDescription = 'Should be a ${classInfo.validEntity}',
+      String isSanitizedGroupDescription = 'Should be sanitized',
+      String isNotSanitizedGroupDescription = 'Should not be sanitized',
+      String isValidGroupDescription = 'Should be a ${classInfo.valid}',
       String isInvalidContentGroupDescription =
-          'Should be an ${classInfo.invalidEntityContent} and hold the proper contentFailure',
+          'Should be an ${classInfo.invalidContent} and hold the proper contentFailure',
     }) : super(
             maxSutDescriptionLength: maxSutDescriptionLength,
+            isSanitizedGroupDescription: isSanitizedGroupDescription,
+            isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
             isValidGroupDescription: isValidGroupDescription,
             isInvalidContentGroupDescription: isInvalidContentGroupDescription,
           );
+    ''');
+
+    /// makeInput field
+    classBuffer.writeln('''
+    final makeInput = ${classInfo.modddelInput}.new;
+    ''');
+
+    /// end
+    classBuffer.writeln('}');
+  }
+
+  void makeModddelInput(
+      StringBuffer classBuffer, ListEntityClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${classInfo.modddelInput} extends ModddelInput<$className> {
+    ''');
+
+    /// constructor
+    classBuffer.writeln('''
+    const ${classInfo.modddelInput}(this.list);
+    ''');
+
+    /// class members
+    classBuffer.writeln('''
+    final KtList<${classInfo.ktListType}> list;
+    ''');
+
+    /// props method
+    classBuffer.writeln('''
+    @override
+    List<Object?> get props => [list];
+    ''');
+
+    /// sanitizedInput method
+    classBuffer.writeln('''
+    @override
+    ${classInfo.modddelInput} get sanitizedInput {
+      final modddel = $className(list);
+
+      return ${classInfo.modddelInput}(modddel.list);
+    }
     ''');
 
     /// end

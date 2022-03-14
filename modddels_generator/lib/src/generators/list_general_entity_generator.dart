@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_generator/src/utils.dart';
+import 'package:modddels_generator/src/core/class_info.dart';
 import 'package:source_gen/source_gen.dart';
 
 class ListGeneralEntityGenerator {
@@ -53,7 +53,10 @@ class ListGeneralEntityGenerator {
       );
     }
 
-    final classInfo = ListGeneralEntityClassInfo(className, ktListType);
+    final classInfo = ListGeneralEntityClassInfo(
+      className: className,
+      ktListType: ktListType,
+    );
 
     final classBuffer = StringBuffer();
 
@@ -69,6 +72,8 @@ class ListGeneralEntityGenerator {
 
     if (generateTester) {
       makeTester(classBuffer, classInfo);
+
+      makeModddelInput(classBuffer, classInfo);
     }
 
     return classBuffer.toString();
@@ -85,20 +90,20 @@ class ListGeneralEntityGenerator {
     ) {
       /// 1. **Content validation**
       return _verifyContent(list).match(
-        (contentFailure) => ${classInfo.invalidEntityContent}._(
+        (contentFailure) => ${classInfo.invalidContent}._(
           contentFailure: contentFailure,
           list: list,
         ),
 
         /// 2. **General validation**
         (validContent) => _verifyGeneral(validContent).match(
-          (generalFailure) => ${classInfo.invalidEntityGeneral}._(
+          (generalFailure) => ${classInfo.invalidGeneral}._(
             generalFailure: generalFailure,
             list: validContent,
           ),
 
           /// 3. **→ Validations passed**
-          (validGeneral) => ${classInfo.validEntity}._(list: validGeneral),
+          (validGeneral) => ${classInfo.valid}._(list: validGeneral),
         ),
       );
     }
@@ -144,7 +149,7 @@ class ListGeneralEntityGenerator {
     static Either<${classInfo.generalFailure}, KtList<${classInfo.ktListTypeValid}>>
         _verifyGeneral(KtList<${classInfo.ktListTypeValid}> validList) {
       final generalVerification = const $className._()
-          .validateGeneral(${classInfo.validEntity}._(list: validList));
+          .validateGeneral(${classInfo.valid}._(list: validList));
       return generalVerification.toEither(() => validList).swap();
     }
 
@@ -165,7 +170,7 @@ class ListGeneralEntityGenerator {
     classBuffer.writeln('''
     /// If [nullableEntity] is null, returns `right(null)`.
     /// Otherwise, returns `nullableEntity.toBroadEither`
-    static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
+    static Either<Failure, ${classInfo.valid}?> toBroadEitherNullable(
           $className? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
     
@@ -178,10 +183,10 @@ class ListGeneralEntityGenerator {
     /// - [InvalidEntityContent]
     /// - [InvalidEntityGeneral]
     TResult map<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
-      required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+      required TResult Function(${classInfo.invalidGeneral} invalidGeneral)
           invalidGeneral,
     }) {
       return maybeMap(
@@ -199,10 +204,10 @@ class ListGeneralEntityGenerator {
     /// Equivalent to [map], but only the [valid] callback is required. It also
     /// adds an extra orElse required parameter, for fallback behavior.
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       throw UnimplementedError();
     }
@@ -214,8 +219,8 @@ class ListGeneralEntityGenerator {
     /// Pattern matching for the two different union-cases of this entity : valid
     /// and invalid.
     TResult mapValidity<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntity} invalid) invalid,
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalid} invalid) invalid,
     }) {
       return maybeMap(
         valid: valid,
@@ -254,11 +259,11 @@ class ListGeneralEntityGenerator {
   void makeValidEntity(
       StringBuffer classBuffer, ListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln(
-        'class ${classInfo.validEntity} extends $className implements ValidEntity {');
+        'class ${classInfo.valid} extends $className implements ValidEntity {');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.validEntity}._({
+    const ${classInfo.valid}._({
       required this.list,
     }) : super._();    
     
@@ -274,10 +279,10 @@ class ListGeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       return valid(this);
     }
@@ -300,13 +305,13 @@ class ListGeneralEntityGenerator {
   void makeInvalidEntity(
       StringBuffer classBuffer, ListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    abstract class ${classInfo.invalidEntity} extends $className
+    abstract class ${classInfo.invalid} extends $className
     implements InvalidEntity {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntity}._() : super._();
+    const ${classInfo.invalid}._() : super._();
     
     ''');
 
@@ -333,9 +338,9 @@ class ListGeneralEntityGenerator {
     /// - [InvalidEntityContent]
     /// - [InvalidEntityGeneral]
     TResult mapInvalid<TResult extends Object?>({
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
-      required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+      required TResult Function(${classInfo.invalidGeneral} invalidGeneral)
           invalidGeneral,
     }) {
       return maybeMap(
@@ -376,14 +381,14 @@ class ListGeneralEntityGenerator {
   void makeInvalidEntityContent(
       StringBuffer classBuffer, ListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.invalidEntityContent} extends ${classInfo.invalidEntity}
+    class ${classInfo.invalidContent} extends ${classInfo.invalid}
       implements InvalidEntityContent {
     
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntityContent}._({
+    const ${classInfo.invalidContent}._({
       required this.contentFailure,
       required this.list,
     }) : super._();
@@ -402,10 +407,10 @@ class ListGeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       if (invalidContent != null) {
         return invalidContent(this);
@@ -430,13 +435,13 @@ class ListGeneralEntityGenerator {
   void makeInvalidEntityGeneral(
       StringBuffer classBuffer, ListGeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.invalidEntityGeneral} extends ${classInfo.invalidEntity}
+    class ${classInfo.invalidGeneral} extends ${classInfo.invalid}
       implements InvalidEntityGeneral<${classInfo.generalFailure}> {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntityGeneral}._({
+    const ${classInfo.invalidGeneral}._({
       required this.generalFailure,
       required this.list,
     }) : super._();
@@ -456,10 +461,10 @@ class ListGeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       if (invalidGeneral != null) {
         return invalidGeneral(this);
@@ -487,28 +492,76 @@ class ListGeneralEntityGenerator {
     classBuffer.writeln('''
     class ${className}Tester extends ListGeneralEntityTester<
       ${classInfo.generalFailure},
-      ${classInfo.invalidEntityContent},
-      ${classInfo.invalidEntityGeneral},
-      ${classInfo.invalidEntity},
-      ${classInfo.validEntity},
-      $className> {
+      ${classInfo.invalidContent},
+      ${classInfo.invalidGeneral},
+      ${classInfo.invalid},
+      ${classInfo.valid},
+      $className,
+      ${classInfo.modddelInput}> {
     ''');
 
     /// constructor
     classBuffer.writeln('''
     const ${className}Tester({
       int maxSutDescriptionLength = $maxSutDescriptionLength,
-      String isValidGroupDescription = 'Should be a ${classInfo.validEntity}',
+      String isSanitizedGroupDescription = 'Should be sanitized',
+      String isNotSanitizedGroupDescription = 'Should not be sanitized',
+      String isValidGroupDescription = 'Should be a ${classInfo.valid}',
       String isInvalidContentGroupDescription =
-          'Should be an ${classInfo.invalidEntityContent} and hold the proper contentFailure',
+          'Should be an ${classInfo.invalidContent} and hold the proper contentFailure',
       String isInvalidGeneralGroupDescription =
-          'Should be an ${classInfo.invalidEntityGeneral} and hold the ${classInfo.generalFailure}',
+          'Should be an ${classInfo.invalidGeneral} and hold the ${classInfo.generalFailure}',
     }) : super(
             maxSutDescriptionLength: maxSutDescriptionLength,
+            isSanitizedGroupDescription: isSanitizedGroupDescription,
+            isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
             isValidGroupDescription: isValidGroupDescription,
             isInvalidContentGroupDescription: isInvalidContentGroupDescription,
             isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
-        );
+          );
+    ''');
+
+    /// makeInput field
+    classBuffer.writeln('''
+    final makeInput = ${classInfo.modddelInput}.new;
+    ''');
+
+    /// end
+    classBuffer.writeln('}');
+  }
+
+  void makeModddelInput(
+      StringBuffer classBuffer, ListGeneralEntityClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${classInfo.modddelInput} extends ModddelInput<$className> {
+    ''');
+
+    /// constructor
+    classBuffer.writeln('''
+    const ${classInfo.modddelInput}(this.list);
+    ''');
+
+    /// class members
+    classBuffer.writeln('''
+    final KtList<${classInfo.ktListType}> list;
+    ''');
+
+    /// props method
+    classBuffer.writeln('''
+    @override
+    List<Object?> get props => [list];
+    ''');
+
+    /// sanitizedInput method
+    classBuffer.writeln('''
+    @override
+    ${classInfo.modddelInput} get sanitizedInput {
+      final modddel = $className(list);
+      final modddelList = modddel.mapValidity(
+          valid: (v) => v.list, invalid: (i) => i.list);
+
+      return ${classInfo.modddelInput}(modddelList);
+    }
     ''');
 
     /// end
