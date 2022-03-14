@@ -1,8 +1,8 @@
 import 'package:modddels_annotations/src/modddels/entities/common.dart';
-import 'package:modddels_annotations/src/modddels/modddel.dart';
 
-/// A [SimpleEntity] is a [Modddel] that holds multiple modddels (ValueObjects,
-/// Entities...).
+/// A [SimpleEntity] is an [Entity] that holds multiple modddels as separate
+/// fields. The only validation step is the "Content Validation", so if all
+/// the modddels are valid, the [SimpleEntity] is valid too.
 ///
 /// When creating a [SimpleEntity], the validation is made in this order :
 ///
@@ -14,6 +14,6 @@ import 'package:modddels_annotations/src/modddels/modddel.dart';
 ///    [ValidEntity] that holds the valid version of its modddels.
 
 abstract class SimpleEntity<C extends InvalidEntityContent,
-    V extends ValidEntity> extends Modddel<C, V> {
+    V extends ValidEntity> extends Entity<C, V> {
   const SimpleEntity();
 }

@@ -2,8 +2,6 @@ import 'package:fpdart/fpdart.dart';
 import 'package:modddels_annotations/src/modddels/entities/common.dart';
 import 'package:modddels_annotations/src/modddels/entities/simple_entity.dart';
 
-import '../modddel.dart';
-
 /// A [GeneralEntity] is similar to a [SimpleEntity], but it provides an extra
 /// validation step at the end that validates the entity as a whole, via the
 /// `validateGeneral` method. This method returns `some` [GeneralFailure] if the
@@ -21,7 +19,7 @@ import '../modddel.dart';
 /// 3. **→ Validations passed** : This [GeneralEntity] is valid, and becomes a
 ///    [ValidEntity] that holds the valid version of its modddels.
 abstract class GeneralEntity<F extends GeneralFailure, I extends InvalidEntity,
-    V extends ValidEntity> extends Modddel<I, V> {
+    V extends ValidEntity> extends Entity<I, V> {
   const GeneralEntity();
 
   /// Validates this [GeneralEntity] as a whole, after all its modddels have

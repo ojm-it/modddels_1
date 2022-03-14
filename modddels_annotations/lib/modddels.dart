@@ -32,6 +32,7 @@ export 'src/modddels/value_objects/single_value_object.dart'
 
 export 'src/modddels/entities/common.dart'
     show
+        Entity,
         ValidEntity,
         InvalidEntity,
         InvalidEntityContent,

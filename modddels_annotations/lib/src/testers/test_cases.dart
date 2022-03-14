@@ -126,7 +126,8 @@ class TestIsValid<M extends Modddel> extends TestCase {
 
 /// This is a [TestCase] for testing that the [valueObject] is an
 /// [InvalidValueObject] and holds the [valueFailure].
-class TestIsInvalidValue<F extends ValueFailure, M extends Modddel>
+class TestIsInvalidValue<F extends ValueFailure,
+        M extends ValueObject<F, InvalidValueObject<F>, ValidValueObject>>
     extends TestCase {
   TestIsInvalidValue(
     this.valueObject,
@@ -168,7 +169,7 @@ class TestIsInvalidValue<F extends ValueFailure, M extends Modddel>
 
 /// This is a [TestCase] for testing that the [entity] is an
 /// [InvalidEntityContent] and holds the [contentFailure].
-class TestIsInvalidContent<M extends Modddel> extends TestCase {
+class TestIsInvalidContent<M extends Entity> extends TestCase {
   TestIsInvalidContent(
     this.entity,
     this.contentFailure, {
@@ -209,7 +210,7 @@ class TestIsInvalidContent<M extends Modddel> extends TestCase {
 
 /// This is a [TestCase] for testing that the [entity] is an
 /// [InvalidEntityGeneral] and holds the [generalFailure].
-class TestIsInvalidGeneral<F extends GeneralFailure, M extends Modddel>
+class TestIsInvalidGeneral<F extends GeneralFailure, M extends Entity>
     extends TestCase {
   TestIsInvalidGeneral(
     this.entity,
@@ -251,7 +252,7 @@ class TestIsInvalidGeneral<F extends GeneralFailure, M extends Modddel>
 
 /// This is a [TestCase] for testing that the [entity] is an [InvalidEntitySize]
 /// and holds the [sizeFailure].
-class TestIsInvalidSize<F extends SizeFailure, M extends Modddel>
+class TestIsInvalidSize<F extends SizeFailure, M extends Entity>
     extends TestCase {
   TestIsInvalidSize(
     this.entity,

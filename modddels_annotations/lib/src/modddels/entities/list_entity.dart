@@ -1,10 +1,9 @@
 import 'package:modddels_annotations/src/modddels/entities/common.dart';
 import 'package:modddels_annotations/src/modddels/entities/simple_entity.dart';
 import 'package:modddels_annotations/src/modddels/entities/sized_list_entity.dart';
-import 'package:modddels_annotations/src/modddels/modddel.dart';
 
-/// A [ListEntity] is similar to a [SimpleEntity] in a sense that it holds a List of
-/// other modddels (of the same type).
+/// A [ListEntity] is similar to a [SimpleEntity], but the modddels are stored
+/// as a list (of the same type).
 ///
 /// When creating a [ListEntity], the validation is made in this order :
 ///
@@ -19,6 +18,6 @@ import 'package:modddels_annotations/src/modddels/modddel.dart';
 /// behaviour, consider using a [SizedListEntity] and providing your own size
 /// validation.
 abstract class ListEntity<C extends InvalidEntityContent, V extends ValidEntity>
-    extends Modddel<C, V> {
+    extends Entity<C, V> {
   const ListEntity();
 }
