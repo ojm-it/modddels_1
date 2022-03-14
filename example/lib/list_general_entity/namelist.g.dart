@@ -278,9 +278,12 @@ class NameListTester extends ListGeneralEntityTester<
     InvalidNameListGeneral,
     InvalidNameList,
     ValidNameList,
-    NameList> {
+    NameList,
+    _NameListInput> {
   const NameListTester({
     int maxSutDescriptionLength = 100,
+    String isSanitizedGroupDescription = 'Should be sanitized',
+    String isNotSanitizedGroupDescription = 'Should not be sanitized',
     String isValidGroupDescription = 'Should be a ValidNameList',
     String isInvalidContentGroupDescription =
         'Should be an InvalidNameListContent and hold the proper contentFailure',
@@ -288,8 +291,30 @@ class NameListTester extends ListGeneralEntityTester<
         'Should be an InvalidNameListGeneral and hold the NameListGeneralFailure',
   }) : super(
           maxSutDescriptionLength: maxSutDescriptionLength,
+          isSanitizedGroupDescription: isSanitizedGroupDescription,
+          isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
           isValidGroupDescription: isValidGroupDescription,
           isInvalidContentGroupDescription: isInvalidContentGroupDescription,
           isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
         );
+
+  final makeInput = _NameListInput.new;
+}
+
+class _NameListInput extends ModddelInput<NameList> {
+  const _NameListInput(this.list);
+
+  final KtList<Name> list;
+
+  @override
+  List<Object?> get props => [list];
+
+  @override
+  _NameListInput get sanitizedInput {
+    final modddel = NameList(list);
+    final modddelList =
+        modddel.mapValidity(valid: (v) => v.list, invalid: (i) => i.list);
+
+    return _NameListInput(modddelList);
+  }
 }

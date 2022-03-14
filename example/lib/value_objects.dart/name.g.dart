@@ -10,7 +10,10 @@ mixin $Name {
   static Name _create(String input) {
     /// 1. **Value Validation**
     return _verifyValue(input).match(
-      (valueFailure) => InvalidName._(valueFailure: valueFailure),
+      (valueFailure) => InvalidName._(
+        valueFailure: valueFailure,
+        failedValue: input,
+      ),
 
       /// 2. **→ Validations passed**
       (validValue) => ValidName._(value: validValue),
@@ -20,7 +23,8 @@ mixin $Name {
   /// If the value is invalid, this holds the [ValueFailure] on the Left.
   /// Otherwise, holds the value on the Right.
   static Either<NameValueFailure, String> _verifyValue(String input) {
-    final valueVerification = const Name._().validateValue(input);
+    final valueVerification =
+        const Name._().validateValue(ValidName._(value: input));
     return valueVerification.toEither(() => input).swap();
   }
 
@@ -56,7 +60,7 @@ mixin $Name {
   StringifyMode get stringifyMode => StringifyMode.always;
 }
 
-class ValidName extends Name implements ValidValueObject<String> {
+class ValidName extends Name implements ValidSingleValueObject<String> {
   const ValidName._({required this.value}) : super._();
 
   @override
@@ -74,13 +78,17 @@ class ValidName extends Name implements ValidValueObject<String> {
 }
 
 class InvalidName extends Name
-    implements InvalidValueObject<String, NameValueFailure> {
+    implements InvalidSingleValueObject<String, NameValueFailure> {
   const InvalidName._({
     required this.valueFailure,
+    required this.failedValue,
   }) : super._();
 
   @override
   final NameValueFailure valueFailure;
+
+  @override
+  final String failedValue;
 
   @override
   NameValueFailure get failure => valueFailure;
@@ -93,24 +101,43 @@ class InvalidName extends Name
   }
 
   @override
-  List<Object?> get props => [failure];
+  List<Object?> get props => [valueFailure, failedValue];
 }
 
-class NameTester extends ValueObjectTester<String, NameValueFailure,
-    InvalidName, ValidName, Name> {
-  NameTester({
+class NameTester extends ValueObjectTester<NameValueFailure, InvalidName,
+    ValidName, Name, _NameInput> {
+  const NameTester({
     int maxSutDescriptionLength = 100,
-    String isNotSanitizedGroupDescription = 'Should not be sanitized',
-    String isInvalidGroupDescription =
-        'Should be an InvalidName and hold the NameValueFailure',
     String isSanitizedGroupDescription = 'Should be sanitized',
+    String isNotSanitizedGroupDescription = 'Should not be sanitized',
     String isValidGroupDescription = 'Should be a ValidName',
+    String isInvalidValueGroupDescription =
+        'Should be an InvalidName and hold the NameValueFailure',
   }) : super(
-          (input) => Name(input),
           maxSutDescriptionLength: maxSutDescriptionLength,
-          isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
-          isInvalidGroupDescription: isInvalidGroupDescription,
           isSanitizedGroupDescription: isSanitizedGroupDescription,
+          isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
           isValidGroupDescription: isValidGroupDescription,
+          isInvalidValueGroupDescription: isInvalidValueGroupDescription,
         );
+
+  final makeInput = _NameInput.new;
+}
+
+class _NameInput extends ModddelInput<Name> {
+  const _NameInput(this.input);
+
+  final String input;
+
+  @override
+  List<Object?> get props => [input];
+
+  @override
+  _NameInput get sanitizedInput {
+    final modddel = Name(input);
+    final modddelValue = modddel.mapValidity(
+        valid: (v) => v.value, invalid: (i) => i.failedValue);
+
+    return _NameInput(modddelValue);
+  }
 }

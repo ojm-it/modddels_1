@@ -340,9 +340,12 @@ class NameList4Tester extends SizedListGeneralEntityTester<
     InvalidNameList4General,
     InvalidNameList4,
     ValidNameList4,
-    NameList4> {
+    NameList4,
+    _NameList4Input> {
   const NameList4Tester({
     int maxSutDescriptionLength = 100,
+    String isSanitizedGroupDescription = 'Should be sanitized',
+    String isNotSanitizedGroupDescription = 'Should not be sanitized',
     String isValidGroupDescription = 'Should be a ValidNameList4',
     String isInvalidSizeGroupDescription =
         'Should be an InvalidNameList4Size and hold the NameList4SizeFailure',
@@ -352,9 +355,31 @@ class NameList4Tester extends SizedListGeneralEntityTester<
         'Should be an InvalidNameList4General and hold the NameList4GeneralFailure',
   }) : super(
           maxSutDescriptionLength: maxSutDescriptionLength,
+          isSanitizedGroupDescription: isSanitizedGroupDescription,
+          isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
           isValidGroupDescription: isValidGroupDescription,
           isInvalidSizeGroupDescription: isInvalidSizeGroupDescription,
           isInvalidContentGroupDescription: isInvalidContentGroupDescription,
           isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
         );
+
+  final makeInput = _NameList4Input.new;
+}
+
+class _NameList4Input extends ModddelInput<NameList4> {
+  const _NameList4Input(this.list);
+
+  final KtList<Name> list;
+
+  @override
+  List<Object?> get props => [list];
+
+  @override
+  _NameList4Input get sanitizedInput {
+    final modddel = NameList4(list);
+    final modddelList =
+        modddel.mapValidity(valid: (v) => v.list, invalid: (i) => i.list);
+
+    return _NameList4Input(modddelList);
+  }
 }

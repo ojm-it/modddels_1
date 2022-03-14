@@ -1,7 +1,6 @@
 import 'package:example/general_entities/fullname.dart';
 import 'package:example/sized_list_general_entity/namelist4.dart';
 import 'package:example/value_objects.dart/name.dart';
-import 'package:example/value_objects.dart/name2.dart';
 import 'package:kt_dart/collection.dart';
 // import 'package:flutter_test/flutter_test.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
@@ -32,35 +31,33 @@ final invalidFullNameContent =
     FullName(firstName: Name(validName1), lastName: Name(''));
 
 void main() {
-  final nameTester = NameTester();
+  const nameTester = NameTester();
+  final input = nameTester.makeInput;
 
   nameTester.makeIsValidTestGroup(
     tests: [
-      TestIsValidValue(validName1),
-      TestIsValidValue(validName2),
+      TestIsValid(Name(validName1)),
+      TestIsValid(Name(validName2)),
     ],
   );
 
-  nameTester.makeIsInvalidTestGroup(tests: [
-    TestIsInvalidValue('', const NameValueFailure.empty(failedValue: '')),
-  ]);
+  nameTester.makeIsInvalidValueTestGroup(
+    tests: [
+      TestIsInvalidValue(Name(''), const NameValueFailure.empty()),
+    ],
+  );
 
-  final name2Tester = Name2Tester();
-
-  name2Tester.makeIsNotSanitizedTestGroup(tests: [
-    TestIsNotSanitized(null),
-    TestIsNotSanitized(validName1),
-  ]);
-
-  name2Tester.makeIsInvalidTestGroup(tests: [
-    TestIsInvalidValue(null, const Name2ValueFailure.none(failedValue: null)),
-  ]);
+  nameTester.makeIsSanitizedTestGroup(
+    tests: [
+      TestIsSanitized(input(' Josh'), input('Josh')),
+    ],
+  );
 
   const nameList4Tester = NameList4Tester();
 
   nameList4Tester.makeIsValidTestGroup(tests: [
-    TestIsValidEntity(validNameList),
-    TestIsValidEntity(
+    TestIsValid(validNameList),
+    TestIsValid(
       validNameList,
       customDescription: const CustomDescription.addSuffix('⚠️'),
     ),
@@ -79,15 +76,15 @@ void main() {
   nameList4Tester.makeIsInvalidContentTestGroup(
       maxSutDescriptionLength: TesterUtils.noEllipsis,
       tests: [
-        TestIsInvalidContent(invalidNameListContent,
-            const NameValueFailure.empty(failedValue: '')),
+        TestIsInvalidContent(
+            invalidNameListContent, const NameValueFailure.empty()),
       ]);
 
   const fullNameTester = FullNameTester();
 
   fullNameTester.makeIsValidTestGroup(
     tests: [
-      TestIsValidEntity(validFullName),
+      TestIsValid(validFullName),
     ],
   );
 
@@ -95,7 +92,7 @@ void main() {
     tests: [
       TestIsInvalidContent(
         invalidFullNameContent,
-        const NameValueFailure.empty(failedValue: ''),
+        const NameValueFailure.empty(),
       ),
     ],
   );

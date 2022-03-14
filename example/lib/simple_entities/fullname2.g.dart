@@ -197,15 +197,54 @@ class InvalidFullName2Content extends FullName2
 }
 
 class FullName2Tester extends SimpleEntityTester<InvalidFullName2Content,
-    ValidFullName2, FullName2> {
+    ValidFullName2, FullName2, _FullName2Input> {
   const FullName2Tester({
     int maxSutDescriptionLength = 100,
+    String isSanitizedGroupDescription = 'Should be sanitized',
+    String isNotSanitizedGroupDescription = 'Should not be sanitized',
     String isValidGroupDescription = 'Should be a ValidFullName2',
     String isInvalidContentGroupDescription =
         'Should be an InvalidFullName2Content and hold the proper contentFailure',
   }) : super(
           maxSutDescriptionLength: maxSutDescriptionLength,
+          isSanitizedGroupDescription: isSanitizedGroupDescription,
+          isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
           isValidGroupDescription: isValidGroupDescription,
           isInvalidContentGroupDescription: isInvalidContentGroupDescription,
         );
+
+  final makeInput = _FullName2Input.new;
+}
+
+class _FullName2Input extends ModddelInput<FullName2> {
+  const _FullName2Input({
+    required this.firstName,
+    required this.lastName,
+    this.hasMiddleName = false,
+  });
+
+  final Name firstName;
+  final Name lastName;
+  final bool hasMiddleName;
+  @override
+  List<Object?> get props => [
+        firstName,
+        lastName,
+        hasMiddleName,
+      ];
+
+  @override
+  _FullName2Input get sanitizedInput {
+    final modddel = FullName2(
+      firstName: firstName,
+      lastName: lastName,
+      hasMiddleName: hasMiddleName,
+    );
+
+    return _FullName2Input(
+      firstName: modddel.firstName,
+      lastName: modddel.lastName,
+      hasMiddleName: modddel.hasMiddleName,
+    );
+  }
 }
