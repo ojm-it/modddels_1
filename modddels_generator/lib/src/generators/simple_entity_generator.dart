@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_generator/src/utils.dart';
+import 'package:modddels_generator/src/core/class_info.dart';
+import 'package:modddels_generator/src/core/entity_parameter.dart';
 import 'package:source_gen/source_gen.dart';
 
 class SimpleEntityGenerator {
@@ -37,7 +38,10 @@ class SimpleEntityGenerator {
       );
     }
 
-    final classInfo = SimpleEntityClassInfo(className, namedParameters);
+    final classInfo = SimpleEntityClassInfo(
+      className: className,
+      namedParameters: namedParameters,
+    );
 
     for (final param in classInfo.namedParameters) {
       if (param.type == 'dynamic') {
@@ -104,6 +108,8 @@ class SimpleEntityGenerator {
 
     if (generateTester) {
       makeTester(classBuffer, classInfo);
+
+      makeModddelInput(classBuffer, classInfo);
     }
 
     return classBuffer.toString();
@@ -131,7 +137,7 @@ class SimpleEntityGenerator {
       return _verifyContent(
         ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
       ).match(
-        (contentFailure) => ${classInfo.invalidEntityContent}._(
+        (contentFailure) => ${classInfo.invalidContent}._(
           contentFailure: contentFailure,
            ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
         ),
@@ -149,7 +155,7 @@ class SimpleEntityGenerator {
     ///
     /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
     /// ValidEntity, on the Right.
-    static Either<Failure, ${classInfo.validEntity}> _verifyContent({
+    static Either<Failure, ${classInfo.valid}> _verifyContent({
      ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
     }) {
       ${generateContentVerification(classInfo.namedParameters, classInfo)}
@@ -173,7 +179,7 @@ class SimpleEntityGenerator {
     classBuffer.writeln('''
     /// If [nullableEntity] is null, returns `right(null)`.
     /// Otherwise, returns `nullableEntity.toBroadEither`
-    static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
+    static Either<Failure, ${classInfo.valid}?> toBroadEitherNullable(
       $className? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
@@ -183,8 +189,8 @@ class SimpleEntityGenerator {
     classBuffer.writeln('''
     /// Same as [mapValidity] (because there is only one invalid union-case)
     TResult map<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
     }) {
       throw UnimplementedError();
@@ -197,8 +203,8 @@ class SimpleEntityGenerator {
     /// Pattern matching for the two different union-cases of this entity : valid
     /// and invalid.
     TResult mapValidity<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent) invalid,
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidContent} invalidContent) invalid,
     }) {
       return map(
         valid: valid,
@@ -215,7 +221,7 @@ class SimpleEntityGenerator {
     /// The resulting entity is totally independent from this entity. It is
     /// validated upon creation, and can be either valid or invalid.
     $className copyWith({
-      ${classInfo.namedParameters.map((param) => '${param.optionalType} ${param.name},').join()}
+      ${classInfo.namedParameters.map((param) => '${param.nullableType} ${param.name},').join()}
     }) {
       return map(
         valid: (valid) => _create(
@@ -258,7 +264,7 @@ class SimpleEntityGenerator {
       final either = param.hasInvalidAnnotation
           ? 'Either<Null, Failure>.fromNullable(${param.name}?.failure, (r) => null).swap()'
           : param.isNullable
-              ? '\$${param.typeWithoutNullabilitySuffix}.toBroadEitherNullable(${param.name})'
+              ? '\$${param.nonNullableType}.toBroadEitherNullable(${param.name})'
               : '${param.name}.toBroadEither';
 
       return '''$either.flatMap(
@@ -272,7 +278,7 @@ class SimpleEntityGenerator {
     final constructorParams = classInfo.namedParameters.map((p) =>
         '${p.name}: ${p.hasInvalidAnnotation ? 'null' : p.hasValidAnnotation ? p.name : p.validName},');
 
-    return '''right<Failure, ${classInfo.validEntity}>(${classInfo.validEntity}._(
+    return '''right<Failure, ${classInfo.valid}>(${classInfo.valid}._(
         ${constructorParams.join('')}
       ))$comma
       ''';
@@ -281,13 +287,13 @@ class SimpleEntityGenerator {
   void makeValidEntity(
       StringBuffer classBuffer, SimpleEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.validEntity} extends $className implements ValidEntity {
+    class ${classInfo.valid} extends $className implements ValidEntity {
       
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.validEntity}._({
+    const ${classInfo.valid}._({
       ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
       }) : super._();
 
@@ -309,8 +315,8 @@ class SimpleEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
     }) {
       return valid(this);
@@ -333,13 +339,13 @@ class SimpleEntityGenerator {
   void makeInvalidEntityContent(
       StringBuffer classBuffer, SimpleEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.invalidEntityContent} extends $className
+    class ${classInfo.invalidContent} extends $className
       implements InvalidEntityContent {        
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntityContent}._({
+    const ${classInfo.invalidContent}._({
       required this.contentFailure,
       ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
     }) : super._();
@@ -364,8 +370,8 @@ class SimpleEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult map<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
     }) {
       return invalidContent(this);
@@ -389,22 +395,86 @@ class SimpleEntityGenerator {
 
   void makeTester(StringBuffer classBuffer, SimpleEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${className}Tester
-      extends SimpleEntityTester<${classInfo.invalidEntityContent}, ${classInfo.validEntity}, $className> {
+    class ${className}Tester extends SimpleEntityTester<${classInfo.invalidContent},
+      ${classInfo.valid}, $className, ${classInfo.modddelInput}> {
     ''');
 
     /// constructor
     classBuffer.writeln('''
     const ${className}Tester({
       int maxSutDescriptionLength = $maxSutDescriptionLength,
-      String isValidGroupDescription = 'Should be a ${classInfo.validEntity}',
+      String isSanitizedGroupDescription = 'Should be sanitized',
+      String isNotSanitizedGroupDescription = 'Should not be sanitized',
+      String isValidGroupDescription = 'Should be a ${classInfo.valid}',
       String isInvalidContentGroupDescription =
-          'Should be an ${classInfo.invalidEntityContent} and hold the proper contentFailure',
+          'Should be an ${classInfo.invalidContent} and hold the proper contentFailure',
     }) : super(
             maxSutDescriptionLength: maxSutDescriptionLength,
+            isSanitizedGroupDescription: isSanitizedGroupDescription,
+            isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
             isValidGroupDescription: isValidGroupDescription,
             isInvalidContentGroupDescription: isInvalidContentGroupDescription,
           );
+    ''');
+
+    /// makeInput field
+    classBuffer.writeln('''
+    final makeInput = ${classInfo.modddelInput}.new;
+    ''');
+
+    /// end
+    classBuffer.writeln('}');
+  }
+
+  void makeModddelInput(
+      StringBuffer classBuffer, SimpleEntityClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${classInfo.modddelInput} extends ModddelInput<$className> {
+    ''');
+
+    /// constructor
+    final constructorParams = classInfo.namedParameters.map(
+      (parameter) {
+        final declaration = 'this.${parameter.name}';
+        return parameter.isRequired
+            ? 'required $declaration,'
+            : parameter.hasDefaultValue
+                ? '$declaration = ${parameter.defaultValue},'
+                : '$declaration,';
+      },
+    );
+
+    classBuffer.writeln('''
+    const ${classInfo.modddelInput}({
+      ${constructorParams.join()}
+    });
+    ''');
+
+    /// class members
+    for (final parameter in classInfo.namedParameters) {
+      classBuffer.writeln('final ${parameter.type} ${parameter.name};');
+    }
+
+    /// props method
+    classBuffer.writeln('''
+    @override
+    List<Object?> get props => [
+          ${classInfo.namedParameters.map((p) => '${p.name},').join()}
+        ];
+    ''');
+
+    /// sanitizedInput method
+    classBuffer.writeln('''
+    @override
+    ${classInfo.modddelInput} get sanitizedInput {
+      final modddel = $className(
+        ${classInfo.namedParameters.map((p) => '${p.name}: ${p.name},').join()}
+      );
+
+      return ${classInfo.modddelInput}(
+        ${classInfo.namedParameters.map((p) => '${p.name}: modddel.${p.name},').join()}
+      );
+    }
     ''');
 
     /// end

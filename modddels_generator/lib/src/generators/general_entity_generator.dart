@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_generator/src/utils.dart';
+import 'package:modddels_generator/src/core/class_info.dart';
+import 'package:modddels_generator/src/core/entity_parameter.dart';
 import 'package:source_gen/source_gen.dart';
 
 class GeneralEntityGenerator {
@@ -37,7 +38,10 @@ class GeneralEntityGenerator {
       );
     }
 
-    final classInfo = GeneralEntityClassInfo(className, namedParameters);
+    final classInfo = GeneralEntityClassInfo(
+      className: className,
+      namedParameters: namedParameters,
+    );
 
     for (final param in classInfo.namedParameters) {
       if (param.type == 'dynamic') {
@@ -112,6 +116,8 @@ class GeneralEntityGenerator {
 
     if (generateTester) {
       makeTester(classBuffer, classInfo);
+
+      makeModddelInput(classBuffer, classInfo);
     }
 
     return classBuffer.toString();
@@ -139,14 +145,14 @@ class GeneralEntityGenerator {
       return _verifyContent(
         ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
       ).match(
-        (contentFailure) => ${classInfo.invalidEntityContent}._(
+        (contentFailure) => ${classInfo.invalidContent}._(
           contentFailure: contentFailure,
           ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
         ),
         
         /// 2. **General validation**
         (validContent) => _verifyGeneral(validContent).match(
-          (generalFailure) => ${classInfo.invalidEntityGeneral}._(
+          (generalFailure) => ${classInfo.invalidGeneral}._(
             generalFailure: generalFailure,
             ${classInfo.namedParameters.map((param) => '${param.name} : validContent.${param.name},').join()}
           ),
@@ -166,7 +172,7 @@ class GeneralEntityGenerator {
     ///
     /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
     /// _ValidEntityContent, on the Right.
-    static Either<Failure, ${classInfo.validEntityContent}> _verifyContent({
+    static Either<Failure, ${classInfo.validContent}> _verifyContent({
       ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
     }) {
       ${generateContentVerification(classInfo.namedParameters, classInfo)}
@@ -181,8 +187,8 @@ class GeneralEntityGenerator {
     ///  - One of the nullable fields marked with `@NullFailure` is null
     ///  - The validateGeneral method returns a [GeneralFailure]
     /// Otherwise, holds the ValidEntity on the Right.
-    static Either<${classInfo.generalFailure}, ${classInfo.validEntity}> _verifyGeneral(
-      ${classInfo.validEntityContent} validEntityContent) {
+    static Either<${classInfo.generalFailure}, ${classInfo.valid}> _verifyGeneral(
+      ${classInfo.validContent} validEntityContent) {
       final nullablesVerification = validEntityContent.verifyNullables();
 
       final generalVerification = nullablesVerification.flatMap((validEntity) =>
@@ -213,7 +219,7 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     /// If [nullableEntity] is null, returns `right(null)`.
     /// Otherwise, returns `nullableEntity.toBroadEither`.
-    static Either<Failure, ${classInfo.validEntity}?> toBroadEitherNullable(
+    static Either<Failure, ${classInfo.valid}?> toBroadEitherNullable(
       $className? nullableEntity) =>
       optionOf(nullableEntity).match((t) => t.toBroadEither, () => right(null));
 
@@ -226,10 +232,10 @@ class GeneralEntityGenerator {
     /// - [InvalidEntityContent]
     /// - [InvalidEntityGeneral]
     TResult map<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
-      required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+      required TResult Function(${classInfo.invalidGeneral} invalidGeneral)
           invalidGeneral,
     }) {
       return maybeMap(
@@ -247,10 +253,10 @@ class GeneralEntityGenerator {
     /// Equivalent to [map], but only the [valid] callback is required. It also
     /// adds an extra orElse required parameter, for fallback behavior.
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       throw UnimplementedError();
     }
@@ -262,8 +268,8 @@ class GeneralEntityGenerator {
     /// Pattern matching for the two different union-cases of this entity : valid
     /// and invalid.
     TResult mapValidity<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      required TResult Function(${classInfo.invalidEntity} invalid) invalid,
+      required TResult Function(${classInfo.valid} valid) valid,
+      required TResult Function(${classInfo.invalid} invalid) invalid,
     }) {
       return maybeMap(
         valid: valid,
@@ -280,7 +286,7 @@ class GeneralEntityGenerator {
     /// The resulting entity is totally independent from this entity. It is
     /// validated upon creation, and can be either valid or invalid.
     $className copyWith({
-      ${classInfo.namedParameters.map((param) => '${param.optionalType} ${param.name},').join()}
+      ${classInfo.namedParameters.map((param) => '${param.nullableType} ${param.name},').join()}
     }) {
       return mapValidity(
         valid: (valid) => _create(
@@ -323,7 +329,7 @@ class GeneralEntityGenerator {
       final either = param.hasInvalidAnnotation
           ? 'Either<Null, Failure>.fromNullable(${param.name}?.failure, (r) => null).swap()'
           : param.isNullable
-              ? '\$${param.typeWithoutNullabilitySuffix}.toBroadEitherNullable(${param.name})'
+              ? '\$${param.nonNullableType}.toBroadEitherNullable(${param.name})'
               : '${param.name}.toBroadEither';
 
       return '''$either.flatMap(
@@ -337,7 +343,7 @@ class GeneralEntityGenerator {
     final constructorParams = classInfo.namedParameters.map((p) =>
         '${p.name}: ${p.hasInvalidAnnotation ? 'null' : p.hasValidAnnotation ? p.name : p.validName},');
 
-    return '''right<Failure, ${classInfo.validEntityContent}>(${classInfo.validEntityContent}._(
+    return '''right<Failure, ${classInfo.validContent}>(${classInfo.validContent}._(
         ${constructorParams.join('')}
       ))$comma
       ''';
@@ -346,13 +352,13 @@ class GeneralEntityGenerator {
   void makeValidEntityContent(
       StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.validEntityContent} {
+    class ${classInfo.validContent} {
       
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.validEntityContent}._({
+    const ${classInfo.validContent}._({
       ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
       });
 
@@ -374,7 +380,7 @@ class GeneralEntityGenerator {
     /// If one of the nullable fields marked with `@NullFailure` is null, this
     /// holds a [GeneralFailure] on the Left. Otherwise, holds the ValidEntity on
     /// the Right.
-    Either<${classInfo.generalFailure}, ${classInfo.validEntity}> verifyNullables() {
+    Either<${classInfo.generalFailure}, ${classInfo.valid}> verifyNullables() {
 
       ${classInfo.namedParameters.where((p) => p.hasNullFailureAnnotation).map((param) => '''
       final ${param.name} = this.${param.name};
@@ -384,7 +390,7 @@ class GeneralEntityGenerator {
       
       ''').join()}
 
-      return right(${classInfo.validEntity}._(
+      return right(${classInfo.valid}._(
         ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
       ));
     }
@@ -397,13 +403,13 @@ class GeneralEntityGenerator {
   void makeValidEntity(
       StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.validEntity} extends $className implements ValidEntity {
+    class ${classInfo.valid} extends $className implements ValidEntity {
       
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.validEntity}._({
+    const ${classInfo.valid}._({
       ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
       }) : super._();
 
@@ -414,9 +420,8 @@ class GeneralEntityGenerator {
       if (param.hasWithGetterAnnotation) {
         classBuffer.writeln('@override');
       }
-      final paramType = param.hasNullFailureAnnotation
-          ? param.typeWithoutNullabilitySuffix
-          : param.type;
+      final paramType =
+          param.hasNullFailureAnnotation ? param.nonNullableType : param.type;
 
       final validParamType = param.hasInvalidAnnotation
           ? 'Null'
@@ -431,10 +436,10 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       return valid(this);
     }
@@ -456,13 +461,13 @@ class GeneralEntityGenerator {
   void makeInvalidEntity(
       StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    abstract class ${classInfo.invalidEntity} extends $className
+    abstract class ${classInfo.invalid} extends $className
       implements InvalidEntity {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntity}._() : super._();
+    const ${classInfo.invalid}._() : super._();
 
     ''');
 
@@ -492,9 +497,9 @@ class GeneralEntityGenerator {
     /// - [InvalidEntityContent]
     /// - [InvalidEntityGeneral]
     TResult mapInvalid<TResult extends Object?>({
-      required TResult Function(${classInfo.invalidEntityContent} invalidContent)
+      required TResult Function(${classInfo.invalidContent} invalidContent)
           invalidContent,
-      required TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)
+      required TResult Function(${classInfo.invalidGeneral} invalidGeneral)
           invalidGeneral,
     }) {
       return maybeMap(
@@ -533,13 +538,13 @@ class GeneralEntityGenerator {
   void makeInvalidEntityContent(
       StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.invalidEntityContent} extends ${classInfo.invalidEntity}
+    class ${classInfo.invalidContent} extends ${classInfo.invalid}
       implements InvalidEntityContent {        
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntityContent}._({
+    const ${classInfo.invalidContent}._({
       required this.contentFailure,
       ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
     }) : super._();
@@ -561,10 +566,10 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       if (invalidContent != null) {
         return invalidContent(this);
@@ -590,13 +595,13 @@ class GeneralEntityGenerator {
   void makeInvalidEntityGeneral(
       StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.invalidEntityGeneral} extends ${classInfo.invalidEntity}
+    class ${classInfo.invalidGeneral} extends ${classInfo.invalid}
       implements InvalidEntityGeneral<${classInfo.generalFailure}> {
     ''');
 
     /// private constructor
     classBuffer.writeln('''
-    const ${classInfo.invalidEntityGeneral}._({
+    const ${classInfo.invalidGeneral}._({
       required this.generalFailure,
       ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
     }) : super._();
@@ -619,10 +624,10 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
-      required TResult Function(${classInfo.validEntity} valid) valid,
-      TResult Function(${classInfo.invalidEntityContent} invalidContent)? invalidContent,
-      TResult Function(${classInfo.invalidEntityGeneral} invalidGeneral)? invalidGeneral,
-      required TResult Function(${classInfo.invalidEntity} invalid) orElse,
+      required TResult Function(${classInfo.valid} valid) valid,
+      TResult Function(${classInfo.invalidContent} invalidContent)? invalidContent,
+      TResult Function(${classInfo.invalidGeneral} invalidGeneral)? invalidGeneral,
+      required TResult Function(${classInfo.invalid} invalid) orElse,
     }) {
       if (invalidGeneral != null) {
         return invalidGeneral(this);
@@ -648,28 +653,102 @@ class GeneralEntityGenerator {
     classBuffer.writeln('''
     class ${className}Tester extends GeneralEntityTester<
       ${classInfo.generalFailure},
-      ${classInfo.invalidEntityContent},
-      ${classInfo.invalidEntityGeneral},
-      ${classInfo.invalidEntity},
-      ${classInfo.validEntity},
-      $className> {
+      ${classInfo.invalidContent},
+      ${classInfo.invalidGeneral},
+      ${classInfo.invalid},
+      ${classInfo.valid},
+      $className,
+      ${classInfo.modddelInput}
+      > {
     ''');
 
     /// constructor
     classBuffer.writeln('''
     const ${className}Tester({
       int maxSutDescriptionLength = $maxSutDescriptionLength,
-      String isValidGroupDescription = 'Should be a ${classInfo.validEntity}',
+      String isSanitizedGroupDescription = 'Should be sanitized',
+      String isNotSanitizedGroupDescription = 'Should not be sanitized',
+      String isValidGroupDescription = 'Should be a ${classInfo.valid}',
       String isInvalidContentGroupDescription =
-          'Should be an ${classInfo.invalidEntityContent} and hold the proper contentFailure',
+          'Should be an ${classInfo.invalidContent} and hold the proper contentFailure',
       String isInvalidGeneralGroupDescription =
-          'Should be an ${classInfo.invalidEntityGeneral} and hold the ${classInfo.generalFailure}',
+          'Should be an ${classInfo.invalidGeneral} and hold the ${classInfo.generalFailure}',
     }) : super(
             maxSutDescriptionLength: maxSutDescriptionLength,
+            isSanitizedGroupDescription: isSanitizedGroupDescription,
+            isNotSanitizedGroupDescription: isNotSanitizedGroupDescription,
             isValidGroupDescription: isValidGroupDescription,
             isInvalidContentGroupDescription: isInvalidContentGroupDescription,
             isInvalidGeneralGroupDescription: isInvalidGeneralGroupDescription,
           );
+    ''');
+
+    /// makeInput field
+    classBuffer.writeln('''
+    final makeInput = ${classInfo.modddelInput}.new;
+    ''');
+
+    /// end
+    classBuffer.writeln('}');
+  }
+
+  void makeModddelInput(
+      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
+    classBuffer.writeln('''
+    class ${classInfo.modddelInput} extends ModddelInput<$className> {
+    ''');
+
+    /// constructor
+    final constructorParams = classInfo.namedParameters.map(
+      (parameter) {
+        final declaration = 'this.${parameter.name}';
+        return parameter.isRequired
+            ? 'required $declaration,'
+            : parameter.hasDefaultValue
+                ? '$declaration = ${parameter.defaultValue},'
+                : '$declaration,';
+      },
+    );
+
+    classBuffer.writeln('''
+    const ${classInfo.modddelInput}({
+      ${constructorParams.join()}
+    });
+    ''');
+
+    /// class members
+    for (final parameter in classInfo.namedParameters) {
+      classBuffer.writeln('final ${parameter.type} ${parameter.name};');
+    }
+
+    /// props method
+    classBuffer.writeln('''
+    @override
+    List<Object?> get props => [
+          ${classInfo.namedParameters.map((p) => '${p.name},').join()}
+        ];
+    ''');
+
+    /// sanitizedInput method
+    final sanitizedConstructorParams = classInfo.namedParameters.map((param) {
+      final paramName = param.name;
+      return param.hasWithGetterAnnotation
+          ? '$paramName: modddel.$paramName,'
+          : '$paramName: modddel.mapValidity('
+              'valid: (v) => v.$paramName, invalid: (i) => i.$paramName),';
+    });
+
+    classBuffer.writeln('''
+    @override
+    ${classInfo.modddelInput} get sanitizedInput {
+      final modddel = $className(
+        ${classInfo.namedParameters.map((p) => '${p.name}: ${p.name},').join()}
+      );
+
+      return ${classInfo.modddelInput}(
+        ${sanitizedConstructorParams.join()}
+      );
+    }
     ''');
 
     /// end

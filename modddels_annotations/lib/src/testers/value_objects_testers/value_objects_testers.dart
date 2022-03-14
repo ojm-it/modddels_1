@@ -1,71 +1,36 @@
-import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_annotations/src/testers/common.dart';
-import 'package:modddels_annotations/src/testers/value_objects_testers/base.dart';
+import 'package:modddels_annotations/src/modddels/value_objects/value_object.dart';
+import 'package:modddels_annotations/src/testers/core/modddel_input.dart';
+import 'package:modddels_annotations/src/testers/core/tester.dart';
+import 'package:modddels_annotations/src/testers/testers_mixins.dart';
 
 /// This is a Tester for unit testing a [ValueObject].
 class ValueObjectTester<
-        T extends Object?,
-        F extends ValueFailure<T>,
-        I extends InvalidValueObject<T, F>,
-        V extends ValidValueObject<T>,
-        E extends ValueObject<T, F, I, V>>
-    extends BaseValueObjectTester<T, F, I, V, E> {
-  /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
-  const ValueObjectTester(
-    this.sutConstructor, {
+        F extends ValueFailure,
+        I extends InvalidValueObject<F>,
+        V extends ValidValueObject,
+        M extends ValueObject<F, I, V>,
+        P extends ModddelInput<M>> extends Tester
+    with
+        SanitizationTesterMixin<M, P>,
+        ValidTesterMixin<I, V, M>,
+        ValueTesterMixin<F, I, V, M> {
+  const ValueObjectTester({
     required int maxSutDescriptionLength,
-    required this.isNotSanitizedGroupDescription,
-    required this.isInvalidGroupDescription,
     required this.isSanitizedGroupDescription,
+    required this.isNotSanitizedGroupDescription,
     required this.isValidGroupDescription,
+    required this.isInvalidValueGroupDescription,
   }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
 
   @override
-  final String isNotSanitizedGroupDescription;
+  final String isInvalidValueGroupDescription;
 
   @override
-  final String isInvalidGroupDescription;
+  final String isNotSanitizedGroupDescription;
 
   @override
   final String isSanitizedGroupDescription;
 
   @override
   final String isValidGroupDescription;
-
-  @override
-  final E Function(T input) sutConstructor;
-}
-
-/// This is a Tester for unit testing a [NullableValueObject].
-class NullableValueObjectTester<
-        T extends Object,
-        F extends ValueFailure<T?>,
-        I extends InvalidValueObject<T?, F>,
-        V extends ValidValueObject<T>,
-        E extends NullableValueObject<T, F, I, V>>
-    extends BaseValueObjectTester<T?, F, I, V, E> {
-  /// For [maxSutDescriptionLength], see [Tester.maxSutDescriptionLength].
-  const NullableValueObjectTester(
-    this.sutConstructor, {
-    required int maxSutDescriptionLength,
-    required this.isNotSanitizedGroupDescription,
-    required this.isInvalidGroupDescription,
-    required this.isSanitizedGroupDescription,
-    required this.isValidGroupDescription,
-  }) : super(maxSutDescriptionLength: maxSutDescriptionLength);
-
-  @override
-  final String isNotSanitizedGroupDescription;
-
-  @override
-  final String isInvalidGroupDescription;
-
-  @override
-  final String isSanitizedGroupDescription;
-
-  @override
-  final String isValidGroupDescription;
-
-  @override
-  final E Function(T? input) sutConstructor;
 }
