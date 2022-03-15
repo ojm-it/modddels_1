@@ -42,25 +42,25 @@ abstract class _BaseValueObjectClassInfo extends _BaseClassInfo {
 class SingleValueObjectClassInfo extends _BaseValueObjectClassInfo {
   SingleValueObjectClassInfo({
     required this.className,
-    required this.singleValueType,
-  });
+    required ParameterElement inputParameterElement,
+  }) {
+    inputParameter = ModddelParameter(inputParameterElement);
+  }
 
   @override
   final String className;
 
-  /// The type of the single value held inside the [SingleValueObject]
-  ///
-  /// Example : 'int'
-  final String singleValueType;
+  /// The "input" parameter.
+  late final ModddelParameter inputParameter;
 }
 
 class MultiValueObjectClassInfo extends _BaseValueObjectClassInfo {
   MultiValueObjectClassInfo({
     required this.className,
-    required List<ParameterElement> namedParameters,
+    required List<ParameterElement> namedParameterElements,
   }) {
-    this.namedParameters =
-        namedParameters.map((p) => ModddelParameter(p)).toList();
+    namedParameters =
+        namedParameterElements.map((p) => ModddelParameter(p)).toList();
   }
 
   @override
@@ -139,10 +139,10 @@ abstract class _BaseEntityClassInfo extends _BaseClassInfo {
 class SimpleEntityClassInfo extends _BaseEntityClassInfo {
   SimpleEntityClassInfo({
     required this.className,
-    required List<ParameterElement> namedParameters,
+    required List<ParameterElement> namedParameterElements,
   }) {
-    this.namedParameters =
-        namedParameters.map((p) => ModddelParameter(p)).toList();
+    namedParameters =
+        namedParameterElements.map((p) => ModddelParameter(p)).toList();
   }
 
   @override
@@ -156,10 +156,10 @@ class GeneralEntityClassInfo extends _BaseEntityClassInfo
     with _GeneralClassInfo {
   GeneralEntityClassInfo({
     required this.className,
-    required List<ParameterElement> namedParameters,
+    required List<ParameterElement> namedParameterElements,
   }) {
-    this.namedParameters =
-        namedParameters.map((p) => ModddelParameter(p)).toList();
+    namedParameters =
+        namedParameterElements.map((p) => ModddelParameter(p)).toList();
   }
 
   @override

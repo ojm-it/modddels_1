@@ -8,11 +8,11 @@ import 'package:modddels_generator/src/core/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
 /// This class represents a named parameter of a factory constructor of a
-/// [MultiValueObject], a [SimpleEntity] or a [GeneralEntity].
+/// [Modddel].
 class ModddelParameter {
-  ModddelParameter(this.parameter) : assert(parameter.isNamed);
+  ModddelParameter(this.parameterElement) : assert(parameterElement.isNamed);
 
-  final ParameterElement parameter;
+  final ParameterElement parameterElement;
 
   /// Returns the nullable version of the given [type].
   static String optionalize(String type) {
@@ -26,10 +26,10 @@ class ModddelParameter {
   /// the parameter.
   String get type => hasTypeNameAnnotation
       ? _typeNameChecker
-          .firstAnnotationOfExact(parameter)!
+          .firstAnnotationOfExact(parameterElement)!
           .getField('typeName')!
           .toStringValue()!
-      : parameter.type.toString();
+      : parameterElement.type.toString();
 
   /// The non-nullable version of [type].
   String get nonNullableType =>
@@ -39,7 +39,7 @@ class ModddelParameter {
   String get nullableType => optionalize(type);
 
   /// The name of the parameter.
-  String get name => parameter.name;
+  String get name => parameterElement.name;
 
   /// The [name] of the parameter, with the first letter in upper-case.
   String get nameCapitalized => name.capitalize();
@@ -55,18 +55,18 @@ class ModddelParameter {
   String get invalidName => 'invalid$nameCapitalized';
 
   /// Whether the parameter has a default value.
-  bool get hasDefaultValue => parameter.hasDefaultValue;
+  bool get hasDefaultValue => parameterElement.hasDefaultValue;
 
   /// Returns the Dart code of the default value of the parameter.
   ///
   /// This should only be called if the parameter has a default value.
   String get defaultValue {
     assert(hasDefaultValue);
-    return parameter.defaultValueCode!;
+    return parameterElement.defaultValueCode!;
   }
 
   /// Whether the parameter is required.
-  bool get isRequired => parameter.isRequiredNamed;
+  bool get isRequired => parameterElement.isRequiredNamed;
 
   /// Whether the type of the parameter is nullable.
   bool get isNullable => type.endsWith('?');
@@ -74,29 +74,29 @@ class ModddelParameter {
   /// True if the parameter has the `@valid` annotation or the
   /// `@validWithGetter` annotation
   bool get hasValidAnnotation =>
-      _validChecker.hasAnnotationOfExact(parameter) ||
-      _validWithGetterChecker.hasAnnotationOfExact(parameter);
+      _validChecker.hasAnnotationOfExact(parameterElement) ||
+      _validWithGetterChecker.hasAnnotationOfExact(parameterElement);
 
   /// True if the parameter has the `@invalid` annotation or the
   /// `@invalidWithGetter` annotation
   bool get hasInvalidAnnotation =>
-      _invalidChecker.hasAnnotationOfExact(parameter) ||
-      _invalidWithGetterChecker.hasAnnotationOfExact(parameter);
+      _invalidChecker.hasAnnotationOfExact(parameterElement) ||
+      _invalidWithGetterChecker.hasAnnotationOfExact(parameterElement);
 
   /// True if the parameter has the `@withGetter` annotation, the
   /// `@validWithGetter` annotation, or the `@invalidWithGetter` annotation
   bool get hasWithGetterAnnotation =>
-      _withGetterChecker.hasAnnotationOfExact(parameter) ||
-      _validWithGetterChecker.hasAnnotationOfExact(parameter) ||
-      _invalidWithGetterChecker.hasAnnotationOfExact(parameter);
+      _withGetterChecker.hasAnnotationOfExact(parameterElement) ||
+      _validWithGetterChecker.hasAnnotationOfExact(parameterElement) ||
+      _invalidWithGetterChecker.hasAnnotationOfExact(parameterElement);
 
   /// True if the parameter has the `@NullFailure` annotation.
   bool get hasNullFailureAnnotation =>
-      _nullFailureChecker.hasAnnotationOfExact(parameter);
+      _nullFailureChecker.hasAnnotationOfExact(parameterElement);
 
   /// True if the parameter has the `@TypeName` annotation.
   bool get hasTypeNameAnnotation =>
-      _typeNameChecker.hasAnnotationOfExact(parameter);
+      _typeNameChecker.hasAnnotationOfExact(parameterElement);
 
   /// Returns the value of the `@NullFailure` annotation's field
   /// [NullFailure.failure].
@@ -107,7 +107,7 @@ class ModddelParameter {
     assert(hasNullFailureAnnotation);
 
     return _nullFailureChecker
-        .firstAnnotationOfExact(parameter)!
+        .firstAnnotationOfExact(parameterElement)!
         .getField('failure')!
         .toStringValue()!;
   }

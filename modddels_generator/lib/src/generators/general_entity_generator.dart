@@ -28,10 +28,10 @@ class GeneralEntityGenerator {
   String generate() {
     final parameters = factoryConstructor.parameters;
 
-    final namedParameters =
+    final namedParameterElements =
         parameters.where((element) => element.isNamed).toList();
 
-    if (namedParameters.isEmpty) {
+    if (namedParameterElements.isEmpty) {
       throw InvalidGenerationSourceError(
         'The factory constructor should contain at least one name parameter',
         element: factoryConstructor,
@@ -40,15 +40,15 @@ class GeneralEntityGenerator {
 
     final classInfo = GeneralEntityClassInfo(
       className: className,
-      namedParameters: namedParameters,
+      namedParameterElements: namedParameterElements,
     );
 
     for (final param in classInfo.namedParameters) {
       if (param.type == 'dynamic') {
         throw InvalidGenerationSourceError(
-          'The named parameters of the factory constructor should have valid types, and should not be dynamic.'
+          'The named parameters of the factory constructor should have valid types, and should not be dynamic. '
           'Consider using the @TypeName annotation to manually provide the type.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
@@ -64,7 +64,7 @@ class GeneralEntityGenerator {
       if (param.hasValidAnnotation && param.hasInvalidAnnotation) {
         throw InvalidGenerationSourceError(
           'The @valid and @invalid annotations can\'t be used together on the same parameter.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
@@ -73,7 +73,7 @@ class GeneralEntityGenerator {
       if (param.hasInvalidAnnotation && !param.isNullable) {
         throw InvalidGenerationSourceError(
           'The @invalid annotation can only be used on nullable parameters.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
@@ -82,7 +82,7 @@ class GeneralEntityGenerator {
       if (param.hasInvalidAnnotation && param.hasNullFailureAnnotation) {
         throw InvalidGenerationSourceError(
           'The @invalid and @NullFailure annotations can\'t be used together on the same parameter.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
@@ -91,7 +91,7 @@ class GeneralEntityGenerator {
       if (param.hasNullFailureAnnotation && !param.isNullable) {
         throw InvalidGenerationSourceError(
           'The @NullFailure annotation can only be used with nullable parameters.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }

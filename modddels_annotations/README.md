@@ -28,8 +28,9 @@ The different states a Modddel can have are represented with **Union Cases Class
 - [ValueObjects](#valueobjects)
   - [SingleValueObject](#singlevalueobject)
     - [Usage](#usage)
-  - [MultiValueObject](#multivalueobject)
     - [The `NullFailure` annotation](#the-nullfailure-annotation)
+  - [MultiValueObject](#multivalueobject)
+    - [The `NullFailure` annotation](#the-nullfailure-annotation-1)
 - [Entities](#entities)
   - [SimpleEntity](#simpleentity)
     - [Usage](#usage-1)
@@ -45,7 +46,7 @@ The different states a Modddel can have are represented with **Union Cases Class
     - [Fields getters](#fields-getters)
     - [The `valid` annotation](#the-valid-annotation-1)
     - [The `invalid` annotation](#the-invalid-annotation-1)
-    - [The `NullFailure` annotation](#the-nullfailure-annotation-1)
+    - [The `NullFailure` annotation](#the-nullfailure-annotation-2)
   - [ListGeneralEntity](#listgeneralentity)
     - [Usage](#usage-5)
   - [SizedListGeneralEntity](#sizedlistgeneralentity)
@@ -155,6 +156,27 @@ A SingleValueObject is a `ValueObject` that holds a single value.
 
 5. Run the generator
 
+### The `NullFailure` annotation
+
+Sometimes, the `SingleValueObject` may contain a nullable value that, when null, should make the `SingleValueObject` invalid. For this purpose, instead of making the check inside the `validateValue` method, you can annotate the `input` parameter with the `@NullFailure` annotation that contains the String of the `ValueFailure`. This is the recommended way, since it has the benefit of making the field non-nullable in the `ValidValueObject`.
+
+_Example :_
+
+```dart
+
+@modddel
+class Name
+    extends SingleValueObject<String?, NameValueFailure, InvalidName, ValidName>
+    with $Name {
+  
+  factory Name(
+    @NullFailure('const NameValueFailure.none()') String? input) {
+    ...
+
+```
+
+Here, if the value is null, then the `Name` value object will be an `InvalidValueObject`, with as a value failure `NameValueFailure.none()`. The field `value` in `ValidName` is non-nullable.
+
 ## MultiValueObject
 
 A `MultiValueObject` is a `ValueObject` where the "value" is not represented by a single value, but rather a combination of multiple fields. Each field is valid separately, but when put together, they form a "value" that needs to be validated.
@@ -199,7 +221,7 @@ This would add a lot of boilerplate code, and would prevent the use of some feat
 
 ### The `NullFailure` annotation
 
-Sometimes, the `MultiValueObject` may contain a nullable field that, when null, should make the `MultiValueObject` invalid. For this purpose, instead of making the check inside the `validateValue` method, you can use the `NullFailure` annotation with the String of the `ValueFailure`. This is the recommended way, since it has the benefit of making the field non-nullable in the `ValidValueObject`.
+Just like you would use the `@NullFailure` annotation to annotate the `input` parameter of a `SingleValueObject`, you can use it to annotate each separate parameter of a `MultiValueObject`.
 
 _Example :_
 
@@ -731,7 +753,7 @@ That's because the entity may have a `GeneralFailure` or a `SizeFailure`, which 
 
 ## TypeName annotation
 
-The types of the constructor parameters of `MultiValueObject`, `SimpleEntity` and `GeneralEntity` need to be defined at the time of generation. If the type does not exist at the time of generation (which is usually the case when the type class itself is generated), you should manually provide it using the `@TypeName` annotation.
+The types of the constructor parameter(s) of `SingleValueObject`, `MultiValueObject`, `SimpleEntity` and `GeneralEntity` need to be defined at the time of generation. If the type does not exist at the time of generation (which is usually the case when the type class itself is generated), you should manually provide it using the `@TypeName` annotation.
 
 Example :
 

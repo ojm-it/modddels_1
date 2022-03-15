@@ -27,7 +27,7 @@ class SingleValueObjectGenerator {
   String generate() {
     final parameters = factoryConstructor.parameters;
 
-    final inputParameter = parameters.firstWhere(
+    final inputParameterElement = parameters.firstWhere(
       (element) => element.isPositional && element.name == 'input',
       orElse: () => throw InvalidGenerationSourceError(
         'The factory constructor should have a positional argument named "input"',
@@ -35,12 +35,36 @@ class SingleValueObjectGenerator {
       ),
     );
 
-    final singleValueType = inputParameter.type.toString();
-
     final classInfo = SingleValueObjectClassInfo(
       className: className,
-      singleValueType: singleValueType,
+      inputParameterElement: inputParameterElement,
     );
+
+    if (classInfo.inputParameter.type == 'dynamic') {
+      throw InvalidGenerationSourceError(
+        'The "input" parameter should have a valid type, and should not be dynamic. '
+        'Consider using the @TypeName annotation to manually provide the type.',
+        element: classInfo.inputParameter.parameterElement,
+      );
+    }
+
+    if (classInfo.inputParameter.hasValidAnnotation ||
+        classInfo.inputParameter.hasInvalidAnnotation ||
+        classInfo.inputParameter.hasWithGetterAnnotation) {
+      throw InvalidGenerationSourceError(
+        'The @valid, @invalid and @withGetter annotations can\'t be used with '
+        'a SingleValueObject.',
+        element: classInfo.inputParameter.parameterElement,
+      );
+    }
+
+    if (classInfo.inputParameter.hasNullFailureAnnotation &&
+        !classInfo.inputParameter.isNullable) {
+      throw InvalidGenerationSourceError(
+        'The @NullFailure annotation can only be used with a nullable parameter.',
+        element: classInfo.inputParameter.parameterElement,
+      );
+    }
 
     final classBuffer = StringBuffer();
 
@@ -67,7 +91,7 @@ class SingleValueObjectGenerator {
 
     /// create method
     classBuffer.writeln('''
-    static $className _create(${classInfo.singleValueType} input) {
+    static $className _create(${classInfo.inputParameter.type} input) {
       /// 1. **Value Validation**
       return _verifyValue(input).match(
         (valueFailure) => ${classInfo.invalid}._(
@@ -83,14 +107,47 @@ class SingleValueObjectGenerator {
     ''');
 
     /// _verifyValue method
+
+    final paramType = classInfo.inputParameter.hasNullFailureAnnotation
+        ? classInfo.inputParameter.nonNullableType
+        : classInfo.inputParameter.type;
+
     classBuffer.writeln('''
     /// If the value is invalid, this holds the [ValueFailure] on the Left.
     /// Otherwise, holds the value on the Right.
-    static Either<${classInfo.valueFailure}, ${classInfo.singleValueType}> _verifyValue(${classInfo.singleValueType} input) {
-      final valueVerification = const $className._().validateValue(${classInfo.valid}._(value: input));
-      return valueVerification.toEither(() => input).swap();
+    static Either<${classInfo.valueFailure}, $paramType> _verifyValue(${classInfo.inputParameter.type} input) {
+      final nullableVerification = _verifyNullable(input);
+
+      final valueVerification = nullableVerification.flatMap((nonNullableInput) =>
+        const $className._()
+            .validateValue(${classInfo.valid}._(value: nonNullableInput))
+            .toEither(() => nonNullableInput)
+            .swap());
+
+      return valueVerification;
     }
 
+    ''');
+
+    /// _verifyNullable method
+    classBuffer.writeln('''
+    /// If the value is marked with `@NullFailure` and it's null, this holds a
+    /// [ValueFailure] on the Left. Otherwise, holds the non-nullable value on the
+    /// Right.
+    static Either<${classInfo.valueFailure}, $paramType> _verifyNullable(${classInfo.inputParameter.type} input) {
+    ''');
+
+    if (classInfo.inputParameter.hasNullFailureAnnotation) {
+      classBuffer.writeln('''
+      if (input == null) {
+        return left(${classInfo.inputParameter.nullFailureString});
+      }
+      ''');
+    }
+
+    classBuffer.writeln('''
+      return right(input);
+    }
     ''');
 
     /// toBroadEitherNullable method
@@ -146,7 +203,7 @@ class SingleValueObjectGenerator {
   void makeValidValueObject(
       StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
     classBuffer.writeln('''
-    class ${classInfo.valid} extends $className implements ValidSingleValueObject<${classInfo.singleValueType}> {
+    class ${classInfo.valid} extends $className implements ValidSingleValueObject<${classInfo.inputParameter.type}> {
     ''');
 
     /// private constructor
@@ -156,9 +213,13 @@ class SingleValueObjectGenerator {
     ''');
 
     /// class members
+    final paramType = classInfo.inputParameter.hasNullFailureAnnotation
+        ? classInfo.inputParameter.nonNullableType
+        : classInfo.inputParameter.type;
+
     classBuffer.writeln('''
     @override
-    final ${classInfo.singleValueType} value;
+    final $paramType value;
 
     ''');
 
@@ -188,7 +249,7 @@ class SingleValueObjectGenerator {
       StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
     classBuffer.writeln('''
     class ${classInfo.invalid} extends $className
-      implements InvalidSingleValueObject<${classInfo.singleValueType}, ${classInfo.valueFailure}> {
+      implements InvalidSingleValueObject<${classInfo.inputParameter.type}, ${classInfo.valueFailure}> {
     ''');
 
     /// private constructor
@@ -205,7 +266,7 @@ class SingleValueObjectGenerator {
     final ${classInfo.valueFailure} valueFailure;
 
     @override
-    final ${classInfo.singleValueType} failedValue;
+    final ${classInfo.inputParameter.type} failedValue;
 
     @override
     ${classInfo.valueFailure} get failure => valueFailure; 
@@ -278,7 +339,7 @@ class SingleValueObjectGenerator {
 
     /// class members
     classBuffer.writeln('''
-    final ${classInfo.singleValueType} input;
+    final ${classInfo.inputParameter.type} input;
     ''');
 
     /// props method

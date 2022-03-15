@@ -27,10 +27,10 @@ class MultiValueObjectGenerator {
   String generate() {
     final parameters = factoryConstructor.parameters;
 
-    final namedParameters =
+    final namedParameterElements =
         parameters.where((element) => element.isNamed).toList();
 
-    if (namedParameters.isEmpty) {
+    if (namedParameterElements.isEmpty) {
       throw InvalidGenerationSourceError(
         'The factory constructor should contain at least one name parameter',
         element: factoryConstructor,
@@ -39,15 +39,15 @@ class MultiValueObjectGenerator {
 
     final classInfo = MultiValueObjectClassInfo(
       className: className,
-      namedParameters: namedParameters,
+      namedParameterElements: namedParameterElements,
     );
 
     for (final param in classInfo.namedParameters) {
       if (param.type == 'dynamic') {
         throw InvalidGenerationSourceError(
-          'The named parameters of the factory constructor should have valid types, and should not be dynamic.'
+          'The named parameters of the factory constructor should have valid types, and should not be dynamic. '
           'Consider using the @TypeName annotation to manually provide the type.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
@@ -59,7 +59,7 @@ class MultiValueObjectGenerator {
         throw InvalidGenerationSourceError(
           'The @valid, @invalid and @withGetter annotations can\'t be used with '
           'a MultiValueObject.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
@@ -68,7 +68,7 @@ class MultiValueObjectGenerator {
       if (param.hasNullFailureAnnotation && !param.isNullable) {
         throw InvalidGenerationSourceError(
           'The @NullFailure annotation can only be used with nullable parameters.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
