@@ -8,9 +8,9 @@ import 'package:modddels_generator/src/core/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
 /// This class represents a named parameter of a factory constructor of a
-/// [SimpleEntity] or [GeneralEntity].
-class EntityParameter {
-  EntityParameter(this.parameter) : assert(parameter.isNamed);
+/// [MultiValueObject], a [SimpleEntity] or a [GeneralEntity].
+class ModddelParameter {
+  ModddelParameter(this.parameter) : assert(parameter.isNamed);
 
   final ParameterElement parameter;
 
@@ -19,7 +19,7 @@ class EntityParameter {
     return type.endsWith('?') ? type : '$type?';
   }
 
-  /// The type of this [EntityParameter].
+  /// The type of this [ModddelParameter].
   ///
   /// If the parameter is annotated with the [TypeName] annotation, it returns
   /// the value of its field [TypeName.typeName]. Otherwise, returns the type of
@@ -99,7 +99,7 @@ class EntityParameter {
       _typeNameChecker.hasAnnotationOfExact(parameter);
 
   /// Returns the value of the `@NullFailure` annotation's field
-  /// [NullFailure.generalFailure].
+  /// [NullFailure.failure].
   ///
   /// This should only be called if this parameter has the `@NullFailure`
   /// annotation.
@@ -108,7 +108,7 @@ class EntityParameter {
 
     return _nullFailureChecker
         .firstAnnotationOfExact(parameter)!
-        .getField('generalFailure')!
+        .getField('failure')!
         .toStringValue()!;
   }
 }

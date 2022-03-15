@@ -1,9 +1,12 @@
+import 'package:modddels_annotations/src/modddels/value_objects/multi_value_object.dart';
+import 'package:modddels_annotations/src/modddels/value_objects/single_value_object.dart';
 import 'package:modddels_annotations/src/modddels/value_objects/value_object.dart';
 import 'package:modddels_annotations/src/testers/core/modddel_input.dart';
 import 'package:modddels_annotations/src/testers/core/tester.dart';
 import 'package:modddels_annotations/src/testers/testers_mixins.dart';
 
-/// This is a Tester for unit testing a [ValueObject].
+/// This is a Tester for unit testing a [ValueObject] : Either a
+/// [SingleValueObject] or a [MultiValueObject].
 class ValueObjectTester<
         F extends ValueFailure,
         I extends InvalidValueObject<F>,

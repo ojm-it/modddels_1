@@ -27,6 +27,8 @@ export 'src/modddels/annotations.dart'
 
 export 'src/modddels/value_objects/value_object.dart'
     show ValueObject, ValidValueObject, InvalidValueObject, ValueFailure;
+export 'src/modddels/value_objects/multi_value_object.dart'
+    show MultiValueObject;
 export 'src/modddels/value_objects/single_value_object.dart'
     show SingleValueObject, ValidSingleValueObject, InvalidSingleValueObject;
 

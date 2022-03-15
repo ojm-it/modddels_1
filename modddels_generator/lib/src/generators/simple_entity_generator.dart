@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_annotations/modddels.dart';
 import 'package:modddels_generator/src/core/class_info.dart';
-import 'package:modddels_generator/src/core/entity_parameter.dart';
+import 'package:modddels_generator/src/core/modddel_parameter.dart';
 import 'package:source_gen/source_gen.dart';
 
 class SimpleEntityGenerator {
@@ -90,7 +90,7 @@ class SimpleEntityGenerator {
     for (final param in classInfo.namedParameters) {
       if (param.hasNullFailureAnnotation) {
         throw InvalidGenerationSourceError(
-          'The @NullFailure annotation can only be used with a GeneralEntity.',
+          'The @NullFailure annotation can\'t be used with a SimpleEntity',
           element: param.parameter,
         );
       }
@@ -247,7 +247,7 @@ class SimpleEntityGenerator {
   }
 
   String generateContentVerification(
-      List<EntityParameter> params, SimpleEntityClassInfo classInfo) {
+      List<ModddelParameter> params, SimpleEntityClassInfo classInfo) {
     final paramsToVerify = params.where((p) => !p.hasValidAnnotation).toList();
     return '''final contentVerification = 
       ${_makeContentVerificationRecursive(paramsToVerify.length, paramsToVerify, classInfo)}
@@ -255,7 +255,7 @@ class SimpleEntityGenerator {
   }
 
   String _makeContentVerificationRecursive(int totalParamsToVerify,
-      List<EntityParameter> paramsToVerify, SimpleEntityClassInfo classInfo) {
+      List<ModddelParameter> paramsToVerify, SimpleEntityClassInfo classInfo) {
     final comma = paramsToVerify.length == totalParamsToVerify ? ';' : ',';
 
     if (paramsToVerify.isNotEmpty) {

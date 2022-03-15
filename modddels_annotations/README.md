@@ -28,6 +28,8 @@ The different states a Modddel can have are represented with **Union Cases Class
 - [ValueObjects](#valueobjects)
   - [SingleValueObject](#singlevalueobject)
     - [Usage](#usage)
+  - [MultiValueObject](#multivalueobject)
+    - [The `NullFailure` annotation](#the-nullfailure-annotation)
 - [Entities](#entities)
   - [SimpleEntity](#simpleentity)
     - [Usage](#usage-1)
@@ -43,25 +45,25 @@ The different states a Modddel can have are represented with **Union Cases Class
     - [Fields getters](#fields-getters)
     - [The `valid` annotation](#the-valid-annotation-1)
     - [The `invalid` annotation](#the-invalid-annotation-1)
-    - [The `NullFailure` annotation](#the-nullfailure-annotation)
+    - [The `NullFailure` annotation](#the-nullfailure-annotation-1)
   - [ListGeneralEntity](#listgeneralentity)
     - [Usage](#usage-5)
   - [SizedListGeneralEntity](#sizedlistgeneralentity)
     - [Usage](#usage-6)
-  - [Additionnal remarks](#additionnal-remarks)
-    - [TypeName annotation](#typename-annotation)
+  - [Remarks](#remarks)
     - [Optional and Nullable types](#optional-and-nullable-types)
     - [List getter](#list-getter)
-- [Sanitization](#sanitization)
-- [Asserts](#asserts)
-- [Special cases](#special-cases)
-  - [Modddels that are always valid](#modddels-that-are-always-valid)
-  - [Modddels that are always invalid](#modddels-that-are-always-invalid)
+- [Additional information](#additional-information)
+  - [TypeName annotation](#typename-annotation)
+  - [Sanitization](#sanitization)
+  - [Asserts](#asserts)
+  - [Special cases](#special-cases)
+    - [Modddels that are always valid](#modddels-that-are-always-valid)
+    - [Modddels that are always invalid](#modddels-that-are-always-invalid)
 - [Testers](#testers)
   - [Testing Sanitization](#testing-sanitization)
 - [VsCode snippets](#vscode-snippets)
 - [Limitations](#limitations)
-- [Additional information](#additional-information)
 
 # Features
 
@@ -69,6 +71,7 @@ Available modddels :
 
 - ValueObjects
   - SingleValueObject
+  - MultiValueObject
 - Entities
   - SimpleEntity
   - ListEntity
@@ -151,6 +154,69 @@ A SingleValueObject is a `ValueObject` that holds a single value.
    ```
 
 5. Run the generator
+
+## MultiValueObject
+
+A `MultiValueObject` is a `ValueObject` where the "value" is not represented by a single value, but rather a combination of multiple fields. Each field is valid separately, but when put together, they form a "value" that needs to be validated.
+
+_Example :_
+
+```dart
+@modddel
+class GeoPoint extends MultiValueObject<GeoPointValueFailure, InvalidGeoPoint,
+    ValidGeoPoint> with $GeoPoint {
+  factory GeoPoint({
+    required double latitude,
+    required double longitude,
+  }) {
+    return $GeoPoint._create(
+      latitude: latitude,
+      longitude: longitude,
+    );
+  }
+
+  const GeoPoint._();
+
+  @override
+  Option<GeoPointValueFailure> validateValue(ValidGeoPoint valid) {
+    if(latitude == 0 && longitude == 0){
+      return const GeoPointValueFailure.nullIsland();
+    }
+    return none();
+  }
+}
+```
+
+In this example, a `GeoPoint` is invalid when both its `latitude` and `longitude` equal 0. Separately, the `latitude` and `longitude` fields are always valid.
+
+Without a `MultiValueObject`, you would need to :
+
+1. Create a Data class `GeoPointPrimitive`
+2. Create a `SingleValueObject` named `GeoPoint`, which holds as a value a
+   `GeoPointPrimitive`.
+
+This would add a lot of boilerplate code, and would prevent the use of some features such as annotating a specific field with the `@NullFailure` annotation.
+
+### The `NullFailure` annotation
+
+Sometimes, the `MultiValueObject` may contain a nullable field that, when null, should make the `MultiValueObject` invalid. For this purpose, instead of making the check inside the `validateValue` method, you can use the `NullFailure` annotation with the String of the `ValueFailure`. This is the recommended way, since it has the benefit of making the field non-nullable in the `ValidValueObject`.
+
+_Example :_
+
+```dart
+@modddel
+class Name extends MultiValueObject<NameValueFailure, InvalidName, ValidName>
+    with $Name {
+  factory Name({
+    @NullFailure('const NameValueFailure.incomplete()')
+        required String? lastName,
+   ...
+  }) {
+    ...
+
+```
+
+Here, if the field `lastName` is null, then the `Name` value object will be an `InvalidValueObject`, with as a value failure `NameValueFailure.incomplete()`. The field `lastName` in `ValidName` is non-nullable.
 
 ---
 
@@ -438,7 +504,7 @@ If you want to use both `@valid` and `@withGetter` annotation, you can use the s
 
 > **NB :** The parameters of a `GeneralEntity` can't all be annotated with `@valid`. That's because it would mean the `GeneralEntity` will never be an `InvalidEntityContent`, while the code won't reflect that. This would violate the principle of making impossible states impossible.
 >
-> For an alternative to this specific case, see #TODO
+> Instead, you should use a [`MultiValueObject`](#multivalueobject).
 
 ### The `invalid` annotation
 
@@ -637,33 +703,7 @@ When creating a SizedListGeneralEntity, the validation is made in this order :
 
 ---
 
-## Additionnal remarks
-
-### TypeName annotation
-
-The types of the constructor parameters of `SimpleEntity` and `GeneralEntity` need to be defined at the time of generation. If the type does not exist at the time of generation (which is usually the case when the type class itself is generated), you should manually provide it using the `@TypeName` annotation.
-
-Example :
-
-```dart
-@modddel
-class Person extends SimpleEntity<InvalidPersonContent, ValidPerson>
-    with $Person {
-  factory Person({
-    required Age age,
-    @TypeName('ValidName') @valid required ValidName validName,
-  }) {
-    return $Person._create(
-	  age: age,
-      validName: validName,
-	);
-  }
-
-  const Person._();
-}
-```
-
-Here, `ValidName` is a generated class so it's not defined during the generation. So we provided the type using `@TypeName('ValidName')`.
+## Remarks
 
 ### Optional and Nullable types
 
@@ -687,7 +727,35 @@ For example :
 
 That's because the entity may have a `GeneralFailure` or a `SizeFailure`, which otherwise may be unnoticed by you the developer.
 
-# Sanitization
+# Additional information
+
+## TypeName annotation
+
+The types of the constructor parameters of `MultiValueObject`, `SimpleEntity` and `GeneralEntity` need to be defined at the time of generation. If the type does not exist at the time of generation (which is usually the case when the type class itself is generated), you should manually provide it using the `@TypeName` annotation.
+
+Example :
+
+```dart
+@modddel
+class Person extends SimpleEntity<InvalidPersonContent, ValidPerson>
+    with $Person {
+  factory Person({
+    required Age age,
+    @TypeName('ValidName') @valid required ValidName validName,
+  }) {
+    return $Person._create(
+	  age: age,
+      validName: validName,
+	);
+  }
+
+  const Person._();
+}
+```
+
+Here, `ValidName` is a generated class so it's not defined during the generation. So we provided the type using `@TypeName('ValidName')`.
+
+## Sanitization
 
 The factory constructors of the modddels give you an opportunity to do all sort of data manipulation and sanitization.
 
@@ -708,7 +776,7 @@ factory Person({
   }
 ```
 
-# Asserts
+## Asserts
 
 You can add your asserts inside the factory constructor of the modddel.
 
@@ -728,11 +796,11 @@ factory Person({
   }
 ```
 
-# Special cases
+## Special cases
 
 There are a few special cases that you might encounter.
 
-## Modddels that are always valid
+### Modddels that are always valid
 
 Sometimes you may want to create a modddel that is always valid. For example :
 
@@ -781,7 +849,7 @@ class ValidPerson2 extends ValidEntity with EquatableMixin, Stringify {
 
 > **NB :** While extending `ValidEntity` or `ValidValueObject` doesn't offer any extra functionality to these dataclasses, it is a good practice to do so because it makes your code and intentions clear. It is also a good practice to start the names of these dataclasses with `"Valid"`.
 
-## Modddels that are always invalid
+### Modddels that are always invalid
 
 Sometimes you may need to create a modddel that is always invalid. For example :
 
@@ -1034,7 +1102,32 @@ Here, we're testing that when the `Name` modddel is given `' Josh '` as an input
       "  }",
       "}"
     ],
-    "description": "Value Object"
+    "description": "Single Value Object"
+  },
+  "Multi Value Object": {
+    "prefix": "multivalueobject",
+    "body": [
+      "@modddel",
+      "class ${1} extends MultiValueObject<${1}ValueFailure, Invalid${1}, Valid${1}>",
+      "    with $${1} {",
+      "  factory ${1}({",
+      "    ${2}",
+      "  }) {",
+      "    return $${1}._create(",
+      "      ${3}",
+      "    );",
+      "  }",
+      "",
+      "  const ${1}._();",
+      "",
+      "  @override",
+      "  Option<${1}ValueFailure> validateValue(Valid${1} input) {",
+      "    //TODO Implement validateValue",
+      "    return none();",
+      "  }",
+      "}"
+    ],
+    "description": "Multi Value Object"
   },
   "Value Failure": {
     "prefix": "valuefailure",
@@ -1240,7 +1333,3 @@ As a result :
 - You sometimes need to use the `TypeName` annotation [(See relevant section).](#typename-annotation)
 
 On the other hand, this makes this package's codebase much easier to maintain, and also it enforces a naming style that will hopefully make your code more readable.
-
-# Additional information
-
-TODO: Tell users more about the package: where to find more information, how to contribute to the package, how to file issues, what response they can expect from the package authors, and more.
