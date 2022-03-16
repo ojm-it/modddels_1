@@ -326,8 +326,8 @@ packages:
     description:
       path: modddels_annotations
       ref: master
-      resolved-ref: c3a50981f8b01a4a5acca1dc3a0f77aebb00393d
-      url: "git://github.com/ojm-it/modddels.git"
+      resolved-ref: "782d9d2d53eedf4a6e9ef108379c5ab9727271c4"
+      url: "https://github.com/ojm-it/modddels.git"
     source: git
     version: "0.0.1"
   node_preamble:

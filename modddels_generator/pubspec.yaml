@@ -12,7 +12,7 @@ dependencies:
   source_gen: ^1.2.1
   modddels_annotations:
       git:
-          url: git://github.com/ojm-it/modddels.git
+          url: https://github.com/ojm-it/modddels.git
           ref: master
           path: modddels_annotations
 
