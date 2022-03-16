@@ -1,11 +1,12 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
+import 'package:modddels_generator/src/generators/multi_value_object_generator.dart';
 import 'package:modddels_generator/src/generators/simple_entity_generator.dart';
 import 'package:modddels_generator/src/generators/general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/list_entity_generator.dart';
 import 'package:modddels_generator/src/generators/list_general_entity_generator.dart';
 import 'package:modddels_generator/src/generators/sized_list_general_entity_generator.dart';
-import 'package:modddels_generator/src/generators/value_object_generator.dart';
+import 'package:modddels_generator/src/generators/single_value_object_generator.dart';
 import 'package:source_gen/source_gen.dart';
 import 'generators/sized_list_entity_generator.dart';
 
@@ -16,6 +17,7 @@ import 'package:modddels_annotations/modddels.dart';
 
 enum Model {
   singleValueObject,
+  multiValueObject,
   simpleEntity,
   listEntity,
   sizedListEntity,
@@ -86,6 +88,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
     }
     if (superClassName == 'SingleValueObject') {
       modelType = Model.singleValueObject;
+    } else if (superClassName == 'MultiValueObject') {
+      modelType = Model.multiValueObject;
     } else if (superClassName == 'ListGeneralEntity') {
       modelType = Model.listGeneralEntity;
     } else if (superClassName == 'SizedListGeneralEntity') {
@@ -120,6 +124,14 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
     switch (modelType) {
       case Model.singleValueObject:
         return SingleValueObjectGenerator(
+          className: className,
+          factoryConstructor: factoryConstructor,
+          generateTester: generateTester,
+          maxSutDescriptionLength: maxSutDescriptionLength,
+          stringifyMode: stringifyMode,
+        ).generate();
+      case Model.multiValueObject:
+        return MultiValueObjectGenerator(
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,

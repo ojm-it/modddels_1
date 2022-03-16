@@ -4,8 +4,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// 'flutter_test' which in turn imports dart:ui, which is not allowed in a
 /// builder.
 import 'package:modddels_annotations/modddels.dart';
-
-import 'entity_parameter.dart';
+import 'package:modddels_generator/src/core/modddel_parameter.dart';
 
 abstract class _BaseClassInfo {
   /// The class name of the modddel
@@ -43,16 +42,37 @@ abstract class _BaseValueObjectClassInfo extends _BaseClassInfo {
 class SingleValueObjectClassInfo extends _BaseValueObjectClassInfo {
   SingleValueObjectClassInfo({
     required this.className,
-    required this.singleValueType,
-  });
+    required ParameterElement inputParameterElement,
+  }) {
+    inputParameter = ModddelParameter(inputParameterElement);
+  }
 
   @override
   final String className;
 
-  /// The type of the single value held inside the [SingleValueObject]
+  /// The "input" parameter.
+  late final ModddelParameter inputParameter;
+}
+
+class MultiValueObjectClassInfo extends _BaseValueObjectClassInfo {
+  MultiValueObjectClassInfo({
+    required this.className,
+    required List<ParameterElement> namedParameterElements,
+  }) {
+    namedParameters =
+        namedParameterElements.map((p) => ModddelParameter(p)).toList();
+  }
+
+  @override
+  final String className;
+
+  /// The list of named parameters of the [MultiValueObject]
+  late final List<ModddelParameter> namedParameters;
+
+  /// The class name of the private class "_Holder".
   ///
-  /// Example : 'int'
-  final String singleValueType;
+  /// Example : '_NameHolder'
+  String get holder => '_${className}Holder';
 }
 
 /* -------------------------------------------------------------------------- */
@@ -119,34 +139,34 @@ abstract class _BaseEntityClassInfo extends _BaseClassInfo {
 class SimpleEntityClassInfo extends _BaseEntityClassInfo {
   SimpleEntityClassInfo({
     required this.className,
-    required List<ParameterElement> namedParameters,
+    required List<ParameterElement> namedParameterElements,
   }) {
-    this.namedParameters =
-        namedParameters.map((p) => EntityParameter(p)).toList();
+    namedParameters =
+        namedParameterElements.map((p) => ModddelParameter(p)).toList();
   }
 
   @override
   final String className;
 
   /// The list of named parameters of the [SimpleEntity]
-  late final List<EntityParameter> namedParameters;
+  late final List<ModddelParameter> namedParameters;
 }
 
 class GeneralEntityClassInfo extends _BaseEntityClassInfo
     with _GeneralClassInfo {
   GeneralEntityClassInfo({
     required this.className,
-    required List<ParameterElement> namedParameters,
+    required List<ParameterElement> namedParameterElements,
   }) {
-    this.namedParameters =
-        namedParameters.map((p) => EntityParameter(p)).toList();
+    namedParameters =
+        namedParameterElements.map((p) => ModddelParameter(p)).toList();
   }
 
   @override
   final String className;
 
   /// The list of named parameters of the [GeneralEntity]
-  late final List<EntityParameter> namedParameters;
+  late final List<ModddelParameter> namedParameters;
 
   /// The class name of the private class "_ValidContent".
   ///

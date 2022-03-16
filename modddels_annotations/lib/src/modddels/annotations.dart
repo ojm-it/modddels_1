@@ -3,6 +3,8 @@ import 'package:modddels_annotations/src/modddels/entities/common.dart';
 import 'package:modddels_annotations/src/modddels/entities/general_entity.dart';
 import 'package:modddels_annotations/src/modddels/entities/simple_entity.dart';
 import 'package:modddels_annotations/src/modddels/modddel.dart';
+import 'package:modddels_annotations/src/modddels/value_objects/multi_value_object.dart';
+import 'package:modddels_annotations/src/modddels/value_objects/single_value_object.dart';
 import 'package:modddels_annotations/src/modddels/value_objects/value_object.dart';
 import 'package:modddels_annotations/src/testers/core/testers_utils.dart';
 
@@ -189,14 +191,19 @@ const validWithGetter = ValidWithGetterAnnotation();
 /// ```
 const invalidWithGetter = InvalidWithGetterAnnotation();
 
-/// This annotation can only be used inside a [GeneralEntity], in front of a
-/// factory parameter.
+/// This annotation can only be used inside a [SingleValueObject], a
+/// [MultiValueObject] or a [GeneralEntity], in front of a factory parameter.
 ///
-/// Use this annotation when you want a [GeneralEntity] to contain a nullable
-/// modddel that, when null, should make the entity invalid and hold a
-/// generalFailure (that you should provide as a String).
+/// In general, use this annotation when you want the modddel to contain a
+/// nullable field that, when null, should make the modddel invalid and hold a
+/// failure (that you should provide as a String).
 ///
-/// Example :
+/// Note that :
+/// - For a [SingleValueObject] or a [MultiValueObject] : The failure must be a
+///   [ValueFailure]
+/// - For a [GeneralEntity] : The failure must be a [GeneralFailure]
+///
+/// _Example :_ Using [NullFailure] inside a [GeneralEntity]
 ///
 /// ```dart
 /// class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
@@ -215,12 +222,13 @@ const invalidWithGetter = InvalidWithGetterAnnotation();
 /// `FullNameGeneralFailure.incomplete()`. The field `lastName` in
 /// `ValidFullName` is non-nullable.
 class NullFailure {
-  const NullFailure(this.generalFailure);
+  const NullFailure(this.failure);
 
-  final String generalFailure;
+  final String failure;
 }
 
-/// Use this to manually provide the type of a [SimpleEntity] or [GeneralEntity]
+/// Use this to manually provide the type of a [SingleValueObject],
+/// [MultiValueObject], [SimpleEntity] or [GeneralEntity]
 /// constructor parameter.
 ///
 /// This is useful when the type does not exist at the time of generation (which

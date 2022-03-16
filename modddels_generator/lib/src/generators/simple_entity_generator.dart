@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:modddels_annotations/modddels.dart';
 import 'package:modddels_generator/src/core/class_info.dart';
-import 'package:modddels_generator/src/core/entity_parameter.dart';
+import 'package:modddels_generator/src/core/modddel_parameter.dart';
 import 'package:source_gen/source_gen.dart';
 
 class SimpleEntityGenerator {
@@ -28,10 +28,10 @@ class SimpleEntityGenerator {
   String generate() {
     final parameters = factoryConstructor.parameters;
 
-    final namedParameters =
+    final namedParameterElements =
         parameters.where((element) => element.isNamed).toList();
 
-    if (namedParameters.isEmpty) {
+    if (namedParameterElements.isEmpty) {
       throw InvalidGenerationSourceError(
         'The factory constructor should contain at least one name parameter',
         element: factoryConstructor,
@@ -40,7 +40,7 @@ class SimpleEntityGenerator {
 
     final classInfo = SimpleEntityClassInfo(
       className: className,
-      namedParameters: namedParameters,
+      namedParameterElements: namedParameterElements,
     );
 
     for (final param in classInfo.namedParameters) {
@@ -48,7 +48,7 @@ class SimpleEntityGenerator {
         throw InvalidGenerationSourceError(
           'The named parameters of the factory constructor should have valid types, and should not be dynamic.'
           'Consider using the @TypeName annotation to manually provide the type.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
@@ -64,7 +64,7 @@ class SimpleEntityGenerator {
       if (param.hasValidAnnotation && param.hasInvalidAnnotation) {
         throw InvalidGenerationSourceError(
           'The @valid and @invalid annotations can\'t be used together on the same parameter.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
@@ -73,7 +73,7 @@ class SimpleEntityGenerator {
       if (param.hasInvalidAnnotation && !param.isNullable) {
         throw InvalidGenerationSourceError(
           'The @invalid annotation can only be used on nullable parameters.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
@@ -82,7 +82,7 @@ class SimpleEntityGenerator {
       if (param.hasWithGetterAnnotation) {
         throw InvalidGenerationSourceError(
           'The @withGetter annotation is reserved for General Entities, and is useless for Simple Entities.',
-          element: param.parameter,
+          element: param.parameterElement,
         );
       }
     }
@@ -90,8 +90,8 @@ class SimpleEntityGenerator {
     for (final param in classInfo.namedParameters) {
       if (param.hasNullFailureAnnotation) {
         throw InvalidGenerationSourceError(
-          'The @NullFailure annotation can only be used with a GeneralEntity.',
-          element: param.parameter,
+          'The @NullFailure annotation can\'t be used with a SimpleEntity',
+          element: param.parameterElement,
         );
       }
     }
@@ -247,7 +247,7 @@ class SimpleEntityGenerator {
   }
 
   String generateContentVerification(
-      List<EntityParameter> params, SimpleEntityClassInfo classInfo) {
+      List<ModddelParameter> params, SimpleEntityClassInfo classInfo) {
     final paramsToVerify = params.where((p) => !p.hasValidAnnotation).toList();
     return '''final contentVerification = 
       ${_makeContentVerificationRecursive(paramsToVerify.length, paramsToVerify, classInfo)}
@@ -255,7 +255,7 @@ class SimpleEntityGenerator {
   }
 
   String _makeContentVerificationRecursive(int totalParamsToVerify,
-      List<EntityParameter> paramsToVerify, SimpleEntityClassInfo classInfo) {
+      List<ModddelParameter> paramsToVerify, SimpleEntityClassInfo classInfo) {
     final comma = paramsToVerify.length == totalParamsToVerify ? ';' : ',';
 
     if (paramsToVerify.isNotEmpty) {
