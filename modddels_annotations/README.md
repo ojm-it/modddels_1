@@ -826,7 +826,7 @@ There are a few special cases that you might encounter.
 
 Sometimes you may want to create a modddel that is always valid. For example :
 
-- A `SingleValueObject` that is always valid and doesn't need validation
+- A `SingleValueObject` or a `MultiValueObject` that is always valid and doesn't need validation
 - A `SimpleEntity` with only `@valid` parameters [(See remark)](#the-valid-annotation)
 
 However, modddels by definition have both a valid and invalid state, so this isn't allowed.
@@ -835,27 +835,25 @@ However, modddels by definition have both a valid and invalid state, so this isn
 
 Create a dataclass and extend one of these classes :
 
+- `ValidSingleValueObject`
 - `ValidValueObject`
 - `ValidEntity`
 
 When using the dataclass as a parameter inside a `SimpleEntity` or `GeneralEntity`, don't forget to annotate the parameter with `@valid`.
 
-_Example 1 :_ Creating a `ValidEntity` using freezed
+_Example 1 :_ Creating a `ValidSingleValueObject` using Freezed
 
 ```dart
 @freezed
-class ValidPerson1 extends ValidEntity with _$ValidPerson1 {
-  const factory ValidPerson1({
-    required int age,
-    required String name,
-  }) = _ValidPerson1;
+class ValidId extends ValidSingleValueObject<String> with _$ValidId {
+  const factory ValidId(String value) = _ValidId;
 }
 ```
 
-_Example 2 :_ Creating a `ValidEntity` using Equatable
+_Example 2 :_ Creating a `ValidValueObject` using Equatable
 
 ```dart
-class ValidPerson2 extends ValidEntity with EquatableMixin, Stringify {
+class ValidPerson2 extends ValidValueObject with EquatableMixin, Stringify {
   const ValidPerson2({required this.age, required this.name});
 
   final int age;
@@ -869,13 +867,28 @@ class ValidPerson2 extends ValidEntity with EquatableMixin, Stringify {
 }
 ```
 
-> **NB :** While extending `ValidEntity` or `ValidValueObject` doesn't offer any extra functionality to these dataclasses, it is a good practice to do so because it makes your code and intentions clear. It is also a good practice to start the names of these dataclasses with `"Valid"`.
+_Example 3 :_ Creating a `ValidEntity` using Freezed
+
+```dart
+@freezed
+class ValidPerson1 extends ValidEntity with _$ValidPerson1 {
+  const factory ValidPerson1({
+    required ValidFullName validFullName,
+    required bool isOld,
+  }) = _ValidPerson1;
+}
+```
+
+You can find more examples in the [`example` folder.](../example/lib/special_cases/valid_modddels/).
+
+> **NB 1 :** You can use whatever method you want to make these dataclasses (Freezed, Equatable...). In case you're using Equatable, you can use the `Stringify` mixin, which automatically overrides `Equatable.stringify` based on the desired `stringifyMode`.
+> **NB 2 :** While extending `ValidEntity` or `ValidValueObject` doesn't offer any extra functionality to these dataclasses, it is a good practice to do so because it makes your code and intentions clear. It is also a good practice to start the names of these dataclasses with `"Valid"`.
 
 ### Modddels that are always invalid
 
 Sometimes you may need to create a modddel that is always invalid. For example :
 
-- A ValueObject that is always invalid and holds a Failure.
+- A `SingleValueObject` or a `MultiValueObject` that is always invalid and holds a Failure.
 - A `SimpleEntity` or `GeneralEntity` with a non-nullable `@invalid` parameter [(See remark)](#the-invalid-annotation)
 - A `GeneralEntity` with a nullable parameter annotated with both `@invalid` and `@NullFailure` [(See remark)](#the-nullfailure-annotation)
 
@@ -885,6 +898,7 @@ However, modddels by definition have both a valid and invalid state, so this isn
 
 Create a dataclass and extend one of these classes :
 
+- `InvalidSingleValueObject`
 - `InvalidValueObject`
 - `InvalidEntity`
 - `InvalidEntityContent`
@@ -897,7 +911,22 @@ When using the dataclass as a parameter inside a `SimpleEntity` or `GeneralEntit
 
 > **NB :** It is a good practice to start the name of the dataclass with `"Invalid"`.
 
-_Example 1 :_ Creating an `InvalidEntityContent` using freezed. This also demonstrates the alternative for the situation where we want to have a non-nullable `@invalid` parameter (`invalidName`).
+_Example 1 :_ Creating an `InvalidSingleValueObject` using Freezed.
+
+```dart
+@freezed
+class InvalidId extends InvalidSingleValueObject<String, IdValueFailure>
+    with _$InvalidId {
+  const factory InvalidId({
+    required String failedValue,
+    required IdValueFailure valueFailure,
+  }) = _InvalidId;
+
+  const InvalidId._();
+}
+```
+
+_Example 2 :_ Creating an `InvalidEntityContent` using Freezed. This also demonstrates the alternative for the situation where we want to have a non-nullable `@invalid` parameter (`invalidName`).
 
 ```dart
 @freezed
@@ -917,7 +946,7 @@ class InvalidPersonContent1 extends InvalidEntityContent
 
 There's no need to verify other fields since `invalidName` will be always invalid.
 
-_Example 2 :_ Same example, this time using Equatable.
+_Example 3 :_ Same example, this time using Equatable.
 
 ```dart
 class InvalidPersonContent2 extends InvalidEntityContent
@@ -938,7 +967,7 @@ class InvalidPersonContent2 extends InvalidEntityContent
 }
 ```
 
-_Example 3 :_ Creating an `InvalidEntityGeneral` using freezed. This also demonstrates the alternative for the situation where we want to have a nullable parameter annotated with both `@invalid` and `@NullFailure`.
+_Example 4 :_ Creating an `InvalidEntityGeneral` using Freezed. This also demonstrates the alternative for the situation where we want to have a nullable parameter annotated with both `@invalid` and `@NullFailure`.
 
 ```dart
 @freezed
@@ -966,6 +995,8 @@ class PersonGeneralFailure extends GeneralFailure with _$PersonGeneralFailure {
 ```
 
 In this example, it's true that we aren't replicating the exact behaviour of having both an `InvalidEntityGeneral` and an `InvalidEntityContent`, but it's a good compromise since we know `invalidName` will always cause a failure.
+
+You can find more examples in the [`example` folder.](../example/lib/special_cases/invalid_modddels/).
 
 ---
 
@@ -1348,7 +1379,7 @@ Here, we're testing that when the `Name` modddel is given `' Josh '` as an input
 
 # Limitations
 
-Unlike packages like freezed, the generator doesn't parse the code, so the types that are not defined generation-time can't be retrieved.
+Unlike packages like Freezed, the generator doesn't parse the code, so the types that are not defined generation-time can't be retrieved.
 As a result :
 
 - The names of the different classes of a modddel such as `InvalidEntity`, `ValidEntity`, `ValueFailure`, `GeneralFailure`... can't be customized. So for example, for a modddel named `Age`, the name of the `ValidEntity` must be `ValidAge`... Using snippets is recommended to make your life easier.
