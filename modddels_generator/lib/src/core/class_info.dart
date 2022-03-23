@@ -24,62 +24,13 @@ abstract class _BaseClassInfo {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                           ValueObjects Class Info                          */
+/*                                   Mixins                                   */
 /* -------------------------------------------------------------------------- */
+mixin _CopyWith on _BaseClassInfo {
+  String get copyWith => '_\$${className}CopyWith';
 
-abstract class _BaseValueObjectClassInfo extends _BaseClassInfo {
-  /// The class name of the "Invalid" [ValueObject]
-  ///
-  /// Example : 'InvalidAge'
-  String get invalid => 'Invalid$className';
-
-  /// The class name of the [ValueFailure]
-  ///
-  /// Example : 'AgeValueFailure'
-  String get valueFailure => '${className}ValueFailure';
+  String get copyWithImpl => '_\$${className}CopyWithImpl';
 }
-
-class SingleValueObjectClassInfo extends _BaseValueObjectClassInfo {
-  SingleValueObjectClassInfo({
-    required this.className,
-    required ParameterElement inputParameterElement,
-  }) {
-    inputParameter = ModddelParameter(inputParameterElement);
-  }
-
-  @override
-  final String className;
-
-  /// The "input" parameter.
-  late final ModddelParameter inputParameter;
-}
-
-class MultiValueObjectClassInfo extends _BaseValueObjectClassInfo {
-  MultiValueObjectClassInfo({
-    required this.className,
-    required List<ParameterElement> namedParameterElements,
-  }) {
-    namedParameters =
-        namedParameterElements.map((p) => ModddelParameter(p)).toList();
-  }
-
-  @override
-  final String className;
-
-  /// The list of named parameters of the [MultiValueObject]
-  late final List<ModddelParameter> namedParameters;
-
-  /// The class name of the private class "_Holder".
-  ///
-  /// Example : '_NameHolder'
-  String get holder => '_${className}Holder';
-}
-
-/* -------------------------------------------------------------------------- */
-/*                             Entities Class Info                            */
-/* -------------------------------------------------------------------------- */
-
-/* --------------------------------- Mixins --------------------------------- */
 
 mixin _GeneralClassInfo on _BaseEntityClassInfo {
   /// The class name of the [InvalidEntity].
@@ -128,6 +79,61 @@ mixin _ListClassInfo on _BaseEntityClassInfo {
 }
 
 /* -------------------------------------------------------------------------- */
+/*                           ValueObjects Class Info                          */
+/* -------------------------------------------------------------------------- */
+
+abstract class _BaseValueObjectClassInfo extends _BaseClassInfo {
+  /// The class name of the "Invalid" [ValueObject]
+  ///
+  /// Example : 'InvalidAge'
+  String get invalid => 'Invalid$className';
+
+  /// The class name of the [ValueFailure]
+  ///
+  /// Example : 'AgeValueFailure'
+  String get valueFailure => '${className}ValueFailure';
+}
+
+class SingleValueObjectClassInfo extends _BaseValueObjectClassInfo {
+  SingleValueObjectClassInfo({
+    required this.className,
+    required ParameterElement inputParameterElement,
+  }) {
+    inputParameter = ModddelParameter(inputParameterElement);
+  }
+
+  @override
+  final String className;
+
+  /// The "input" parameter.
+  late final ModddelParameter inputParameter;
+}
+
+class MultiValueObjectClassInfo extends _BaseValueObjectClassInfo
+    with _CopyWith {
+  MultiValueObjectClassInfo({
+    required this.className,
+    required List<ParameterElement> namedParameterElements,
+  }) {
+    namedParameters =
+        namedParameterElements.map((p) => ModddelParameter(p)).toList();
+  }
+
+  @override
+  final String className;
+
+  /// The list of named parameters of the [MultiValueObject]
+  late final List<ModddelParameter> namedParameters;
+
+  /// The class name of the private class "_Holder".
+  ///
+  /// Example : '_NameHolder'
+  String get holder => '_${className}Holder';
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             Entities Class Info                            */
+/* -------------------------------------------------------------------------- */
 
 abstract class _BaseEntityClassInfo extends _BaseClassInfo {
   /// The class name of the [InvalidEntityContent].
@@ -136,7 +142,7 @@ abstract class _BaseEntityClassInfo extends _BaseClassInfo {
   String get invalidContent => 'Invalid${className}Content';
 }
 
-class SimpleEntityClassInfo extends _BaseEntityClassInfo {
+class SimpleEntityClassInfo extends _BaseEntityClassInfo with _CopyWith {
   SimpleEntityClassInfo({
     required this.className,
     required List<ParameterElement> namedParameterElements,
@@ -153,7 +159,7 @@ class SimpleEntityClassInfo extends _BaseEntityClassInfo {
 }
 
 class GeneralEntityClassInfo extends _BaseEntityClassInfo
-    with _GeneralClassInfo {
+    with _GeneralClassInfo, _CopyWith {
   GeneralEntityClassInfo({
     required this.className,
     required List<ParameterElement> namedParameterElements,

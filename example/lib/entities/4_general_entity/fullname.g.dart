@@ -139,28 +139,58 @@ mixin $FullName {
   ///
   /// The resulting entity is totally independent from this entity. It is
   /// validated upon creation, and can be either valid or invalid.
-  FullName copyWith({
-    Name? firstName,
-    Name? lastName,
-    bool? hasMiddleName,
-  }) {
-    return mapValidity(
-      valid: (valid) => _create(
-        firstName: firstName ?? valid.firstName,
-        lastName: lastName ?? valid.lastName,
-        hasMiddleName: hasMiddleName ?? valid.hasMiddleName,
-      ),
-      invalid: (invalid) => _create(
-        firstName: firstName ?? invalid.firstName,
-        lastName: lastName ?? invalid.lastName,
-        hasMiddleName: hasMiddleName ?? invalid.hasMiddleName,
-      ),
-    );
-  }
+  _$FullNameCopyWith get copyWith => _$FullNameCopyWithImpl(
+      mapValidity(valid: (valid) => valid, invalid: (invalid) => invalid));
 
   List<Object?> get props => throw UnimplementedError();
 
   StringifyMode get stringifyMode => StringifyMode.always;
+}
+
+abstract class _$FullNameCopyWith {
+  FullName call({
+    Name firstName,
+    Name? lastName,
+    bool hasMiddleName,
+  });
+}
+
+class _$FullNameCopyWithImpl implements _$FullNameCopyWith {
+  _$FullNameCopyWithImpl(this._value);
+
+  final FullName _value;
+
+  @override
+  FullName call({
+    Object? firstName = modddel,
+    Object? lastName = modddel,
+    Object? hasMiddleName = modddel,
+  }) {
+    return _value.mapValidity(
+      valid: (valid) => $FullName._create(
+        firstName: firstName == modddel
+            ? valid.firstName
+            : firstName as Name, // ignore: cast_nullable_to_non_nullable
+        lastName: lastName == modddel
+            ? valid.lastName
+            : lastName as Name?, // ignore: cast_nullable_to_non_nullable
+        hasMiddleName: hasMiddleName == modddel
+            ? valid.hasMiddleName
+            : hasMiddleName as bool, // ignore: cast_nullable_to_non_nullable
+      ),
+      invalid: (invalid) => $FullName._create(
+        firstName: firstName == modddel
+            ? invalid.firstName
+            : firstName as Name, // ignore: cast_nullable_to_non_nullable
+        lastName: lastName == modddel
+            ? invalid.lastName
+            : lastName as Name?, // ignore: cast_nullable_to_non_nullable
+        hasMiddleName: hasMiddleName == modddel
+            ? invalid.hasMiddleName
+            : hasMiddleName as bool, // ignore: cast_nullable_to_non_nullable
+      ),
+    );
+  }
 }
 
 class _ValidFullNameContent {

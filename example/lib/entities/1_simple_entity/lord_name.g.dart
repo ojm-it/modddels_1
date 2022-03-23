@@ -12,7 +12,7 @@ mixin $LordName {
   static LordName _create({
     required Name parentName,
     required Name firstName,
-    required bool isLord,
+    required bool? isLord,
   }) {
     /// 1. **Content Validation**
     return _verifyContent(
@@ -40,7 +40,7 @@ mixin $LordName {
   static Either<Failure, ValidLordName> _verifyContent({
     required Name parentName,
     required Name firstName,
-    required bool isLord,
+    required bool? isLord,
   }) {
     final contentVerification = parentName.toBroadEither.flatMap(
       (validParentName) => firstName.toBroadEither.flatMap(
@@ -65,7 +65,7 @@ mixin $LordName {
         invalidContent: (invalidContent) => invalidContent.firstName,
       );
 
-  bool get isLord => map(
+  bool? get isLord => map(
         valid: (valid) => valid.isLord,
         invalidContent: (invalidContent) => invalidContent.isLord,
       );
@@ -101,28 +101,58 @@ mixin $LordName {
   ///
   /// The resulting entity is totally independent from this entity. It is
   /// validated upon creation, and can be either valid or invalid.
-  LordName copyWith({
-    Name? parentName,
-    Name? firstName,
-    bool? isLord,
-  }) {
-    return map(
-      valid: (valid) => _create(
-        parentName: parentName ?? valid.parentName,
-        firstName: firstName ?? valid.firstName,
-        isLord: isLord ?? valid.isLord,
-      ),
-      invalidContent: (invalidContent) => _create(
-        parentName: parentName ?? invalidContent.parentName,
-        firstName: firstName ?? invalidContent.firstName,
-        isLord: isLord ?? invalidContent.isLord,
-      ),
-    );
-  }
+  _$LordNameCopyWith get copyWith => _$LordNameCopyWithImpl(
+      mapValidity(valid: (valid) => valid, invalid: (invalid) => invalid));
 
   List<Object?> get props => throw UnimplementedError();
 
   StringifyMode get stringifyMode => StringifyMode.always;
+}
+
+abstract class _$LordNameCopyWith {
+  LordName call({
+    Name parentName,
+    Name firstName,
+    bool? isLord,
+  });
+}
+
+class _$LordNameCopyWithImpl implements _$LordNameCopyWith {
+  _$LordNameCopyWithImpl(this._value);
+
+  final LordName _value;
+
+  @override
+  LordName call({
+    Object? parentName = modddel,
+    Object? firstName = modddel,
+    Object? isLord = modddel,
+  }) {
+    return _value.mapValidity(
+      valid: (valid) => $LordName._create(
+        parentName: parentName == modddel
+            ? valid.parentName
+            : parentName as Name, // ignore: cast_nullable_to_non_nullable
+        firstName: firstName == modddel
+            ? valid.firstName
+            : firstName as Name, // ignore: cast_nullable_to_non_nullable
+        isLord: isLord == modddel
+            ? valid.isLord
+            : isLord as bool?, // ignore: cast_nullable_to_non_nullable
+      ),
+      invalid: (invalid) => $LordName._create(
+        parentName: parentName == modddel
+            ? invalid.parentName
+            : parentName as Name, // ignore: cast_nullable_to_non_nullable
+        firstName: firstName == modddel
+            ? invalid.firstName
+            : firstName as Name, // ignore: cast_nullable_to_non_nullable
+        isLord: isLord == modddel
+            ? invalid.isLord
+            : isLord as bool?, // ignore: cast_nullable_to_non_nullable
+      ),
+    );
+  }
 }
 
 class ValidLordName extends LordName implements ValidEntity {
@@ -137,7 +167,7 @@ class ValidLordName extends LordName implements ValidEntity {
   @override
   final ValidName firstName;
   @override
-  final bool isLord;
+  final bool? isLord;
 
   @override
   TResult map<TResult extends Object?>({
@@ -175,7 +205,7 @@ class InvalidLordNameContent extends LordName implements InvalidEntityContent {
   @override
   final Name firstName;
   @override
-  final bool isLord;
+  final bool? isLord;
 
   @override
   TResult map<TResult extends Object?>({
@@ -219,12 +249,12 @@ class _LordNameInput extends ModddelInput<LordName> {
   const _LordNameInput({
     required this.parentName,
     required this.firstName,
-    this.isLord = true,
+    this.isLord,
   });
 
   final Name parentName;
   final Name firstName;
-  final bool isLord;
+  final bool? isLord;
   @override
   List<Object?> get props => [
         parentName,

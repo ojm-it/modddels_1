@@ -10,7 +10,7 @@ class LordName extends SimpleEntity<InvalidLordNameContent, ValidLordName>
   factory LordName({
     required Name parentName,
     required Name firstName,
-    @valid bool isLord = true,
+    @valid bool? isLord,
   }) {
     return $LordName._create(
       firstName: firstName,

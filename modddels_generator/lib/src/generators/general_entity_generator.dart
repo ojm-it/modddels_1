@@ -102,6 +102,8 @@ class GeneralEntityGenerator {
 
     makeMixin(classBuffer, classInfo);
 
+    makeCopyWithClasses(classBuffer, classInfo);
+
     makeValidEntityContent(classBuffer, classInfo);
 
     makeValidEntity(classBuffer, classInfo);
@@ -283,18 +285,8 @@ class GeneralEntityGenerator {
     ///
     /// The resulting entity is totally independent from this entity. It is
     /// validated upon creation, and can be either valid or invalid.
-    $className copyWith({
-      ${classInfo.namedParameters.map((param) => '${param.nullableType} ${param.name},').join()}
-    }) {
-      return mapValidity(
-        valid: (valid) => _create(
-          ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? valid.${param.name},').join()}
-        ),
-        invalid: (invalid) => _create(
-          ${classInfo.namedParameters.map((param) => '${param.name}: ${param.name} ?? invalid.${param.name},').join()}
-        ),
-      );
-    }
+    ${classInfo.copyWith} get copyWith => ${classInfo.copyWithImpl}(
+      mapValidity(valid: (valid) => valid, invalid: (invalid) => invalid));
 
     ''');
 
@@ -345,6 +337,59 @@ class GeneralEntityGenerator {
         ${constructorParams.join('')}
       ))$comma
       ''';
+  }
+
+  void makeCopyWithClasses(
+      StringBuffer classBuffer, GeneralEntityClassInfo classInfo) {
+    /// COPYWITH ABSTRACT CLASS
+    classBuffer.writeln('''
+    abstract class ${classInfo.copyWith} {
+    ''');
+
+    /// call method
+    classBuffer.writeln('''
+    $className call({
+      ${classInfo.namedParameters.map((param) => '${param.type} ${param.name},').join()} 
+    });
+    ''');
+
+    /// end
+    classBuffer.writeln('}');
+
+    /// COPYWITH IMPLEMENTATION CLASS
+    classBuffer.writeln('''
+    class ${classInfo.copyWithImpl} implements ${classInfo.copyWith} {
+      ${classInfo.copyWithImpl}(this._value);
+
+      final $className _value;
+
+    ''');
+
+    /// call method
+    classBuffer.writeln('''
+    @override
+    $className call({
+      ${classInfo.namedParameters.map((param) => 'Object? ${param.name} = modddel,').join()} 
+    }) {
+      return _value.mapValidity(
+        valid: (valid) => \$$className._create(
+          ${classInfo.namedParameters.map((param) => '''${param.name}: ${param.name} == modddel
+          ? valid.${param.name}
+          : ${param.name} as ${param.type}, // ignore: cast_nullable_to_non_nullable
+          ''').join()}
+        ),
+        invalid: (invalid) => \$$className._create(
+          ${classInfo.namedParameters.map((param) => '''${param.name}: ${param.name} == modddel
+          ? invalid.${param.name}
+          : ${param.name} as ${param.type}, // ignore: cast_nullable_to_non_nullable
+          ''').join()}
+        ),
+      );
+    }
+    ''');
+
+    /// end
+    classBuffer.writeln('}');
   }
 
   void makeValidEntityContent(
