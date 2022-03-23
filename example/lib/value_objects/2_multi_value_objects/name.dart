@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 
 part 'name.freezed.dart';
-part 'name.g.dart';
+part 'name.modddel.dart';
 
 @modddel
 class Name extends MultiValueObject<NameValueFailure, InvalidName, ValidName>

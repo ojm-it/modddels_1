@@ -1,12 +1,13 @@
+// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: prefer_void_to_null
 
 part of 'fullname.dart';
 
 // **************************************************************************
 // ModddelGenerator
 // **************************************************************************
-
-// ignore_for_file: prefer_void_to_null
 
 mixin $FullName {
   static FullName _create({

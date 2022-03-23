@@ -5,7 +5,7 @@ import 'package:kt_dart/collection.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 
 part 'whitelist.freezed.dart';
-part 'whitelist.g.dart';
+part 'whitelist.modddel.dart';
 
 @modddel
 class WhiteList extends SizedListEntity<WhiteListSizeFailure, InvalidWhiteList,

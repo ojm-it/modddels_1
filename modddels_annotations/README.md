@@ -777,6 +777,8 @@ class Person extends SimpleEntity<InvalidPersonContent, ValidPerson>
 
 Here, `ValidName` is a generated class so it's not defined during the generation. So we provided the type using `@TypeName('ValidName')`.
 
+> **NB :** The builder is configured to run after freezed files are generated, so you don't need a `TypeName` annotation for those.
+
 ## Sanitization
 
 The factory constructors of the modddels give you an opportunity to do all sort of data manipulation and sanitization.
@@ -1136,6 +1138,13 @@ Here, we're testing that when the `Name` modddel is given `' Josh '` as an input
 
 ```json
 {
+  "Part 'Modddel' statement": {
+		"prefix": "ptm",
+		"body": [
+			"part '${TM_FILENAME_BASE}.modddel.dart';",
+		],
+		"description": "Creates a filled-in modddel part statement"
+	},
   "Single Value Object": {
     "prefix": "singlevalueobject",
     "body": [

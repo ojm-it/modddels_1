@@ -2,7 +2,7 @@ import 'package:example/value_objects/1_single_value_object/name.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:fpdart/fpdart.dart';
 
-part 'lord_name.g.dart';
+part 'lord_name.modddel.dart';
 
 @modddel
 class LordName extends SimpleEntity<InvalidLordNameContent, ValidLordName>

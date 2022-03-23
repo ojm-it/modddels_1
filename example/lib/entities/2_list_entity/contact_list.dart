@@ -3,7 +3,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:kt_dart/collection.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 
-part 'contact_list.g.dart';
+part 'contact_list.modddel.dart';
 
 @modddel
 class ContactList

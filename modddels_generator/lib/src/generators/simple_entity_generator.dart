@@ -98,8 +98,6 @@ class SimpleEntityGenerator {
 
     final classBuffer = StringBuffer();
 
-    makeHeader(classBuffer);
-
     makeMixin(classBuffer, classInfo);
 
     makeCopyWithClasses(classBuffer, classInfo);
@@ -115,13 +113,6 @@ class SimpleEntityGenerator {
     }
 
     return classBuffer.toString();
-  }
-
-  void makeHeader(StringBuffer classBuffer) {
-    classBuffer.writeln('''
-    // ignore_for_file: prefer_void_to_null
-
-    ''');
   }
 
   void makeMixin(StringBuffer classBuffer, SimpleEntityClassInfo classInfo) {

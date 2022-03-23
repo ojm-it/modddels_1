@@ -4,7 +4,7 @@ import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:fpdart/fpdart.dart';
 
 part 'fullname.freezed.dart';
-part 'fullname.g.dart';
+part 'fullname.modddel.dart';
 
 @modddel
 class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
