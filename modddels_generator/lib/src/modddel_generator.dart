@@ -28,8 +28,8 @@ enum Model {
 
 class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
   @override
-  String generateForAnnotatedElement(
-      Element element, ConstantReader annotation, BuildStep buildStep) {
+  Future<String> generateForAnnotatedElement(
+      Element element, ConstantReader annotation, BuildStep buildStep) async {
     if (element is! ClassElement) {
       throw InvalidGenerationSourceError(
         '@modddel can only be applied on classes. Failing element: ${element.name}',
@@ -123,7 +123,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
 
     switch (modelType) {
       case Model.singleValueObject:
-        return SingleValueObjectGenerator(
+        return await SingleValueObjectGenerator(
+          buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
@@ -131,7 +132,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           stringifyMode: stringifyMode,
         ).generate();
       case Model.multiValueObject:
-        return MultiValueObjectGenerator(
+        return await MultiValueObjectGenerator(
+          buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
@@ -155,7 +157,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           stringifyMode: stringifyMode,
         ).generate();
       case Model.generalEntity:
-        return GeneralEntityGenerator(
+        return await GeneralEntityGenerator(
+          buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
@@ -163,7 +166,8 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
           stringifyMode: stringifyMode,
         ).generate();
       case Model.simpleEntity:
-        return SimpleEntityGenerator(
+        return await SimpleEntityGenerator(
+          buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,

@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:build/build.dart';
 
 /// ⚠️ We shouldn't import the testers, because they use the package
 /// 'flutter_test' which in turn imports dart:ui, which is not allowed in a
@@ -7,12 +8,30 @@ import 'package:modddels_annotations/modddels.dart';
 import 'package:modddels_generator/src/core/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
-/// This class represents a named parameter of a factory constructor of a
-/// [Modddel].
+/// This class represents a of a factory constructor of a [Modddel].
 class ModddelParameter {
-  ModddelParameter(this.parameterElement) : assert(parameterElement.isNamed);
+  ModddelParameter._({
+    required this.parameterElement,
+    required this.doc,
+  });
+
+  static Future<ModddelParameter> create({
+    required BuildStep buildStep,
+    required ParameterElement parameterElement,
+  }) async {
+    final doc =
+        (await documentationOfParameter(parameterElement, buildStep)).trim();
+
+    return ModddelParameter._(
+      parameterElement: parameterElement,
+      doc: doc,
+    );
+  }
 
   final ParameterElement parameterElement;
+
+  /// The documentation of the parameter
+  final String doc;
 
   /// Returns the nullable version of the given [type].
   static String optionalize(String type) {

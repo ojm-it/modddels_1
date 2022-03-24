@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels.dart';
 import 'package:modddels_generator/src/core/class_info.dart';
 import 'package:modddels_generator/src/core/modddel_parameter.dart';
@@ -6,6 +7,7 @@ import 'package:source_gen/source_gen.dart';
 
 class SimpleEntityGenerator {
   SimpleEntityGenerator({
+    required this.buildStep,
     required this.className,
     required this.factoryConstructor,
     required this.generateTester,
@@ -13,7 +15,10 @@ class SimpleEntityGenerator {
     required this.stringifyMode,
   });
 
+  final BuildStep buildStep;
+
   final String className;
+
   final ConstructorElement factoryConstructor;
 
   /// See [ModddelAnnotation.generateTester]
@@ -25,7 +30,7 @@ class SimpleEntityGenerator {
   /// See [ModddelAnnotation.stringifyMode]
   final StringifyMode stringifyMode;
 
-  String generate() {
+  Future<String> generate() async {
     final parameters = factoryConstructor.parameters;
 
     final namedParameterElements =
@@ -38,7 +43,8 @@ class SimpleEntityGenerator {
       );
     }
 
-    final classInfo = SimpleEntityClassInfo(
+    final classInfo = await SimpleEntityClassInfo.create(
+      buildStep: buildStep,
       className: className,
       namedParameterElements: namedParameterElements,
     );
@@ -160,6 +166,7 @@ class SimpleEntityGenerator {
 
     for (final param in classInfo.namedParameters) {
       classBuffer.writeln('''
+      ${param.doc}
       ${param.type} get ${param.name} => map(
         valid: (valid) => valid.${param.name},
         invalidContent: (invalidContent) => invalidContent.${param.name},

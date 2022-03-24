@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:build/build.dart';
 
 /// ⚠️ We shouldn't import the testers, because they use the package
 /// 'flutter_test' which in turn imports dart:ui, which is not allowed in a
@@ -95,35 +96,59 @@ abstract class _BaseValueObjectClassInfo extends _BaseClassInfo {
 }
 
 class SingleValueObjectClassInfo extends _BaseValueObjectClassInfo {
-  SingleValueObjectClassInfo({
+  SingleValueObjectClassInfo._({
     required this.className,
+    required this.inputParameter,
+  });
+
+  static Future<SingleValueObjectClassInfo> create({
+    required BuildStep buildStep,
+    required String className,
     required ParameterElement inputParameterElement,
-  }) {
-    inputParameter = ModddelParameter(inputParameterElement);
-  }
+  }) async =>
+      SingleValueObjectClassInfo._(
+        className: className,
+        inputParameter: await ModddelParameter.create(
+          buildStep: buildStep,
+          parameterElement: inputParameterElement,
+        ),
+      );
 
   @override
   final String className;
 
   /// The "input" parameter.
-  late final ModddelParameter inputParameter;
+  final ModddelParameter inputParameter;
 }
 
 class MultiValueObjectClassInfo extends _BaseValueObjectClassInfo
     with _CopyWith {
-  MultiValueObjectClassInfo({
+  MultiValueObjectClassInfo._({
     required this.className,
+    required this.namedParameters,
+  });
+
+  static Future<MultiValueObjectClassInfo> create({
+    required BuildStep buildStep,
+    required String className,
     required List<ParameterElement> namedParameterElements,
-  }) {
-    namedParameters =
-        namedParameterElements.map((p) => ModddelParameter(p)).toList();
+  }) async {
+    final namedParameters = await Future.wait(namedParameterElements
+        .map((p) =>
+            ModddelParameter.create(buildStep: buildStep, parameterElement: p))
+        .toList());
+
+    return MultiValueObjectClassInfo._(
+      className: className,
+      namedParameters: namedParameters,
+    );
   }
 
   @override
   final String className;
 
   /// The list of named parameters of the [MultiValueObject]
-  late final List<ModddelParameter> namedParameters;
+  final List<ModddelParameter> namedParameters;
 
   /// The class name of the private class "_Holder".
   ///
@@ -143,36 +168,62 @@ abstract class _BaseEntityClassInfo extends _BaseClassInfo {
 }
 
 class SimpleEntityClassInfo extends _BaseEntityClassInfo with _CopyWith {
-  SimpleEntityClassInfo({
+  SimpleEntityClassInfo._({
     required this.className,
+    required this.namedParameters,
+  });
+
+  static Future<SimpleEntityClassInfo> create({
+    required BuildStep buildStep,
+    required String className,
     required List<ParameterElement> namedParameterElements,
-  }) {
-    namedParameters =
-        namedParameterElements.map((p) => ModddelParameter(p)).toList();
+  }) async {
+    final namedParameters = await Future.wait(namedParameterElements
+        .map((p) =>
+            ModddelParameter.create(buildStep: buildStep, parameterElement: p))
+        .toList());
+
+    return SimpleEntityClassInfo._(
+      className: className,
+      namedParameters: namedParameters,
+    );
   }
 
   @override
   final String className;
 
   /// The list of named parameters of the [SimpleEntity]
-  late final List<ModddelParameter> namedParameters;
+  final List<ModddelParameter> namedParameters;
 }
 
 class GeneralEntityClassInfo extends _BaseEntityClassInfo
     with _GeneralClassInfo, _CopyWith {
-  GeneralEntityClassInfo({
+  GeneralEntityClassInfo._({
     required this.className,
+    required this.namedParameters,
+  });
+
+  static Future<GeneralEntityClassInfo> create({
+    required BuildStep buildStep,
+    required String className,
     required List<ParameterElement> namedParameterElements,
-  }) {
-    namedParameters =
-        namedParameterElements.map((p) => ModddelParameter(p)).toList();
+  }) async {
+    final namedParameters = await Future.wait(namedParameterElements
+        .map((p) =>
+            ModddelParameter.create(buildStep: buildStep, parameterElement: p))
+        .toList());
+
+    return GeneralEntityClassInfo._(
+      className: className,
+      namedParameters: namedParameters,
+    );
   }
 
   @override
   final String className;
 
   /// The list of named parameters of the [GeneralEntity]
-  late final List<ModddelParameter> namedParameters;
+  final List<ModddelParameter> namedParameters;
 
   /// The class name of the private class "_ValidContent".
   ///

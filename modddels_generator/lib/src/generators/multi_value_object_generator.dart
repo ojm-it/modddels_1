@@ -1,10 +1,12 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels.dart';
 import 'package:modddels_generator/src/core/class_info.dart';
 import 'package:source_gen/source_gen.dart';
 
 class MultiValueObjectGenerator {
   MultiValueObjectGenerator({
+    required this.buildStep,
     required this.className,
     required this.factoryConstructor,
     required this.generateTester,
@@ -12,7 +14,10 @@ class MultiValueObjectGenerator {
     required this.stringifyMode,
   });
 
+  final BuildStep buildStep;
+
   final String className;
+
   final ConstructorElement factoryConstructor;
 
   /// See [ModddelAnnotation.generateTester]
@@ -24,7 +29,7 @@ class MultiValueObjectGenerator {
   /// See [ModddelAnnotation.stringifyMode]
   final StringifyMode stringifyMode;
 
-  String generate() {
+  Future<String> generate() async {
     final parameters = factoryConstructor.parameters;
 
     final namedParameterElements =
@@ -37,7 +42,8 @@ class MultiValueObjectGenerator {
       );
     }
 
-    final classInfo = MultiValueObjectClassInfo(
+    final classInfo = await MultiValueObjectClassInfo.create(
+      buildStep: buildStep,
       className: className,
       namedParameterElements: namedParameterElements,
     );
@@ -325,7 +331,10 @@ class MultiValueObjectGenerator {
       final paramType =
           param.hasNullFailureAnnotation ? param.nonNullableType : param.type;
 
-      classBuffer.writeln('final $paramType ${param.name};');
+      classBuffer.writeln('''
+      ${param.doc}
+      final $paramType ${param.name};
+      ''');
     }
     classBuffer.writeln('');
 
@@ -375,7 +384,10 @@ class MultiValueObjectGenerator {
     @override
     ${classInfo.valueFailure} get failure => valueFailure; 
 
-    ${classInfo.namedParameters.map((param) => 'final ${param.type} ${param.name};').join()}
+    ${classInfo.namedParameters.map((param) => '''
+    ${param.doc}
+    final ${param.type} ${param.name};
+    ''').join()}
 
     ''');
 
