@@ -123,73 +123,85 @@ class ModddelGenerator extends GeneratorForAnnotation<ModddelAnnotation> {
 
     switch (modelType) {
       case Model.singleValueObject:
-        return await SingleValueObjectGenerator(
+        return (await SingleValueObjectGenerator.create(
           buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
           stringifyMode: stringifyMode,
-        ).generate();
+        ))
+            .toString();
       case Model.multiValueObject:
-        return await MultiValueObjectGenerator(
+        return (await MultiValueObjectGenerator.create(
           buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
           stringifyMode: stringifyMode,
-        ).generate();
+        ))
+            .toString();
       case Model.listGeneralEntity:
-        return ListGeneralEntityGenerator(
+        return (await ListGeneralEntityGenerator.create(
+          buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
           stringifyMode: stringifyMode,
-        ).generate();
+        ))
+            .toString();
       case Model.sizedListGeneralEntity:
-        return SizedListGeneralEntityGenerator(
+        return (await SizedListGeneralEntityGenerator.create(
+          buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
           stringifyMode: stringifyMode,
-        ).generate();
+        ))
+            .toString();
       case Model.generalEntity:
-        return await GeneralEntityGenerator(
+        return (await GeneralEntityGenerator.create(
           buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
           stringifyMode: stringifyMode,
-        ).generate();
+        ))
+            .toString();
       case Model.simpleEntity:
-        return await SimpleEntityGenerator(
+        return (await SimpleEntityGenerator.create(
           buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
           stringifyMode: stringifyMode,
-        ).generate();
+        ))
+            .toString();
       case Model.listEntity:
-        return ListEntityGenerator(
+        return (await ListEntityGenerator.create(
+          buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
           stringifyMode: stringifyMode,
-        ).generate();
+        ))
+            .toString();
       case Model.sizedListEntity:
-        return SizedListEntityGenerator(
+        return (await SizedListEntityGenerator.create(
+          buildStep: buildStep,
           className: className,
           factoryConstructor: factoryConstructor,
           generateTester: generateTester,
           maxSutDescriptionLength: maxSutDescriptionLength,
           stringifyMode: stringifyMode,
-        ).generate();
+        ))
+            .toString();
     }
   }
 }

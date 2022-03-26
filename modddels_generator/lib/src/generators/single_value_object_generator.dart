@@ -1,24 +1,40 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_generator/src/core/class_info.dart';
-import 'package:source_gen/source_gen.dart';
+import 'package:modddels_generator/src/core/class_info/class_info.dart';
+import 'package:modddels_generator/src/core/templates/parameters_template.dart';
 
 class SingleValueObjectGenerator {
-  SingleValueObjectGenerator({
-    required this.buildStep,
-    required this.className,
-    required this.factoryConstructor,
+  SingleValueObjectGenerator._({
+    required this.classInfo,
     required this.generateTester,
     required this.maxSutDescriptionLength,
     required this.stringifyMode,
   });
 
-  final BuildStep buildStep;
+  static Future<SingleValueObjectGenerator> create({
+    required BuildStep buildStep,
+    required String className,
+    required ConstructorElement factoryConstructor,
+    required bool generateTester,
+    required int maxSutDescriptionLength,
+    required StringifyMode stringifyMode,
+  }) async {
+    final classInfo = await SingleValueObjectClassInfo.create(
+      buildStep: buildStep,
+      className: className,
+      factoryConstructor: factoryConstructor,
+    );
 
-  final String className;
+    return SingleValueObjectGenerator._(
+      classInfo: classInfo,
+      generateTester: generateTester,
+      maxSutDescriptionLength: maxSutDescriptionLength,
+      stringifyMode: stringifyMode,
+    );
+  }
 
-  final ConstructorElement factoryConstructor;
+  final SingleValueObjectClassInfo classInfo;
 
   /// See [ModddelAnnotation.generateTester]
   final bool generateTester;
@@ -29,74 +45,36 @@ class SingleValueObjectGenerator {
   /// See [ModddelAnnotation.stringifyMode]
   final StringifyMode stringifyMode;
 
-  Future<String> generate() async {
-    final parameters = factoryConstructor.parameters;
+  String get className => classInfo.className;
 
-    final inputParameterElement = parameters.firstWhere(
-      (element) => element.isPositional && element.name == 'input',
-      orElse: () => throw InvalidGenerationSourceError(
-        'The factory constructor should have a positional argument named "input"',
-        element: factoryConstructor,
-      ),
-    );
+  ParametersTemplate get parametersTemplate => classInfo.parametersTemplate;
 
-    final classInfo = await SingleValueObjectClassInfo.create(
-      buildStep: buildStep,
-      className: className,
-      inputParameterElement: inputParameterElement,
-    );
+  @override
+  String toString() {
+    final tester = generateTester
+        ? '''
+          $makeTester
+          $makeModddelInput
+          '''
+        : '';
 
-    if (classInfo.inputParameter.type == 'dynamic') {
-      throw InvalidGenerationSourceError(
-        'The "input" parameter should have a valid type, and should not be dynamic. '
-        'Consider using the @TypeName annotation to manually provide the type.',
-        element: classInfo.inputParameter.parameterElement,
-      );
-    }
-
-    if (classInfo.inputParameter.hasValidAnnotation ||
-        classInfo.inputParameter.hasInvalidAnnotation ||
-        classInfo.inputParameter.hasWithGetterAnnotation) {
-      throw InvalidGenerationSourceError(
-        'The @valid, @invalid and @withGetter annotations can\'t be used with '
-        'a SingleValueObject.',
-        element: classInfo.inputParameter.parameterElement,
-      );
-    }
-
-    if (classInfo.inputParameter.hasNullFailureAnnotation &&
-        !classInfo.inputParameter.isNullable) {
-      throw InvalidGenerationSourceError(
-        'The @NullFailure annotation can only be used with a nullable parameter.',
-        element: classInfo.inputParameter.parameterElement,
-      );
-    }
-
-    final classBuffer = StringBuffer();
-
-    makeMixin(classBuffer, classInfo);
-
-    makeValidValueObject(classBuffer, classInfo);
-
-    makeInvalidValueObject(classBuffer, classInfo);
-
-    if (generateTester) {
-      makeTester(classBuffer, classInfo);
-
-      makeModddelInput(classBuffer, classInfo);
-    }
-
-    return classBuffer.toString();
+    return '''
+    $makeMixin
+    $makeValidValueObject
+    $makeInvalidValueObject
+    $tester
+    ''';
   }
 
-  void makeMixin(
-      StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeMixin {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     mixin \$$className {
     ''');
 
     /// create method
-    classBuffer.writeln('''
+    buffer.writeln('''
     static $className _create(${classInfo.inputParameter.type} input) {
       /// 1. **Value Validation**
       return _verifyValue(input).match(
@@ -118,7 +96,7 @@ class SingleValueObjectGenerator {
         ? classInfo.inputParameter.nonNullableType
         : classInfo.inputParameter.type;
 
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If the value is invalid, this holds the [ValueFailure] on the Left.
     /// Otherwise, holds the value on the Right.
     static Either<${classInfo.valueFailure}, $paramType> _verifyValue(${classInfo.inputParameter.type} input) {
@@ -136,7 +114,7 @@ class SingleValueObjectGenerator {
     ''');
 
     /// _verifyNullable method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If the value is marked with `@NullFailure` and it's null, this holds a
     /// [ValueFailure] on the Left. Otherwise, holds the non-nullable value on the
     /// Right.
@@ -144,20 +122,20 @@ class SingleValueObjectGenerator {
     ''');
 
     if (classInfo.inputParameter.hasNullFailureAnnotation) {
-      classBuffer.writeln('''
+      buffer.writeln('''
       if (input == null) {
         return left(${classInfo.inputParameter.nullFailureString});
       }
       ''');
     }
 
-    classBuffer.writeln('''
+    buffer.writeln('''
       return right(input);
     }
     ''');
 
     /// toBroadEitherNullable method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If [nullableValueObject] is null, returns `right(null)`.
     /// Otherwise, returns `nullableValueObject.toBroadEither`.
     static Either<Failure, ${classInfo.valid}?> toBroadEitherNullable(
@@ -168,7 +146,7 @@ class SingleValueObjectGenerator {
     ''');
 
     /// map method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Same as [mapValidity] (because there is only one invalid union-case)
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.valid} valid) valid,
@@ -180,7 +158,7 @@ class SingleValueObjectGenerator {
     ''');
 
     /// mapValidity method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Pattern matching for the two different union-cases of this ValueObject :
     /// valid and invalid.
     TResult mapValidity<TResult extends Object?>({
@@ -196,24 +174,27 @@ class SingleValueObjectGenerator {
     ''');
 
     /// props and stringifyMode getters
-    classBuffer.writeln('''
+    buffer.writeln('''
     List<Object?> get props => throw UnimplementedError();
 
     StringifyMode get stringifyMode => ${stringifyMode.toString()};
     ''');
 
     /// End
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeValidValueObject(
-      StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeValidValueObject {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.valid} extends $className implements ValidSingleValueObject<${classInfo.inputParameter.type}> {
     ''');
 
     /// private constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.valid}._({required this.value}) : super._();
     
     ''');
@@ -223,14 +204,14 @@ class SingleValueObjectGenerator {
         ? classInfo.inputParameter.nonNullableType
         : classInfo.inputParameter.type;
 
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     final $paramType value;
 
     ''');
 
     /// map method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.valid} valid) valid,
@@ -241,25 +222,28 @@ class SingleValueObjectGenerator {
     ''');
 
     /// props getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [value];
 
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeInvalidValueObject(
-      StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeInvalidValueObject {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.invalid} extends $className
       implements InvalidSingleValueObject<${classInfo.inputParameter.type}, ${classInfo.valueFailure}> {
     ''');
 
     /// private constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.invalid}._({
       required this.valueFailure,
       required this.failedValue,
@@ -267,7 +251,7 @@ class SingleValueObjectGenerator {
     ''');
 
     /// class members
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     final ${classInfo.valueFailure} valueFailure;
 
@@ -279,7 +263,7 @@ class SingleValueObjectGenerator {
     ''');
 
     /// map method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.valid} valid) valid,
@@ -289,24 +273,27 @@ class SingleValueObjectGenerator {
     ''');
 
     /// props getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [valueFailure, failedValue];
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeTester(
-      StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeTester {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${className}Tester extends ValueObjectTester<${classInfo.valueFailure}, ${classInfo.invalid},
     ${classInfo.valid}, $className, ${classInfo.modddelInput}> {
     ''');
 
     /// constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${className}Tester({
       int maxSutDescriptionLength = $maxSutDescriptionLength,
       String isSanitizedGroupDescription = 'Should be sanitized',
@@ -324,38 +311,41 @@ class SingleValueObjectGenerator {
     ''');
 
     /// makeInput field
-    classBuffer.writeln('''
+    buffer.writeln('''
     final makeInput = ${classInfo.modddelInput}.new;
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeModddelInput(
-      StringBuffer classBuffer, SingleValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeModddelInput {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.modddelInput} extends ModddelInput<$className> {
     ''');
 
     /// constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.modddelInput}(this.input);
     ''');
 
     /// class members
-    classBuffer.writeln('''
+    buffer.writeln('''
     final ${classInfo.inputParameter.type} input;
     ''');
 
     /// props method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [input];
     ''');
 
     /// sanitizedInput method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     ${classInfo.modddelInput} get sanitizedInput {
       final modddel = $className(input);
@@ -367,6 +357,8 @@ class SingleValueObjectGenerator {
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 }

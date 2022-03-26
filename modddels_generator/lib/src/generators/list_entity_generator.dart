@@ -1,19 +1,18 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_generator/src/core/class_info.dart';
-import 'package:source_gen/source_gen.dart';
+import 'package:modddels_generator/src/core/class_info/class_info.dart';
+import 'package:modddels_generator/src/core/templates/parameters_template.dart';
 
 class ListEntityGenerator {
-  ListEntityGenerator({
-    required this.className,
-    required this.factoryConstructor,
+  ListEntityGenerator._({
+    required this.classInfo,
     required this.generateTester,
     required this.maxSutDescriptionLength,
     required this.stringifyMode,
   });
 
-  final String className;
-  final ConstructorElement factoryConstructor;
+  final ListEntityClassInfo classInfo;
 
   /// See [ModddelAnnotation.generateTester]
   final bool generateTester;
@@ -24,62 +23,56 @@ class ListEntityGenerator {
   /// See [ModddelAnnotation.stringifyMode]
   final StringifyMode stringifyMode;
 
-  String generate() {
-    final parameters = factoryConstructor.parameters;
+  String get className => classInfo.className;
 
-    final listParameter = parameters.firstWhere(
-      (element) => element.isPositional && element.name == 'list',
-      orElse: () => throw InvalidGenerationSourceError(
-        'The factory constructor should have a positional argument named "list"',
-        element: factoryConstructor,
-      ),
-    );
+  ParametersTemplate get parametersTemplate => classInfo.parametersTemplate;
 
-    final listParameterType = listParameter.type.toString();
-    final regex = RegExp(r"^KtList<(.*)>$");
-    final ktListType = regex.firstMatch(listParameterType)?.group(1);
-
-    if (ktListType == null || ktListType.isEmpty || ktListType == 'dynamic') {
-      throw InvalidGenerationSourceError(
-        'The list argument should be of type KtList<_modeltype_>, where "model_type" is the type of your model',
-        element: listParameter,
-      );
-    }
-
-    if (ktListType.endsWith('?')) {
-      throw InvalidGenerationSourceError(
-        'The generic type of the KtList should not be nullable',
-        element: listParameter,
-      );
-    }
-
-    final classInfo = ListEntityClassInfo(
+  static Future<ListEntityGenerator> create({
+    required BuildStep buildStep,
+    required String className,
+    required ConstructorElement factoryConstructor,
+    required bool generateTester,
+    required int maxSutDescriptionLength,
+    required StringifyMode stringifyMode,
+  }) async {
+    final classInfo = await ListEntityClassInfo.create(
+      buildStep: buildStep,
       className: className,
-      ktListType: ktListType,
+      factoryConstructor: factoryConstructor,
     );
 
-    final classBuffer = StringBuffer();
-
-    makeMixin(classBuffer, classInfo);
-
-    makeValidEntity(classBuffer, classInfo);
-
-    makeInvalidEntityContent(classBuffer, classInfo);
-
-    if (generateTester) {
-      makeTester(classBuffer, classInfo);
-
-      makeModddelInput(classBuffer, classInfo);
-    }
-
-    return classBuffer.toString();
+    return ListEntityGenerator._(
+      classInfo: classInfo,
+      generateTester: generateTester,
+      maxSutDescriptionLength: maxSutDescriptionLength,
+      stringifyMode: stringifyMode,
+    );
   }
 
-  void makeMixin(StringBuffer classBuffer, ListEntityClassInfo classInfo) {
-    classBuffer.writeln('mixin \$$className {');
+  @override
+  String toString() {
+    final tester = generateTester
+        ? '''
+          $makeTester
+          $makeModddelInput
+          '''
+        : '';
+
+    return '''
+    $makeMixin
+    $makeValidEntity
+    $makeInvalidEntityContent
+    $tester
+    ''';
+  }
+
+  String get makeMixin {
+    final buffer = StringBuffer();
+
+    buffer.writeln('mixin \$$className {');
 
     /// create method
-    classBuffer.writeln('''
+    buffer.writeln('''
       static $className _create(
         KtList<${classInfo.ktListType}> list,
       ) {
@@ -97,7 +90,7 @@ class ListEntityGenerator {
       ''');
 
     /// verifyContent function
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If any of the list elements is invalid, this holds its failure on the Left
     /// (the failure of the first invalid element encountered)
     ///
@@ -128,7 +121,7 @@ class ListEntityGenerator {
     ''');
 
     /// getter for the list
-    classBuffer.writeln('''
+    buffer.writeln('''
     KtList<${classInfo.ktListType}> get list => map(
         valid: (valid) => valid.list,
         invalidContent: (invalidContent) => invalidContent.list,
@@ -138,14 +131,14 @@ class ListEntityGenerator {
 
     /// getter for the size of the list
 
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// The size of the list
     int get size => list.size;
     
     ''');
 
     /// toBroadEitherNullable method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If [nullableEntity] is null, returns `right(null)`.
     /// Otherwise, returns `nullableEntity.toBroadEither`.
     static Either<Failure, ${classInfo.valid}?> toBroadEitherNullable(
@@ -155,7 +148,7 @@ class ListEntityGenerator {
     ''');
 
     /// map method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Same as [mapValidity] (because there is only one invalid union-case)
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.valid} valid) valid,
@@ -168,7 +161,7 @@ class ListEntityGenerator {
     ''');
 
     /// mapValidity method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Pattern matching for the two different union-cases of this entity : valid
     /// and invalid.
     TResult mapValidity<TResult extends Object?>({
@@ -184,7 +177,7 @@ class ListEntityGenerator {
     ''');
 
     /// copyWith method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Creates a clone of this entity with the list returned from [callback].
     ///
     /// The resulting entity is totally independent from this entity. It is
@@ -196,23 +189,26 @@ class ListEntityGenerator {
     ''');
 
     /// props and stringifyMode getters
-    classBuffer.writeln('''
+    buffer.writeln('''
     List<Object?> get props => throw UnimplementedError();
 
     StringifyMode get stringifyMode => ${stringifyMode.toString()};
     ''');
 
     /// End
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeValidEntity(
-      StringBuffer classBuffer, ListEntityClassInfo classInfo) {
-    classBuffer.writeln(
+  String get makeValidEntity {
+    final buffer = StringBuffer();
+
+    buffer.writeln(
         'class ${classInfo.valid} extends $className implements ValidEntity {');
 
     /// private constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.valid}._({
       required this.list,
     }) : super._();    
@@ -220,14 +216,14 @@ class ListEntityGenerator {
     ''');
 
     /// class members
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     final KtList<${classInfo.ktListTypeValid}> list;
 
     ''');
 
     /// map method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.valid} valid) valid,
@@ -240,7 +236,7 @@ class ListEntityGenerator {
     ''');
 
     /// props getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [
           list,
@@ -249,19 +245,22 @@ class ListEntityGenerator {
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeInvalidEntityContent(
-      StringBuffer classBuffer, ListEntityClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeInvalidEntityContent {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.invalidContent} extends $className
       implements InvalidEntityContent {
     
     ''');
 
     /// private constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.invalidContent}._({
       required this.contentFailure,
       required this.list,
@@ -269,7 +268,7 @@ class ListEntityGenerator {
     ''');
 
     /// Class members
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     final Failure contentFailure;
 
@@ -281,7 +280,7 @@ class ListEntityGenerator {
     ''');
 
     /// map method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.valid} valid) valid,
@@ -294,7 +293,7 @@ class ListEntityGenerator {
     ''');
 
     /// props getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [
           contentFailure,
@@ -303,17 +302,21 @@ class ListEntityGenerator {
     ''');
 
     /// End
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeTester(StringBuffer classBuffer, ListEntityClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeTester {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${className}Tester extends ListEntityTester<${classInfo.invalidContent},
       ${classInfo.valid}, $className, ${classInfo.modddelInput}> {
     ''');
 
     /// constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${className}Tester({
       int maxSutDescriptionLength = $maxSutDescriptionLength,
       String isSanitizedGroupDescription = 'Should be sanitized',
@@ -331,38 +334,41 @@ class ListEntityGenerator {
     ''');
 
     /// makeInput field
-    classBuffer.writeln('''
+    buffer.writeln('''
     final makeInput = ${classInfo.modddelInput}.new;
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeModddelInput(
-      StringBuffer classBuffer, ListEntityClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeModddelInput {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.modddelInput} extends ModddelInput<$className> {
     ''');
 
     /// constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.modddelInput}(this.list);
     ''');
 
     /// class members
-    classBuffer.writeln('''
+    buffer.writeln('''
     final KtList<${classInfo.ktListType}> list;
     ''');
 
     /// props method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [list];
     ''');
 
     /// sanitizedInput method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     ${classInfo.modddelInput} get sanitizedInput {
       final modddel = $className(list);
@@ -372,6 +378,8 @@ class ListEntityGenerator {
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 }

@@ -1,19 +1,18 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_generator/src/core/class_info.dart';
-import 'package:source_gen/source_gen.dart';
+import 'package:modddels_generator/src/core/class_info/class_info.dart';
+import 'package:modddels_generator/src/core/templates/parameters_template.dart';
 
 class SizedListGeneralEntityGenerator {
-  SizedListGeneralEntityGenerator({
-    required this.className,
-    required this.factoryConstructor,
+  SizedListGeneralEntityGenerator._({
+    required this.classInfo,
     required this.generateTester,
     required this.maxSutDescriptionLength,
     required this.stringifyMode,
   });
 
-  final String className;
-  final ConstructorElement factoryConstructor;
+  final SizedListGeneralEntityClassInfo classInfo;
 
   /// See [ModddelAnnotation.generateTester]
   final bool generateTester;
@@ -24,69 +23,59 @@ class SizedListGeneralEntityGenerator {
   /// See [ModddelAnnotation.stringifyMode]
   final StringifyMode stringifyMode;
 
-  String generate() {
-    final parameters = factoryConstructor.parameters;
+  String get className => classInfo.className;
 
-    final listParameter = parameters.firstWhere(
-      (element) => element.isPositional && element.name == 'list',
-      orElse: () => throw InvalidGenerationSourceError(
-        'The factory constructor should have a positional argument named "list"',
-        element: factoryConstructor,
-      ),
-    );
+  ParametersTemplate get parametersTemplate => classInfo.parametersTemplate;
 
-    final listParameterType = listParameter.type.toString();
-    final regex = RegExp(r"^KtList<(.*)>$");
-    final ktListType = regex.firstMatch(listParameterType)?.group(1);
-
-    if (ktListType == null || ktListType.isEmpty || ktListType == 'dynamic') {
-      throw InvalidGenerationSourceError(
-        'The list argument should be of type KtList<_modeltype_>, where "model_type" is the type of your model',
-        element: listParameter,
-      );
-    }
-
-    if (ktListType.endsWith('?')) {
-      throw InvalidGenerationSourceError(
-        'The generic type of the KtList should not be nullable',
-        element: listParameter,
-      );
-    }
-
-    final classInfo = SizedListGeneralEntityClassInfo(
+  static Future<SizedListGeneralEntityGenerator> create({
+    required BuildStep buildStep,
+    required String className,
+    required ConstructorElement factoryConstructor,
+    required bool generateTester,
+    required int maxSutDescriptionLength,
+    required StringifyMode stringifyMode,
+  }) async {
+    final classInfo = await SizedListGeneralEntityClassInfo.create(
+      buildStep: buildStep,
       className: className,
-      ktListType: ktListType,
+      factoryConstructor: factoryConstructor,
     );
 
-    final classBuffer = StringBuffer();
-
-    makeMixin(classBuffer, classInfo);
-
-    makeValidEntity(classBuffer, classInfo);
-
-    makeInvalidEntity(classBuffer, classInfo);
-
-    makeInvalidEntitySize(classBuffer, classInfo);
-
-    makeInvalidEntityContent(classBuffer, classInfo);
-
-    makeInvalidEntityGeneral(classBuffer, classInfo);
-
-    if (generateTester) {
-      makeTester(classBuffer, classInfo);
-
-      makeModddelInput(classBuffer, classInfo);
-    }
-
-    return classBuffer.toString();
+    return SizedListGeneralEntityGenerator._(
+      classInfo: classInfo,
+      generateTester: generateTester,
+      maxSutDescriptionLength: maxSutDescriptionLength,
+      stringifyMode: stringifyMode,
+    );
   }
 
-  void makeMixin(
-      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
-    classBuffer.writeln('mixin \$$className {');
+  @override
+  String toString() {
+    final tester = generateTester
+        ? '''
+          $makeTester
+          $makeModddelInput
+          '''
+        : '';
+
+    return '''
+    $makeMixin
+    $makeValidEntity
+    $makeInvalidEntity
+    $makeInvalidEntitySize
+    $makeInvalidEntityContent
+    $makeInvalidEntityGeneral
+    $tester
+    ''';
+  }
+
+  String get makeMixin {
+    final buffer = StringBuffer();
+
+    buffer.writeln('mixin \$$className {');
 
     /// create method
-    classBuffer.writeln('''
+    buffer.writeln('''
     static $className _create(
       KtList<${classInfo.ktListType}> list,
     ) {
@@ -117,7 +106,7 @@ class SizedListGeneralEntityGenerator {
       ''');
 
     /// _verifySize function
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If the size of the list is invalid, this holds the [SizeFailure] on the
     /// Left. Otherwise, holds the list on the Right.
     static Either<${classInfo.sizeFailure}, KtList<${classInfo.ktListType}>> _verifySize(
@@ -129,7 +118,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// _verifyContent function
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If any of the list elements is invalid, this holds its failure on the Left
     /// (the failure of the first invalid element encountered)
     ///
@@ -160,7 +149,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// _verifyGeneral function
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If the entity is invalid as a whole, this holds the [GeneralFailure] on
     /// the Left. Otherwise, holds the ValidEntity on the Right.
     static Either<${classInfo.generalFailure}, KtList<${classInfo.ktListTypeValid}>> _verifyGeneral(
@@ -174,7 +163,7 @@ class SizedListGeneralEntityGenerator {
 
     /// getter for the size of the list
 
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// The size of the list
     int get size => mapValidity(
         valid: (valid) => valid.list.size,
@@ -184,7 +173,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// toBroadEitherNullable method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If [nullableEntity] is null, returns `right(null)`.
     /// Otherwise, returns `nullableEntity.toBroadEither`
     static Either<Failure, ${classInfo.valid}?> toBroadEitherNullable(
@@ -194,7 +183,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// map method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Similar to [mapValidity], but the "base" invalid union-case is replaced by
     /// the "specific" invalid union-cases of this entity :
     /// - [InvalidEntitySize]
@@ -221,7 +210,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// maybeMap method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Equivalent to [map], but only the [valid] callback is required. It also
     /// adds an extra orElse required parameter, for fallback behavior.
     TResult maybeMap<TResult extends Object?>({
@@ -237,7 +226,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// mapValidity method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Pattern matching for the two different union-cases of this entity : valid
     /// and invalid.
     TResult mapValidity<TResult extends Object?>({
@@ -253,7 +242,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// copyWith method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Creates a clone of this entity with the list returned from [callback].
     ///
     /// The resulting entity is totally independent from this entity. It is
@@ -268,23 +257,26 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// props and stringifyMode getters
-    classBuffer.writeln('''
+    buffer.writeln('''
     List<Object?> get props => throw UnimplementedError();
 
     StringifyMode get stringifyMode => ${stringifyMode.toString()};
     ''');
 
     /// End
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeValidEntity(
-      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
-    classBuffer.writeln(
+  String get makeValidEntity {
+    final buffer = StringBuffer();
+
+    buffer.writeln(
         'class ${classInfo.valid} extends $className implements ValidEntity {');
 
     /// private constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.valid}._({
       required this.list,
     }) : super._();    
@@ -292,13 +284,13 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// class members
-    classBuffer.writeln('''
+    buffer.writeln('''
     final KtList<${classInfo.ktListTypeValid}> list;
 
     ''');
 
     /// maybeMap method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.valid} valid) valid,
@@ -313,7 +305,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// props getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [
           list,
@@ -322,30 +314,33 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeInvalidEntity(
-      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeInvalidEntity {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     abstract class ${classInfo.invalid} extends $className
     implements InvalidEntity {
     ''');
 
     /// private constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.invalid}._() : super._();
     
     ''');
 
     /// Fields getters
-    classBuffer.writeln('''
+    buffer.writeln('''
     KtList<${classInfo.ktListType}> get list;
 
     ''');
 
     /// Failure getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     Failure get failure => whenInvalid(
           sizeFailure: (sizeFailure) => sizeFailure,
@@ -356,7 +351,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// mapInvalid method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Pattern matching for the "specific" invalid union-cases of this "base"
     /// invalid union-case, which are :
     /// - [InvalidEntitySize]
@@ -382,7 +377,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// whenInvalid method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Similar to [mapInvalid], but the union-cases are replaced by the failures
     /// they hold.
     TResult whenInvalid<TResult extends Object?>({
@@ -407,18 +402,21 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeInvalidEntitySize(
-      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeInvalidEntitySize {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.invalidSize} extends ${classInfo.invalid}
       implements InvalidEntitySize<${classInfo.sizeFailure}> {
     ''');
 
     /// private constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.invalidSize}._({
       required this.sizeFailure,
       required this.list,
@@ -426,7 +424,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// Getters
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     final ${classInfo.sizeFailure} sizeFailure;
 
@@ -436,7 +434,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// maybeMap method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.valid} valid) valid,
@@ -454,7 +452,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// props getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [
           sizeFailure,
@@ -463,19 +461,22 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// End
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeInvalidEntityContent(
-      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeInvalidEntityContent {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.invalidContent} extends ${classInfo.invalid}
       implements InvalidEntityContent {
     
     ''');
 
     /// private constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.invalidContent}._({
       required this.contentFailure,
       required this.list,
@@ -483,7 +484,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// Class members
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     final Failure contentFailure;
 
@@ -492,7 +493,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// maybeMap method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.valid} valid) valid,
@@ -509,7 +510,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// props getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [
           contentFailure,
@@ -518,18 +519,21 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// End
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeInvalidEntityGeneral(
-      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeInvalidEntityGeneral {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.invalidGeneral} extends ${classInfo.invalid}
       implements InvalidEntityGeneral<${classInfo.generalFailure}> {
     ''');
 
     /// private constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.invalidGeneral}._({
       required this.generalFailure,
       required this.list,
@@ -537,7 +541,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// Getters
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     final ${classInfo.generalFailure} generalFailure;
 
@@ -547,7 +551,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// maybeMap method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     TResult maybeMap<TResult extends Object?>({
       required TResult Function(${classInfo.valid} valid) valid,
@@ -565,7 +569,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// props getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [
           generalFailure,
@@ -574,12 +578,15 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// End
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeTester(
-      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeTester {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${className}Tester extends SizedListGeneralEntityTester<
       ${classInfo.sizeFailure},
       ${classInfo.generalFailure},
@@ -593,7 +600,7 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${className}Tester({
       int maxSutDescriptionLength = $maxSutDescriptionLength,
       String isSanitizedGroupDescription = 'Should be sanitized',
@@ -617,38 +624,41 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// makeInput field
-    classBuffer.writeln('''
+    buffer.writeln('''
     final makeInput = ${classInfo.modddelInput}.new;
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeModddelInput(
-      StringBuffer classBuffer, SizedListGeneralEntityClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeModddelInput {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.modddelInput} extends ModddelInput<$className> {
     ''');
 
     /// constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${classInfo.modddelInput}(this.list);
     ''');
 
     /// class members
-    classBuffer.writeln('''
+    buffer.writeln('''
     final KtList<${classInfo.ktListType}> list;
     ''');
 
     /// props method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [list];
     ''');
 
     /// sanitizedInput method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     ${classInfo.modddelInput} get sanitizedInput {
       final modddel = $className(list);
@@ -660,6 +670,8 @@ class SizedListGeneralEntityGenerator {
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 }

@@ -52,12 +52,13 @@ The different states a Modddel can have are represented with **Union Cases Class
   - [SizedListGeneralEntity](#sizedlistgeneralentity)
     - [Usage](#usage-6)
   - [Remarks](#remarks)
-    - [Optional and Nullable types](#optional-and-nullable-types)
+    - [Named and Positional parameters](#named-and-positional-parameters)
     - [List getter](#list-getter)
 - [Additional information](#additional-information)
   - [TypeName annotation](#typename-annotation)
   - [Sanitization](#sanitization)
   - [Asserts](#asserts)
+  - [Decorators and comments](#decorators-and-comments)
   - [Special cases](#special-cases)
     - [Modddels that are always valid](#modddels-that-are-always-valid)
     - [Modddels that are always invalid](#modddels-that-are-always-invalid)
@@ -727,9 +728,17 @@ When creating a SizedListGeneralEntity, the validation is made in this order :
 
 ## Remarks
 
-### Optional and Nullable types
+### Named and Positional parameters
 
-`SimpleEntity` and `GeneralEntity` both support containing optional and nullable parameters, as well as default values.
+`MultiValueObject`, `SimpleEntity` and `GeneralEntity` factory constructors can contain all form of parameters : Positional/Named, Required/Optional, as well as having default values. The generated `ModddelInput` will have the same constructor as the factory constructor in terms of parameters.
+
+> **NB :** If you change the order of the positional parameters inside the factory constructor, you should imperatively :
+>
+> 1. Re-run the generator.
+> 2. Update all instances of the modddel with the new order. Example : from `FullName(firstName, lastName)` to `FullName(lastName, firstName)`.
+> 3. Update all instances of the ModddelInput with the new order. Example : from `input(firstName, lastName)` to `input(lastName, firstName)`.
+>
+> This is to avoid any kind of ordering problem, especially if the positional parameters which order was changed have compatible types so there won't be any compile-time errors.
 
 ### List getter
 
@@ -819,6 +828,42 @@ factory Person({
     );
   }
 ```
+
+## Decorators and comments
+
+You can document/decorate a parameter by documenting/decorating its definition inside the factory constructor.
+
+Consider :
+
+```dart
+factory Name({
+    required String firstName,
+    required String lastName,
+  })
+```
+
+If you want to document `firstName`, you can do :
+
+```dart
+factory Name({
+    /// The firstName of the user.
+    ///
+    /// This will be visible to other users.
+    required String firstName,
+    required String lastName,
+  })
+```
+
+If you want to mark `lastName` as `@deprecated`, then you can do:
+
+```dart
+factory Name({
+    required String firstName,
+    @depracted required String lastName,
+  })
+```
+
+This will deprecate the parameter in all the generated constructors and functions that contain it.
 
 ## Special cases
 

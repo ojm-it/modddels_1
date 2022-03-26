@@ -4,6 +4,23 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
+import 'package:modddels_generator/src/core/templates/annotations.dart';
+
+/// Returns the decorators except `@required` and all modddels annotations.
+List<String> parseDecorators(List<ElementAnnotation> metadata) {
+  return metadata
+      .where((meta) =>
+          !meta.isRequired &&
+          !meta.isValid &&
+          !meta.isInvalid &&
+          !meta.isWithGetter &&
+          !meta.isValidWithGetter &&
+          !meta.isInvalidWithGetter &&
+          !meta.isNullFailure &&
+          !meta.isTypeName)
+      .map((meta) => meta.toSource())
+      .toList();
+}
 
 /// Returns the documentation of the given parameter. The implementation details
 /// are taken from freezed.
