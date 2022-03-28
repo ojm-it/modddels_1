@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
-// ignore_for_file: prefer_void_to_null
+// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package, prefer_void_to_null
 
 part of 'fullname.dart';
 
@@ -10,11 +10,10 @@ part of 'fullname.dart';
 // **************************************************************************
 
 mixin $FullName {
-  static FullName _create({
-    required Name firstName,
-    required Name? lastName,
-    required bool hasMiddleName,
-  }) {
+  static FullName _create(
+      {required Name firstName,
+      required Name? lastName,
+      required bool hasMiddleName}) {
     /// 1. **Content validation**
     return _verifyContent(
       firstName: firstName,
@@ -48,11 +47,10 @@ mixin $FullName {
   ///
   /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
   /// _ValidEntityContent, on the Right.
-  static Either<Failure, _ValidFullNameContent> _verifyContent({
-    required Name firstName,
-    required Name? lastName,
-    required bool hasMiddleName,
-  }) {
+  static Either<Failure, _ValidFullNameContent> _verifyContent(
+      {required Name firstName,
+      required Name? lastName,
+      required bool hasMiddleName}) {
     final contentVerification = firstName.toBroadEither.flatMap(
       (validFirstName) => $Name.toBroadEitherNullable(lastName).flatMap(
             (validLastName) =>
@@ -83,6 +81,8 @@ mixin $FullName {
 
     return generalVerification;
   }
+
+  /// The last name, important too.
 
   Name? get lastName => throw UnimplementedError();
 
@@ -149,11 +149,7 @@ mixin $FullName {
 }
 
 abstract class _$FullNameCopyWith {
-  FullName call({
-    Name firstName,
-    Name? lastName,
-    bool hasMiddleName,
-  });
+  FullName call({Name firstName, Name? lastName, bool hasMiddleName});
 }
 
 class _$FullNameCopyWithImpl implements _$FullNameCopyWith {
@@ -162,11 +158,10 @@ class _$FullNameCopyWithImpl implements _$FullNameCopyWith {
   final FullName _value;
 
   @override
-  FullName call({
-    Object? firstName = modddel,
-    Object? lastName = modddel,
-    Object? hasMiddleName = modddel,
-  }) {
+  FullName call(
+      {Object? firstName = modddel,
+      Object? lastName = modddel,
+      Object? hasMiddleName = modddel}) {
     return _value.mapValidity(
       valid: (valid) => $FullName._create(
         firstName: firstName == modddel
@@ -195,11 +190,10 @@ class _$FullNameCopyWithImpl implements _$FullNameCopyWith {
 }
 
 class _ValidFullNameContent {
-  const _ValidFullNameContent._({
-    required this.firstName,
-    required this.lastName,
-    required this.hasMiddleName,
-  });
+  const _ValidFullNameContent._(
+      {required this.firstName,
+      required this.lastName,
+      required this.hasMiddleName});
 
   final ValidName firstName;
   final ValidName? lastName;
@@ -223,11 +217,14 @@ class _ValidFullNameContent {
 }
 
 class ValidFullName extends FullName implements ValidEntity {
-  const ValidFullName._({
-    required this.firstName,
-    required this.lastName,
-    required this.hasMiddleName,
-  }) : super._();
+  const ValidFullName._(
+      {required this.firstName,
+      required this.lastName,
+      required this.hasMiddleName})
+      : super._();
+
+  /// The first name.
+  /// it's required.
 
   final ValidName firstName;
   @override
@@ -255,6 +252,9 @@ class ValidFullName extends FullName implements ValidEntity {
 
 abstract class InvalidFullName extends FullName implements InvalidEntity {
   const InvalidFullName._() : super._();
+
+  /// The first name.
+  /// it's required.
 
   Name get firstName;
   @override
@@ -306,22 +306,24 @@ abstract class InvalidFullName extends FullName implements InvalidEntity {
 
 class InvalidFullNameContent extends InvalidFullName
     implements InvalidEntityContent {
-  const InvalidFullNameContent._({
-    required this.contentFailure,
-    required this.firstName,
-    required this.lastName,
-    required this.hasMiddleName,
-  }) : super._();
-
-  @override
-  final Failure contentFailure;
+  const InvalidFullNameContent._(
+      {required this.firstName,
+      required this.lastName,
+      required this.hasMiddleName,
+      required this.contentFailure})
+      : super._();
 
   @override
   final Name firstName;
+
   @override
   final Name? lastName;
+
   @override
   final bool hasMiddleName;
+
+  @override
+  final Failure contentFailure;
 
   @override
   TResult maybeMap<TResult extends Object?>({
@@ -338,24 +340,21 @@ class InvalidFullNameContent extends InvalidFullName
 
   @override
   List<Object?> get props => [
-        contentFailure,
         firstName,
         lastName,
         hasMiddleName,
+        contentFailure,
       ];
 }
 
 class InvalidFullNameGeneral extends InvalidFullName
     implements InvalidEntityGeneral<FullNameGeneralFailure> {
-  const InvalidFullNameGeneral._({
-    required this.generalFailure,
-    required this.firstName,
-    required this.lastName,
-    required this.hasMiddleName,
-  }) : super._();
-
-  @override
-  final FullNameGeneralFailure generalFailure;
+  const InvalidFullNameGeneral._(
+      {required this.firstName,
+      required this.lastName,
+      required this.hasMiddleName,
+      required this.generalFailure})
+      : super._();
 
   @override
   final ValidName firstName;
@@ -363,6 +362,9 @@ class InvalidFullNameGeneral extends InvalidFullName
   final ValidName? lastName;
   @override
   final bool hasMiddleName;
+
+  @override
+  final FullNameGeneralFailure generalFailure;
 
   @override
   TResult maybeMap<TResult extends Object?>({
@@ -379,10 +381,10 @@ class InvalidFullNameGeneral extends InvalidFullName
 
   @override
   List<Object?> get props => [
-        generalFailure,
         firstName,
         lastName,
         hasMiddleName,
+        generalFailure,
       ];
 }
 
@@ -416,11 +418,10 @@ class FullNameTester extends GeneralEntityTester<
 }
 
 class _FullNameInput extends ModddelInput<FullName> {
-  const _FullNameInput({
-    required this.firstName,
-    required this.lastName,
-    this.hasMiddleName = false,
-  });
+  const _FullNameInput(
+      {required this.firstName,
+      required this.lastName,
+      this.hasMiddleName = false});
 
   final Name firstName;
   final Name? lastName;

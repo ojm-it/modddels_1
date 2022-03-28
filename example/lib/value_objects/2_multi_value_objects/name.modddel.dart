@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
-// ignore_for_file: prefer_void_to_null
+// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package, prefer_void_to_null
 
 part of 'name.dart';
 
@@ -10,11 +10,10 @@ part of 'name.dart';
 // **************************************************************************
 
 mixin $Name {
-  static Name _create({
-    required String firstName,
-    required String? lastName,
-    required bool? hasMiddleName,
-  }) {
+  static Name _create(
+      {required String firstName,
+      required String? lastName,
+      required bool? hasMiddleName}) {
     /// 1. **Value Validation**
     return _verifyValue(_NameHolder._(
       firstName: firstName,
@@ -89,11 +88,7 @@ mixin $Name {
 }
 
 abstract class _$NameCopyWith {
-  Name call({
-    String firstName,
-    String? lastName,
-    bool? hasMiddleName,
-  });
+  Name call({String firstName, String? lastName, bool? hasMiddleName});
 }
 
 class _$NameCopyWithImpl implements _$NameCopyWith {
@@ -102,11 +97,10 @@ class _$NameCopyWithImpl implements _$NameCopyWith {
   final Name _value;
 
   @override
-  Name call({
-    Object? firstName = modddel,
-    Object? lastName = modddel,
-    Object? hasMiddleName = modddel,
-  }) {
+  Name call(
+      {Object? firstName = modddel,
+      Object? lastName = modddel,
+      Object? hasMiddleName = modddel}) {
     return _value.mapValidity(
       valid: (valid) => $Name._create(
         firstName: firstName == modddel
@@ -135,11 +129,10 @@ class _$NameCopyWithImpl implements _$NameCopyWith {
 }
 
 class _NameHolder {
-  const _NameHolder._({
-    required this.firstName,
-    required this.lastName,
-    required this.hasMiddleName,
-  });
+  const _NameHolder._(
+      {required this.firstName,
+      required this.lastName,
+      required this.hasMiddleName});
 
   final String firstName;
   final String? lastName;
@@ -163,14 +156,20 @@ class _NameHolder {
 }
 
 class ValidName extends Name implements ValidValueObject {
-  const ValidName._({
-    required this.firstName,
-    required this.lastName,
-    required this.hasMiddleName,
-  }) : super._();
+  const ValidName._(
+      {required this.firstName,
+      required this.lastName,
+      required this.hasMiddleName})
+      : super._();
+
+  /// The first name.
 
   final String firstName;
+
+  /// The last name, important too.
+
   final String lastName;
+
   final bool? hasMiddleName;
 
   @override
@@ -189,22 +188,28 @@ class ValidName extends Name implements ValidValueObject {
 }
 
 class InvalidName extends Name implements InvalidValueObject<NameValueFailure> {
-  const InvalidName._({
-    required this.valueFailure,
-    required this.firstName,
-    required this.lastName,
-    required this.hasMiddleName,
-  }) : super._();
+  const InvalidName._(
+      {required this.firstName,
+      required this.lastName,
+      required this.hasMiddleName,
+      required this.valueFailure})
+      : super._();
+
+  /// The first name.
+
+  final String firstName;
+
+  /// The last name, important too.
+
+  final String? lastName;
+
+  final bool? hasMiddleName;
 
   @override
   final NameValueFailure valueFailure;
 
   @override
   NameValueFailure get failure => valueFailure;
-
-  final String firstName;
-  final String? lastName;
-  final bool? hasMiddleName;
 
   @override
   TResult map<TResult extends Object?>(
@@ -215,10 +220,10 @@ class InvalidName extends Name implements InvalidValueObject<NameValueFailure> {
 
   @override
   List<Object?> get props => [
-        valueFailure,
         firstName,
         lastName,
         hasMiddleName,
+        valueFailure,
       ];
 }
 
@@ -243,11 +248,10 @@ class NameTester extends ValueObjectTester<NameValueFailure, InvalidName,
 }
 
 class _NameInput extends ModddelInput<Name> {
-  const _NameInput({
-    required this.firstName,
-    required this.lastName,
-    this.hasMiddleName = false,
-  });
+  const _NameInput(
+      {required this.firstName,
+      required this.lastName,
+      this.hasMiddleName = false});
 
   final String firstName;
   final String? lastName;

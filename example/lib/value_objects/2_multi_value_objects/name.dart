@@ -9,7 +9,10 @@ part 'name.modddel.dart';
 class Name extends MultiValueObject<NameValueFailure, InvalidName, ValidName>
     with $Name {
   factory Name({
+    /// The first name.
     required String firstName,
+
+    /// The last name, important too.
     @NullFailure('const NameValueFailure.incomplete()')
         required String? lastName,
     bool? hasMiddleName = false,

@@ -8,7 +8,10 @@ part 'lord_name.modddel.dart';
 class LordName extends SimpleEntity<InvalidLordNameContent, ValidLordName>
     with $LordName {
   factory LordName({
+    /// The name of the parent.
     required Name parentName,
+
+    /// The first name.
     required Name firstName,
     @valid bool? isLord,
   }) {

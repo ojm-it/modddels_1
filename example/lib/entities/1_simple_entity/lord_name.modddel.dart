@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
-// ignore_for_file: prefer_void_to_null
+// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package, prefer_void_to_null
 
 part of 'lord_name.dart';
 
@@ -10,11 +10,10 @@ part of 'lord_name.dart';
 // **************************************************************************
 
 mixin $LordName {
-  static LordName _create({
-    required Name parentName,
-    required Name firstName,
-    required bool? isLord,
-  }) {
+  static LordName _create(
+      {required Name parentName,
+      required Name firstName,
+      required bool? isLord}) {
     /// 1. **Content Validation**
     return _verifyContent(
       parentName: parentName,
@@ -38,11 +37,10 @@ mixin $LordName {
   ///
   /// Otherwise, holds all the modddels as valid modddels, wrapped inside a
   /// ValidEntity, on the Right.
-  static Either<Failure, ValidLordName> _verifyContent({
-    required Name parentName,
-    required Name firstName,
-    required bool? isLord,
-  }) {
+  static Either<Failure, ValidLordName> _verifyContent(
+      {required Name parentName,
+      required Name firstName,
+      required bool? isLord}) {
     final contentVerification = parentName.toBroadEither.flatMap(
       (validParentName) => firstName.toBroadEither.flatMap(
         (validFirstName) => right<Failure, ValidLordName>(ValidLordName._(
@@ -56,10 +54,14 @@ mixin $LordName {
     return contentVerification;
   }
 
+  /// The name of the parent.
+
   Name get parentName => map(
         valid: (valid) => valid.parentName,
         invalidContent: (invalidContent) => invalidContent.parentName,
       );
+
+  /// The first name.
 
   Name get firstName => map(
         valid: (valid) => valid.firstName,
@@ -111,11 +113,7 @@ mixin $LordName {
 }
 
 abstract class _$LordNameCopyWith {
-  LordName call({
-    Name parentName,
-    Name firstName,
-    bool? isLord,
-  });
+  LordName call({Name parentName, Name firstName, bool? isLord});
 }
 
 class _$LordNameCopyWithImpl implements _$LordNameCopyWith {
@@ -124,11 +122,10 @@ class _$LordNameCopyWithImpl implements _$LordNameCopyWith {
   final LordName _value;
 
   @override
-  LordName call({
-    Object? parentName = modddel,
-    Object? firstName = modddel,
-    Object? isLord = modddel,
-  }) {
+  LordName call(
+      {Object? parentName = modddel,
+      Object? firstName = modddel,
+      Object? isLord = modddel}) {
     return _value.mapValidity(
       valid: (valid) => $LordName._create(
         parentName: parentName == modddel
@@ -157,11 +154,9 @@ class _$LordNameCopyWithImpl implements _$LordNameCopyWith {
 }
 
 class ValidLordName extends LordName implements ValidEntity {
-  const ValidLordName._({
-    required this.parentName,
-    required this.firstName,
-    required this.isLord,
-  }) : super._();
+  const ValidLordName._(
+      {required this.parentName, required this.firstName, required this.isLord})
+      : super._();
 
   @override
   final ValidName parentName;
@@ -188,25 +183,27 @@ class ValidLordName extends LordName implements ValidEntity {
 }
 
 class InvalidLordNameContent extends LordName implements InvalidEntityContent {
-  const InvalidLordNameContent._({
-    required this.contentFailure,
-    required this.parentName,
-    required this.firstName,
-    required this.isLord,
-  }) : super._();
+  const InvalidLordNameContent._(
+      {required this.parentName,
+      required this.firstName,
+      required this.isLord,
+      required this.contentFailure})
+      : super._();
+
+  @override
+  final Name parentName;
+
+  @override
+  final Name firstName;
+
+  @override
+  final bool? isLord;
 
   @override
   final Failure contentFailure;
 
   @override
   Failure get failure => contentFailure;
-
-  @override
-  final Name parentName;
-  @override
-  final Name firstName;
-  @override
-  final bool? isLord;
 
   @override
   TResult map<TResult extends Object?>({
@@ -219,10 +216,10 @@ class InvalidLordNameContent extends LordName implements InvalidEntityContent {
 
   @override
   List<Object?> get props => [
-        contentFailure,
         parentName,
         firstName,
         isLord,
+        contentFailure,
       ];
 }
 
@@ -247,11 +244,8 @@ class LordNameTester extends SimpleEntityTester<InvalidLordNameContent,
 }
 
 class _LordNameInput extends ModddelInput<LordName> {
-  const _LordNameInput({
-    required this.parentName,
-    required this.firstName,
-    this.isLord,
-  });
+  const _LordNameInput(
+      {required this.parentName, required this.firstName, this.isLord});
 
   final Name parentName;
   final Name firstName;

@@ -10,7 +10,11 @@ part 'fullname.modddel.dart';
 class FullName extends GeneralEntity<FullNameGeneralFailure, InvalidFullName,
     ValidFullName> with $FullName {
   factory FullName({
+    /// The first name.
+    /// it's required.
     required Name firstName,
+
+    /// The last name, important too.
     @NullFailure('const FullNameGeneralFailure.incomplete()')
     @withGetter
         required Name? lastName,
