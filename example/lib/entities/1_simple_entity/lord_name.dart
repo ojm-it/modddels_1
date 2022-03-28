@@ -2,7 +2,7 @@ import 'package:example/value_objects/1_single_value_object/name.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 import 'package:fpdart/fpdart.dart';
 
-part 'lord_name.g.dart';
+part 'lord_name.modddel.dart';
 
 @modddel
 class LordName extends SimpleEntity<InvalidLordNameContent, ValidLordName>
@@ -10,7 +10,7 @@ class LordName extends SimpleEntity<InvalidLordNameContent, ValidLordName>
   factory LordName({
     required Name parentName,
     required Name firstName,
-    @valid bool isLord = true,
+    @valid bool? isLord,
   }) {
     return $LordName._create(
       firstName: firstName,

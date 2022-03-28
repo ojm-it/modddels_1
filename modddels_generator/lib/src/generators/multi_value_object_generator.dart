@@ -1,19 +1,41 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:build/build.dart';
 import 'package:modddels_annotations/modddels.dart';
-import 'package:modddels_generator/src/core/class_info.dart';
-import 'package:source_gen/source_gen.dart';
+import 'package:modddels_generator/src/core/class_info/class_info.dart';
+import 'package:modddels_generator/src/core/templates/parameter.dart';
+import 'package:modddels_generator/src/core/templates/parameters_template.dart';
 
 class MultiValueObjectGenerator {
-  MultiValueObjectGenerator({
-    required this.className,
-    required this.factoryConstructor,
+  MultiValueObjectGenerator._({
+    required this.classInfo,
     required this.generateTester,
     required this.maxSutDescriptionLength,
     required this.stringifyMode,
   });
 
-  final String className;
-  final ConstructorElement factoryConstructor;
+  static Future<MultiValueObjectGenerator> create({
+    required BuildStep buildStep,
+    required String className,
+    required ConstructorElement factoryConstructor,
+    required bool generateTester,
+    required int maxSutDescriptionLength,
+    required StringifyMode stringifyMode,
+  }) async {
+    final classInfo = await MultiValueObjectClassInfo.create(
+      buildStep: buildStep,
+      className: className,
+      factoryConstructor: factoryConstructor,
+    );
+
+    return MultiValueObjectGenerator._(
+      classInfo: classInfo,
+      generateTester: generateTester,
+      maxSutDescriptionLength: maxSutDescriptionLength,
+      stringifyMode: stringifyMode,
+    );
+  }
+
+  final MultiValueObjectClassInfo classInfo;
 
   /// See [ModddelAnnotation.generateTester]
   final bool generateTester;
@@ -24,93 +46,49 @@ class MultiValueObjectGenerator {
   /// See [ModddelAnnotation.stringifyMode]
   final StringifyMode stringifyMode;
 
-  String generate() {
-    final parameters = factoryConstructor.parameters;
+  String get className => classInfo.className;
 
-    final namedParameterElements =
-        parameters.where((element) => element.isNamed).toList();
+  ParametersTemplate get parametersTemplate => classInfo.parametersTemplate;
 
-    if (namedParameterElements.isEmpty) {
-      throw InvalidGenerationSourceError(
-        'The factory constructor should contain at least one name parameter',
-        element: factoryConstructor,
-      );
-    }
+  @override
+  String toString() {
+    final tester = generateTester
+        ? '''
+          $makeTester
+          $makeModddelInput
+          '''
+        : '';
 
-    final classInfo = MultiValueObjectClassInfo(
-      className: className,
-      namedParameterElements: namedParameterElements,
-    );
-
-    for (final param in classInfo.namedParameters) {
-      if (param.type == 'dynamic') {
-        throw InvalidGenerationSourceError(
-          'The named parameters of the factory constructor should have valid types, and should not be dynamic. '
-          'Consider using the @TypeName annotation to manually provide the type.',
-          element: param.parameterElement,
-        );
-      }
-    }
-
-    for (final param in classInfo.namedParameters) {
-      if (param.hasValidAnnotation ||
-          param.hasInvalidAnnotation ||
-          param.hasWithGetterAnnotation) {
-        throw InvalidGenerationSourceError(
-          'The @valid, @invalid and @withGetter annotations can\'t be used with '
-          'a MultiValueObject.',
-          element: param.parameterElement,
-        );
-      }
-    }
-
-    for (final param in classInfo.namedParameters) {
-      if (param.hasNullFailureAnnotation && !param.isNullable) {
-        throw InvalidGenerationSourceError(
-          'The @NullFailure annotation can only be used with nullable parameters.',
-          element: param.parameterElement,
-        );
-      }
-    }
-
-    final classBuffer = StringBuffer();
-
-    makeMixin(classBuffer, classInfo);
-
-    makeHolder(classBuffer, classInfo);
-
-    makeValidValueObject(classBuffer, classInfo);
-
-    makeInvalidValueObject(classBuffer, classInfo);
-
-    if (generateTester) {
-      makeTester(classBuffer, classInfo);
-
-      makeModddelInput(classBuffer, classInfo);
-    }
-
-    return classBuffer.toString();
+    return '''
+    $makeMixin
+    $makeCopyWithClasses
+    $makeHolder
+    $makeValidValueObject
+    $makeInvalidValueObject
+    $tester
+    ''';
   }
 
-  void makeMixin(
-      StringBuffer classBuffer, MultiValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeMixin {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     mixin \$$className {
 
     ''');
 
     /// create method
-    classBuffer.writeln('''
-    static $className _create({
-      ${classInfo.namedParameters.map((param) => 'required ${param.type} ${param.name},').join()}
-    }) {
+    buffer.writeln('''
+    static $className _create(
+      ${parametersTemplate.asNamed(optionality: Optionality.makeAllRequired)}
+    ) {
       /// 1. **Value Validation**
       return _verifyValue(${classInfo.holder}._(
-        ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
+        ${parametersTemplate.allParameters.map((param) => '${param.name} : ${param.name},').join()}
       )).match(
         (valueFailure) => ${classInfo.invalid}._(
           valueFailure: valueFailure,
-          ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
+          ${parametersTemplate.allParameters.map((param) => '${param.name} : ${param.name},').join()}
         ),
 
         /// 2. **→ Validations passed**
@@ -121,7 +99,7 @@ class MultiValueObjectGenerator {
     ''');
 
     /// _verifyValue method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If the value is invalid, this holds the [ValueFailure] on the Left.
     /// Otherwise, holds the [ValidValueObject] on the Right.
     static Either<${classInfo.valueFailure}, ${classInfo.valid}> _verifyValue(
@@ -140,7 +118,7 @@ class MultiValueObjectGenerator {
     ''');
 
     /// toBroadEitherNullable method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If [nullableValueObject] is null, returns `right(null)`.
     /// Otherwise, returns `nullableValueObject.toBroadEither`.
     static Either<Failure, ${classInfo.valid}?> toBroadEitherNullable(
@@ -150,12 +128,12 @@ class MultiValueObjectGenerator {
 
     ''');
 
-    classBuffer.writeln('''
+    buffer.writeln('''
     
     ''');
 
     /// map method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Same as [mapValidity] (because there is only one invalid union-case)
     TResult map<TResult extends Object?>({
       required TResult Function(${classInfo.valid} valid) valid,
@@ -167,7 +145,7 @@ class MultiValueObjectGenerator {
     ''');
 
     /// mapValidity method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// Pattern matching for the two different union-cases of this ValueObject :
     /// valid and invalid.
     TResult mapValidity<TResult extends Object?>({
@@ -182,46 +160,123 @@ class MultiValueObjectGenerator {
     
     ''');
 
+    /// copyWith method
+    buffer.writeln('''
+    /// Creates a clone of this MultiValueObject with the new specified values.
+    ///
+    /// The resulting MultiValueObject is totally independent from this 
+    /// MultiValueObject. It is validated upon creation, and can be either valid
+    /// or invalid.
+    ${classInfo.copyWith} get copyWith => ${classInfo.copyWithImpl}(
+      mapValidity(valid: (valid) => valid, invalid: (invalid) => invalid));
+
+    ''');
+
     /// props and stringifyMode getters
-    classBuffer.writeln('''
+    buffer.writeln('''
     List<Object?> get props => throw UnimplementedError();
 
     StringifyMode get stringifyMode => ${stringifyMode.toString()};
     ''');
 
     /// End
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeHolder(
-      StringBuffer classBuffer, MultiValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeCopyWithClasses {
+    final buffer = StringBuffer();
+
+    /// COPYWITH ABSTRACT CLASS
+    buffer.writeln('''
+    abstract class ${classInfo.copyWith} {
+    ''');
+
+    /// call method
+    buffer.writeln('''
+    $className call(
+      ${parametersTemplate.asNamed(optionality: Optionality.makeAllOptional)} 
+    );
+    ''');
+
+    /// end
+    buffer.writeln('}');
+
+    /// COPYWITH IMPLEMENTATION CLASS
+    buffer.writeln('''
+    class ${classInfo.copyWithImpl} implements ${classInfo.copyWith} {
+      ${classInfo.copyWithImpl}(this._value);
+
+      final $className _value;
+
+    ''');
+
+    /// call method
+    final callParameters = parametersTemplate
+        .asNamed(optionality: Optionality.makeAllOptional)
+        .asExpanded(showDefaultValue: true)
+        .transformParameters((parameter) => parameter.copyWith(
+              type: 'Object?',
+              defaultValue: 'modddel',
+            ));
+
+    buffer.writeln('''
+    @override
+    $className call($callParameters) {
+      return _value.mapValidity(
+        valid: (valid) => \$$className._create(
+          ${parametersTemplate.allParameters.map((param) => '''${param.name}: ${param.name} == modddel
+          ? valid.${param.name}
+          : ${param.name} as ${param.type}, // ignore: cast_nullable_to_non_nullable
+          ''').join()}
+        ),
+        invalid: (invalid) => \$$className._create(
+          ${parametersTemplate.allParameters.map((param) => '''${param.name}: ${param.name} == modddel
+          ? invalid.${param.name}
+          : ${param.name} as ${param.type}, // ignore: cast_nullable_to_non_nullable
+          ''').join()}
+        ),
+      );
+    }
+    ''');
+
+    /// end
+    buffer.writeln('}');
+
+    return buffer.toString();
+  }
+
+  String get makeHolder {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.holder} {
       
     ''');
 
     /// private constructor
-    classBuffer.writeln('''
-    const ${classInfo.holder}._({
-      ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
-      });
+    buffer.writeln('''
+    const ${classInfo.holder}._(
+      ${parametersTemplate.asNamed(optionality: Optionality.makeAllRequired).asLocal()}
+      );
 
     ''');
 
     /// class members
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('final ${param.type} ${param.name};');
+    for (final param in parametersTemplate.allParameters) {
+      buffer.writeln('final ${param.type} ${param.name};');
     }
-    classBuffer.writeln('');
+    buffer.writeln('');
 
     /// verifyNullables method
-    classBuffer.writeln('''
+    buffer.writeln('''
     /// If one of the nullable fields marked with `@NullFailure` is null, this
     /// holds a [ValueFailure] on the Left. Otherwise, holds the
     /// [ValidValueObject] on the Right.
     Either<${classInfo.valueFailure}, ${classInfo.valid}> verifyNullables() {
 
-      ${classInfo.namedParameters.where((p) => p.hasNullFailureAnnotation).map((param) => '''
+      ${parametersTemplate.allParameters.where((p) => p.hasNullFailureAnnotation).map((param) => '''
       final ${param.name} = this.${param.name};
       if(${param.name} == null) {
         return left(${param.nullFailureString});
@@ -230,40 +285,46 @@ class MultiValueObjectGenerator {
       ''').join()}
 
       return right(${classInfo.valid}._(
-        ${classInfo.namedParameters.map((param) => '${param.name} : ${param.name},').join()}
+        ${parametersTemplate.allParameters.map((param) => '${param.name} : ${param.name},').join()}
       ));
     }
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeValidValueObject(
-      StringBuffer classBuffer, MultiValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeValidValueObject {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.valid} extends $className implements ValidValueObject {
     ''');
 
     /// private constructor
-    classBuffer.writeln('''
-    const ${classInfo.valid}._({
-      ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
-      }) : super._();
+    buffer.writeln('''
+    const ${classInfo.valid}._(
+      ${parametersTemplate.asNamed(optionality: Optionality.makeAllRequired).asLocal()}
+      ) : super._();
 
     ''');
 
     /// class members
-    for (final param in classInfo.namedParameters) {
+    for (final param in parametersTemplate.allParameters) {
       final paramType =
           param.hasNullFailureAnnotation ? param.nonNullableType : param.type;
 
-      classBuffer.writeln('final $paramType ${param.name};');
+      buffer.writeln('''
+      ${param.doc}
+      final $paramType ${param.name};
+      ''');
     }
-    classBuffer.writeln('');
+    buffer.writeln('');
 
     /// map method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.valid} valid) valid,
@@ -274,46 +335,63 @@ class MultiValueObjectGenerator {
     ''');
 
     /// props getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [
-        ${classInfo.namedParameters.map((param) => '${param.name},').join()}
+        ${parametersTemplate.allParameters.map((param) => '${param.name},').join()}
       ];
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeInvalidValueObject(
-      StringBuffer classBuffer, MultiValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeInvalidValueObject {
+    final buffer = StringBuffer();
+
+    final invalidValueObjectParams = parametersTemplate.copyWith(
+      namedParameters: [
+        ...parametersTemplate.namedParameters,
+        ExpandedParameter.empty(
+            name: 'valueFailure', type: classInfo.valueFailure),
+      ],
+    );
+
+    buffer.writeln('''
     class ${classInfo.invalid} extends $className implements InvalidValueObject<${classInfo.valueFailure}> {
     
     ''');
 
     /// private constructor
-    classBuffer.writeln('''
-    const ${classInfo.invalid}._({
-      required this.valueFailure,
-      ${classInfo.namedParameters.map((param) => 'required this.${param.name},').join()}
-    }) : super._();
+    final constructorParams = invalidValueObjectParams
+        .asNamed(optionality: Optionality.makeAllRequired)
+        .asLocal();
+
+    buffer.writeln('''
+    const ${classInfo.invalid}._($constructorParams) : super._();
     ''');
 
     /// class members
-    classBuffer.writeln('''
+    buffer.writeln('''
+    ${parametersTemplate.allParameters.map((param) => '''
+    ${param.doc}
+    final ${param.type} ${param.name};
+    ''').join()}
+
     @override
     final ${classInfo.valueFailure} valueFailure;
+    ''');
 
+    /// failure getter
+    buffer.writeln('''
     @override
     ${classInfo.valueFailure} get failure => valueFailure; 
-
-    ${classInfo.namedParameters.map((param) => 'final ${param.type} ${param.name};').join()}
-
     ''');
 
     /// map method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     TResult map<TResult extends Object?>(
       {required TResult Function(${classInfo.valid} valid) valid,
@@ -323,27 +401,29 @@ class MultiValueObjectGenerator {
     ''');
 
     /// props getter
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [
-        valueFailure,
-        ${classInfo.namedParameters.map((param) => '${param.name},').join()}
+         ${invalidValueObjectParams.allParameters.map((param) => '${param.name},').join()}
       ];
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeTester(
-      StringBuffer classBuffer, MultiValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeTester {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${className}Tester extends ValueObjectTester<${classInfo.valueFailure}, ${classInfo.invalid},
     ${classInfo.valid}, $className, ${classInfo.modddelInput}> {
     ''');
 
     /// constructor
-    classBuffer.writeln('''
+    buffer.writeln('''
     const ${className}Tester({
       int maxSutDescriptionLength = $maxSutDescriptionLength,
       String isSanitizedGroupDescription = 'Should be sanitized',
@@ -361,72 +441,67 @@ class MultiValueObjectGenerator {
     ''');
 
     /// makeInput field
-    classBuffer.writeln('''
+    buffer.writeln('''
     final makeInput = ${classInfo.modddelInput}.new;
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 
-  void makeModddelInput(
-      StringBuffer classBuffer, MultiValueObjectClassInfo classInfo) {
-    classBuffer.writeln('''
+  String get makeModddelInput {
+    final buffer = StringBuffer();
+
+    buffer.writeln('''
     class ${classInfo.modddelInput} extends ModddelInput<$className> {
     ''');
 
     /// constructor
-    final constructorParams = classInfo.namedParameters.map(
-      (param) {
-        final declaration = 'this.${param.name}';
-        return param.isRequired
-            ? 'required $declaration,'
-            : param.hasDefaultValue
-                ? '$declaration = ${param.defaultValue},'
-                : '$declaration,';
-      },
-    );
-
-    classBuffer.writeln('''
-    const ${classInfo.modddelInput}({
-      ${constructorParams.join()}
-    });
+    buffer.writeln('''
+    const ${classInfo.modddelInput}(${parametersTemplate.asLocal()});
     ''');
 
     /// class members
-    for (final param in classInfo.namedParameters) {
-      classBuffer.writeln('final ${param.type} ${param.name};');
+    for (final param in parametersTemplate.allParameters) {
+      buffer.writeln('final ${param.type} ${param.name};');
     }
 
     /// props method
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     List<Object?> get props => [
-          ${classInfo.namedParameters.map((p) => '${p.name},').join()}
+          ${parametersTemplate.allParameters.map((p) => '${p.name},').join()}
         ];
     ''');
 
     /// sanitizedInput method
-    final sanitizedConstructorParams = classInfo.namedParameters.map((param) {
+    String mapValidityParam(Parameter param, bool isNamed) {
       final paramName = param.name;
-      return '$paramName: modddel.mapValidity('
+      final result = 'modddel.mapValidity('
           'valid: (v) => v.$paramName, invalid: (i) => i.$paramName),';
-    });
+      return isNamed ? '$paramName: $result' : result;
+    }
 
-    classBuffer.writeln('''
+    buffer.writeln('''
     @override
     ${classInfo.modddelInput} get sanitizedInput {
       final modddel = $className(
-        ${classInfo.namedParameters.map((p) => '${p.name}: ${p.name},').join()}
+         ${parametersTemplate.allPositionalParameters.map((p) => '${p.name},').join()}
+        ${parametersTemplate.namedParameters.map((p) => '${p.name}: ${p.name},').join()}
       );
 
       return ${classInfo.modddelInput}(
-        ${sanitizedConstructorParams.join()}
+        ${parametersTemplate.allPositionalParameters.map((p) => mapValidityParam(p, false)).join()}
+        ${parametersTemplate.namedParameters.map((p) => mapValidityParam(p, true)).join()}
       );
     }
     ''');
 
     /// end
-    classBuffer.writeln('}');
+    buffer.writeln('}');
+
+    return buffer.toString();
   }
 }

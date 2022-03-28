@@ -1,4 +1,7 @@
+// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: prefer_void_to_null
 
 part of 'name.dart';
 
@@ -72,9 +75,63 @@ mixin $Name {
     );
   }
 
+  /// Creates a clone of this MultiValueObject with the new specified values.
+  ///
+  /// The resulting MultiValueObject is totally independent from this
+  /// MultiValueObject. It is validated upon creation, and can be either valid
+  /// or invalid.
+  _$NameCopyWith get copyWith => _$NameCopyWithImpl(
+      mapValidity(valid: (valid) => valid, invalid: (invalid) => invalid));
+
   List<Object?> get props => throw UnimplementedError();
 
   StringifyMode get stringifyMode => StringifyMode.always;
+}
+
+abstract class _$NameCopyWith {
+  Name call({
+    String firstName,
+    String? lastName,
+    bool? hasMiddleName,
+  });
+}
+
+class _$NameCopyWithImpl implements _$NameCopyWith {
+  _$NameCopyWithImpl(this._value);
+
+  final Name _value;
+
+  @override
+  Name call({
+    Object? firstName = modddel,
+    Object? lastName = modddel,
+    Object? hasMiddleName = modddel,
+  }) {
+    return _value.mapValidity(
+      valid: (valid) => $Name._create(
+        firstName: firstName == modddel
+            ? valid.firstName
+            : firstName as String, // ignore: cast_nullable_to_non_nullable
+        lastName: lastName == modddel
+            ? valid.lastName
+            : lastName as String?, // ignore: cast_nullable_to_non_nullable
+        hasMiddleName: hasMiddleName == modddel
+            ? valid.hasMiddleName
+            : hasMiddleName as bool?, // ignore: cast_nullable_to_non_nullable
+      ),
+      invalid: (invalid) => $Name._create(
+        firstName: firstName == modddel
+            ? invalid.firstName
+            : firstName as String, // ignore: cast_nullable_to_non_nullable
+        lastName: lastName == modddel
+            ? invalid.lastName
+            : lastName as String?, // ignore: cast_nullable_to_non_nullable
+        hasMiddleName: hasMiddleName == modddel
+            ? invalid.hasMiddleName
+            : hasMiddleName as bool?, // ignore: cast_nullable_to_non_nullable
+      ),
+    );
+  }
 }
 
 class _NameHolder {

@@ -5,7 +5,7 @@ import 'package:kt_dart/collection.dart';
 import 'package:modddels_annotations/modddels_annotations.dart';
 
 part 'namelist.freezed.dart';
-part 'namelist.g.dart';
+part 'namelist.modddel.dart';
 
 @modddel
 class NameList extends ListGeneralEntity<NameListGeneralFailure,
